@@ -1,0 +1,25 @@
+{
+  "name": "FFGS Tool",
+  "authors": [
+    "SERVIR SEA"
+  ],
+  "description": "ffgsFGS for Mekong region",
+  "main": "index.js",
+  "keywords": [
+    "ffgs"
+  ],
+  "license": "MIT",
+  "homepage": "http://127.0.0.1:8000",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "static/vendor",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "bootstrap": "^5.1.3",
+    "components-font-awesome": "^5.15.4"
+  }
+}

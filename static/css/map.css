@@ -1,0 +1,239 @@
+.sidebar{
+    height: calc(100% - 105px);
+    width: 60px;
+    color: white;
+    background-color: #303235;
+    position: fixed;
+}
+.map .btn-group{
+    top: 0;
+    margin-left: 460px;
+    z-index: 999;
+}
+@media only screen and (max-width: 600px) {
+    .sidebar {
+        display: none;
+    }
+}
+.sidebar-content{
+    height: calc(100% - 105px);
+    width: 350px;
+    position: fixed;
+    top: 40;
+    left: 0;
+    background-color: #e9ecef;
+    overflow: auto;
+    transition: 0.5s;
+    padding-top: 0px;
+    display: block;
+    z-index: 1;
+}
+.bottombar{
+    position: absolute;
+    z-index: 1;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background-color: #fff;
+    border-top: 1px solid #eee;
+}
+@media only screen and (min-width: 601px) {
+    .bottombar {
+        display: none;
+    }
+}
+#bottom-tabContent {
+    display: none;
+}
+@media only screen and (min-width: 601px) {
+    #bottom-tabContent {
+        display: none;
+    }
+}
+#map {
+    position: fixed;
+    height: calc(100% - 105px); 
+    width: calc(100% - 60px);
+    margin-left: 60px;
+}
+@media only screen and (max-width: 600px) {
+    #map {
+        position: fixed;
+        height: calc(100% - 122px); 
+        width: 100%;
+        margin-left: 0px;
+    }
+}
+.sidebar .nav .nav-link{
+    background-color: #303235;
+    color: #fff;
+    border-radius: none;
+    border: none;
+    outline: none;
+}
+.bottombar .nav .nav-link{
+    color: #000;
+    border-radius: none;
+    border: none;
+    outline: none;
+}
+.bottombar .nav .nav-link:hover{
+    color: blue;
+}
+.bottombar .nav .active{
+    /* background-color: #303235; */
+    color: #3f50b5;
+}
+.sidebar .nav .nav-link:hover{
+    background-color: lightgray;
+    color: #000;
+    border-radius: none;
+    border: none;
+    outline: none;
+}
+.sidebar .nav .active{
+    background-color: #303235;
+    color: #e9e9ed;
+}
+#bottom-tabContent{
+    position: absolute;
+    z-index: 1;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background-color: #fff;
+    margin-bottom: 56px;
+    height: 300px;
+}
+.sidebar-content .nav-tabs .nav-link{
+    color: gray;
+}
+.sidebar-content .nav-tabs .active{
+    color: #000;
+    background: none;
+    border-bottom: 2px solid #000;
+}
+.nav-basemap{
+    overflow-y: scroll !important; 
+}
+.nav-basemap .active{
+    background-color: rgba(41, 50, 60);
+    /* opacity: 0.5; */
+    color: white;
+}
+.nav-basemap .basemap-card{
+    background-color: rgba(41, 50, 60, 0.5);
+    color: #fff;
+}
+.nav-basemap .basemap-card img{
+    /* height: 30px; */
+    margin-left: 15px;
+    margin-top: 10px;
+    margin-bottom: 10px;
+    width: 100%;
+    height: 40px;
+    border-radius: 0;
+}
+.basemap-card:hover{
+    background-color: rgba(41, 50, 60, 0.8);
+    color: white;
+    cursor: pointer;
+}
+.bottom-nav-basemap{
+    overflow-y: scroll !important; 
+}
+.bottom-nav-basemap .active{
+    background-color: rgba(41, 50, 60, 0.8);
+    color: white;
+}
+.bottom-nav-basemap .bottom-basemap-card:hover{
+    background-color: rgba(41, 50, 60, 0.8);
+    color: white;
+    cursor: pointer;
+}
+.bottom-basemap-card img{
+    width: 100%;
+    height: 60px;
+    border-radius: 0;
+}
+/* .adm2-popup-table {
+    max-width: 250px;
+    max-height: 250px;
+    background-color: #000;
+}
+.table{
+    color: #fff;
+} */
+/* .leaflet-control-container {position: absolute; margin-left: 300px;}  */
+.leaflet-left  {
+    margin-left: 300px;
+}
+/* .leaflet-control-attribution{
+    z-index: 200;
+} */
+#rightSidebar {
+    position: fixed;
+    top: 105px;
+    right: 0px;
+    padding-top: 30px;
+    padding-bottom: 30px;
+    padding-left: 10px;
+    padding-right: 10px;
+    border-top-left-radius: 15px;
+    border-bottom-left-radius: 0px;
+    z-index: 400;
+}
+#rightSidebarContent{
+    position: fixed;
+    height: calc(100% - 120px);
+    width: 250px;
+    top: 40;
+    right: 0;
+    background-color: #e9ecef;
+    display: none;
+    z-index: 400;
+}
+.circle {
+    height: 40px;
+    width: 40px;
+    background-color: gray;
+    border-radius: 50%;
+}
+#riskList {
+    cursor: pointer;
+    overflow-y: scroll;
+    height: calc(100% - 65px);
+}
+#popContent {
+    position: fixed;
+    height: calc(100% - 105px);
+    width: 350px;
+    top: 40;
+    right: 260px;
+    background-color: #e9ecef;
+    display: none;
+    z-index: 400;
+}
+#expandPop {
+    display: none;
+}
+#riskInfo {
+    overflow-y: scroll;
+    height: calc(100% - 65px);
+}
+/* Light Background Color */
+.btn-outline-warning {
+    background-color: #f8f9fa;
+    border-color: transparent;
+    color: #212529;
+}
+
+/* Orange Active Color */
+.btn-check:checked + .btn-outline-warning {
+    background-color: orange;
+    border-color: transparent;
+    color: #000;
+}
+.custom-transparent td, th{
+    background-color: transparent !important;
+}

@@ -1,0 +1,82 @@
+{% load static %}
+<div class="container mb-0 pb-0">
+    <!-- Navigation Partners Logo -->
+    <div class="row">
+        <!-- Mobile view -->
+        <div class="d-block d-sm-none">
+            <div class="row">
+                <ul class="d-flex justify-content-between list-group list-group-horizontal">
+                    <li class="list-group-item">
+                        <a href="https://www.usaid.gov/" target="_blank"><img class="img-fluid" src="{% static 'img/usaid.png' %}" alt="USAID"></a>
+                    </li>
+                    <li class="list-group-item">
+                        <a href="https://www.nasa.gov/" target="_blank"><img class="img-fluid nasa" src="{% static 'img/nasa-logo.svg' %}" alt="NASA"></a>
+                    </li>
+                </ul>
+            </div>
+            <div class="row">
+                <ul class="d-flex justify-content-between list-group list-group-horizontal">
+                    <li class="list-group-item">
+                        <a href="https://www.adpc.net/" target="_blank"><img class="adpc" src="{% static 'img/adpc.png' %}" alt="ADPC"></a>
+                    </li>
+                    <li class="list-group-item">
+                        <a href="https://servir.adpc.net/" target="_blank"><img class="img-fluid" src="{% static 'img/servir-sea.png' %}" alt="SERVIR-SEA"></a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        <!-- Desktop/Laptop view -->
+        <div class="d-none d-sm-block">
+            <div class="row">
+                <div class="col-8 d-flex justify-content-start">
+                    <ul class="list-group list-group-horizontal">
+                        <li class="list-group-item">
+                            <a href="https://www.usaid.gov/" target="_blank"><img class="img-fluid text-center usaid" src="{% static 'img/usaid.png' %}" alt="USAID"></a>
+                        </li>
+                        <li class="list-group-item">
+                            <a href="https://www.nasa.gov/" target="_blank"><img class="img-fluid nasa" src="{% static 'img/nasa-logo.svg' %}" alt="NASA"></a>
+                        </li>
+                        <li class="list-group-item">
+                            <a href="https://www.adpc.net/" target="_blank"><img class="img-fluid adpc pt-1" src="{% static 'img/adpc.png' %}" alt="ADPC"></a>
+                        </li>
+                        <li class="list-group-item">
+                            <a href="https://www.mrcmekong.org/" target="_blank"><img class="img-fluid mrc" src="{% static 'img/mrc-logo.png' %}" alt="Mekong River Commission"></a>
+                        </li>
+                    </ul>
+                </div>
+                <div class="col-4">
+                    <ul class="d-flex justify-content-end list-group list-group-horizontal">
+                        <li class="list-group-item">
+                            <a href="https://servir.adpc.net/" target="_blank"><img class="img-fluid servir-sea pt-1" src="{% static 'img/servir-sea.png' %}" alt="SERVIR-SEA"></a>
+                        </li>
+                    </ul> 
+                </div>   
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Navigation -->
+<div class="navigation mb-0 pb-0">
+    <div class="container mb-0 pb-0">
+        <nav class="navbar navbar-expand-lg mb-0 pb-0 sticky-top">
+            <a class="navbar-brand" href="/">
+                MEKONG FLASH FLOOD GUIDANCE
+            </a>
+            <button class="navbar-toggler ms-auto" type="button" data-bs-toggle="collapse" data-bs-target="#navbarTogglerMenu" aria-controls="navbarTogglerMenu" aria-expanded="false" aria-label="Toggle navigation">
+                <span><i class="fa fa-bars text-white"></i></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarTogglerMenu">
+                <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
+                    {% url 'bulletin' as bulletinPage %} 
+                    <li class="nav-item {% if request.path == bulletinPage %}active{% endif %}">
+                        <a class="nav-link" href="{{ bulletinPage }}">Bulletin</a>
+                    </li>
+                    {% url 'home' as homePage %} 
+                    <li class="nav-item {% if request.path == homePage %}active{% endif %}">
+                        <a class="nav-link" href="{{ homePage }}">Map</a>
+                    </li>
+                </ul>
+            </div>
+        </nav>
+    </div>
+</div>
