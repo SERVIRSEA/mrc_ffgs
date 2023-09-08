@@ -182,6 +182,7 @@
     border-top-left-radius: 15px;
     border-bottom-left-radius: 0px;
     z-index: 400;
+    display: none;
 }
 #rightSidebarContent{
     position: fixed;
@@ -190,7 +191,7 @@
     top: 40;
     right: 0;
     background-color: #e9ecef;
-    display: none;
+    display: block;
     z-index: 400;
 }
 .circle {
@@ -236,4 +237,31 @@
 }
 .custom-transparent td, th{
     background-color: transparent !important;
+}
+
+#datePickerContainer {
+    display: flex;
+    flex-wrap: wrap;
+    border: 1px solid black;
+    max-width: 210px;
+}
+
+#datePickerContainer span {
+    padding: 5px;
+    border: 1px solid #ccc;
+    flex: 1 0 30px;
+    text-align: center;
+}
+
+#datePickerContainer span.clickable {
+    cursor: pointer;
+}
+
+#datePickerContainer span.clickable:hover {
+    background-color: #eaeaea;
+}
+
+#datePickerContainer span.disabled {
+    color: #aaa;  
+    cursor: not-allowed;
 }

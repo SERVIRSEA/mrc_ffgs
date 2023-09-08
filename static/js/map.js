@@ -37,7 +37,7 @@ document.addEventListener("DOMContentLoaded", function() {
     var map = L.map('map', MapOtions);
 
     // Set default basemap
-    var basemap_layer = L.tileLayer('https://api.mapbox.com/styles/v1/mapbox/dark-v10/tiles/256/{z}/{x}/{y}?access_token=pk.eyJ1Ijoia2FtYWxoMjciLCJhIjoiY2t3b2Roc2M3MDF2bDJ2cDY0ZmppdXl0MCJ9.Gn5rUJgaap_KDcnhyROMzQ', {
+    var basemap_layer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}', {
         tileSize: 256,
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">Mapbox| OpenStreetMap</a> contributors'
     }).addTo(map);
@@ -97,23 +97,25 @@ document.addEventListener("DOMContentLoaded", function() {
     const caches = {
         '6hrs': {},
         '12hrs': {},
-        '24hrs': {}
+        '24hrs': {},
+        'dates': {}
     };
     const urls = {
         '6hrs': 'get-alert-stat-6hrs/',
         '12hrs': 'get-risk-stat-12hrs/',
-        '24hrs': 'get-risk-stat-24hrs/'
+        '24hrs': 'get-risk-stat-24hrs/',
+        'dates': 'get-datelist/'
     };
 
-    // Generic function to fetch data based on the provided duration
-    async function getStats(duration) {
+    // Generic function to fetch data based on the provided param
+    async function getStats(param) {
         try {
-            if (Object.keys(caches[duration]).length !== 0) {
-                return caches[duration];
+            if (Object.keys(caches[param]).length !== 0) {
+                return caches[param];
             }
-            const response = await fetch(urls[duration]);
+            const response = await fetch(urls[param]);
             const data = await response.json();
-            caches[duration] = data;
+            caches[param] = data;
             return data;
         } catch (error) {
             console.error('Error:', error);
@@ -304,7 +306,9 @@ document.addEventListener("DOMContentLoaded", function() {
     // Fetch and display initial 6-hour data on page load
     (async function init() {
         const data = await getStats('6hrs');
+        const dateList = await getStats('dates')
         updateTable(data);
+        // console.log(dateList)
     })();
 
     // function onEachFeature(feature, subpLayer) {
@@ -585,7 +589,7 @@ document.addEventListener("DOMContentLoaded", function() {
     function getStyle(param, feature, data) {
         const ffgVal = data.find(x => x && x.BASIN === feature.properties.value)?.[param];
         // console.log(ffgVal)
-        const defaultStyle = { color: colors.white, weight: 1, opacity: 1, fillOpacity: 0.5 };
+        const defaultStyle = { color: colors.white, weight: 1, opacity: 1, fillOpacity: 0.8 };
         const paramStyles = styles[param];
         if (!paramStyles) return defaultStyle;
     
@@ -644,7 +648,7 @@ document.addEventListener("DOMContentLoaded", function() {
                 case 'High':
                     return 'red';
                 default:
-                    return 'white';
+                    return 'none';
             }
         }
     
@@ -652,7 +656,13 @@ document.addEventListener("DOMContentLoaded", function() {
             const fid = feature.properties.ID_2;
             const cat = getAlertValueById(param, fid);
             const color = getColorbyCategory(cat);
-            const defaultStyle = { color: colors.white, weight: 1, opacity: 1, fillOpacity: 0.5 };
+            let defaultStyle = { color: "#000", weight: 1, opacity: 1, fillOpacity: 1 };
+
+            if (color === 'none') {
+                defaultStyle = { ...defaultStyle, fillOpacity: 0, opacity: 0 }; // this will make the feature invisible
+            }
+
+            // const defaultStyle = { color: colors.white, weight: 1, opacity: 1, fillOpacity: 0.5 };
             return color ? {...defaultStyle, color} : defaultStyle; 
         }  
     
@@ -687,7 +697,7 @@ document.addEventListener("DOMContentLoaded", function() {
         ffgsLayer.addData(basinData); // Add new data
         ffgsLayer.setStyle(feature => getStyle(param, feature, parsed_data)); 
     }
-    // updateMap('ASMT');
+    updateMap('MAP06');
 
     document.querySelectorAll('input[name="ffpRadio"]').forEach((elem) => {
         elem.addEventListener("change", function() {
@@ -723,12 +733,12 @@ fetch('/static/data/adm0.geojson')
         style: {
             fillColor: '#9999ff',
             weight: 1,
-            opacity: 1,
-            color: 'white',
-            dashArray: '3',
-            fillOpacity: 0.1
+            opacity: 0.5,
+            color: 'gray',
+            // dashArray: '3',
+            fillOpacity: 0.0
         }
-    });
+    }).addTo(map);
 })
 .catch((error) => {
     console.log(error)
@@ -754,44 +764,20 @@ fetch('/static/data/storm_boundingbox.geojson')
     console.log(error)
 });
 
-// var subprovince_map;
-// fetch('/static/data/subprovincesFFGS_mekong.geojson')
-// .then(response => response.json())
-// .then(data => {
-//     subprovince_map = L.geoJSON(data, {
-//         style: {
-//             fillColor: '#9999ff',
-//             weight: 1,
-//             opacity: 1,
-//             color: 'gray',
-//             dashArray: '3',
-//             fillOpacity: 0.1
-//         }
-//     });
-// })
-// .catch((error) => {
-//     console.log(error)
-// });
-
-// var risk_subprovince;
-// fetch('/static/data/subprovincesFFGS_mekong.geojson')
-// .then(response => response.json())
-// .then(data => {
-//     risk_subprovince = L.geoJSON(data, {
-//         style: {
-//             fillColor: '#9999ff',
-//             weight: 1,
-//             opacity: 1,
-//             color: '#FFF',
-//             dashArray: '3',
-//             fillOpacity: 0.1
-//         }
-//     });
-// //   risk_subprovince.addTo(map);
-// })
-// .catch((error) => {
-//     console.log(error)
-// });
+var subprovince_map;
+async function subProvinceMap(){
+    const subprovince_data = await getsubProvinceData();
+    subprovince_map = L.geoJSON(subprovince_data, {
+        style: {
+            fillColor: '#9999ff',
+            weight: 1,
+            opacity: 1,
+            color: 'gray',
+            dashArray: '3',
+            fillOpacity: 0.5
+        }
+    });
+}
 
 // Load main lakes Geojson
 var mainlakes;
@@ -807,7 +793,7 @@ fetch('/static/data/mainlakes_FFGS.geojson')
             dashArray: '3',
             fillOpacity: 1
         }
-    });
+    }).addTo(map);
 })
 .catch((error) => {
     console.log(error)
@@ -824,9 +810,9 @@ fetch('/static/data/riverMK_FFGS.geojson')
             weight: 2,
             opacity: 1,
             color: 'blue',
-            fillOpacity: 0.1
+            fillOpacity: 0.8
         }
-    });
+    }).addTo(map);
 })
 .catch((error) => {
     console.log(error)
@@ -840,12 +826,12 @@ fetch('/static/data/mekong_basin_area.geojson')
     mekong_basin = L.geoJSON(data, {
         style: {
             fillColor: '#2E86C1',
-            weight: 2,
+            weight: 3,
             opacity: 1,
-            color: '#333',
-            fillOpacity: 0.2
+            color: 'darkgray',
+            fillOpacity: 0.0
         }
-    });
+    }).addTo(map);
 })
 .catch((error) => {
     console.log(error)
@@ -870,14 +856,6 @@ fetch('/static/data/mekong_bb.geojson')
 .catch((error) => {
     console.log(error)
 });
-
-// fetch('/static/')
-// .then(response => response.json())
-// .then(data => {});
-
-// fetch('/static/')
-// .then(response => response.json())
-// .then(data => {});
 
 var rainfall_cb = document.querySelector('#rainfallCB');
 var mlakes_cb = document.querySelector('#lakesCB');
@@ -1084,39 +1062,6 @@ for (var i = 0; i < basemap_list.length; i++) {
             basemap_layer.setUrl('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}');
         }   
     })
-    // basemap_list[i].onclick = function (){
-    //     var elems = document.querySelector(".nav-basemap .active").classList.remove("active");
-    //     console.log(elems)
-        
-    //     let selected_basemap = this.getAttribute('data-layer');
-        
-    //     //console.log(selected_basemap);
-    //     if(selected_basemap === "osm"){
-    //         basemap_layer.setUrl('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'); 
-    //         this.className += " active";
-    //     }else if((selected_basemap === "street")){
-    //         this.className += " active";
-    //         basemap_layer.setUrl('https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}');
-    //     }else if(selected_basemap === "satellite"){
-    //         this.className += " active";
-    //         basemap_layer.setUrl('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}');
-    //     }else if(selected_basemap === "terrain"){
-    //         this.className += " active";
-    //         basemap_layer.setUrl('https://server.arcgisonline.com/ArcGIS/rest/services/World_Terrain_Base/MapServer/tile/{z}/{y}/{x}');
-    //     }
-    //     else if(selected_basemap === "topo"){
-    //         this.className += " active";
-    //         basemap_layer.setUrl('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png');
-    //     }
-    //     else if(selected_basemap === "dark"){
-    //         this.className += " active";
-    //         basemap_layer.setUrl('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png');
-    //     }
-    //     else if(selected_basemap === "gray"){
-    //         this.className += " active";
-    //         basemap_layer.setUrl('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}');
-    //     }     
-    // }
 }
 
 var btmClose = document.querySelector('.bottomClose');

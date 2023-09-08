@@ -38,10 +38,12 @@
         <div class="tab-pane fade show active" id="nav-filter" role="tabpanel" aria-labelledby="filter">  
             <div class="card card-body layer-card m-2 border-0">
                 <!-- <h5>Filter Panel</h5> -->
-                <div class="form-group">
+                <!-- <div class="form-group">
                     <label for="exampleInputEmail1">Select Date</label>
                     <input class="form-control"  type="date" name="select_date" id="select_date" value="2022-10-31">
-                </div>
+                </div> -->
+                <input type="text" id="dateInput" readonly onclick="showDatePicker()">
+                <div id="datePickerContainer"></div>
 
                 <div class="form-check pt-3">
                     <input class="form-check-input" type="checkbox" value="" id="ffwSubp" checked>
@@ -160,15 +162,15 @@
                     <label class="form-check-label" for="rainfallCB">Realtime Accumulated Rainfall (GSMAP)</label>
                 </div>
                 <div class="form-check form-switch">
-                    <input class="form-check-input" id="lakesCB" type="checkbox">
+                    <input class="form-check-input" id="lakesCB" type="checkbox" checked>
                     <label class="form-check-label" for="lakesCB">Main Lakes</label>
                 </div>
                 <div class="form-check form-switch">
-                    <input class="form-check-input" id="riverCB" type="checkbox">
+                    <input class="form-check-input" id="riverCB" type="checkbox" checked>
                     <label class="form-check-label" for="riverCB">River</label>
                 </div> 
                 <div class="form-check form-switch">
-                    <input class="form-check-input" id="mbaCB" type="checkbox">
+                    <input class="form-check-input" id="mbaCB" type="checkbox" checked>
                     <label class="form-check-label" for="mbaCB">Mekong Basin Area</label>
                 </div>
                 <div class="form-check form-switch">
@@ -185,7 +187,7 @@
                 </div>
 
                 <div class="form-check form-switch">
-                    <input class="form-check-input" id="countryCB" type="checkbox" >
+                    <input class="form-check-input" id="countryCB" type="checkbox" checked>
                     <label class="form-check-label" for="countryCB">Country Boundary</label>
                 </div>
             </div>

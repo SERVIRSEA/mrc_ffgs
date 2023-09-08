@@ -6,6 +6,13 @@ import geopandas as gpd
 from django.http import JsonResponse, HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.clickjacking import xframe_options_exempt
+from django.conf import settings
+
+datelist = settings.DATELIST_PATH
+mrcffgs = settings.MRCFFGS_PATH
+mekongxray = settings.MEKONGXRAY_PATH
+events_country = settings.EVENTS_COUNTRYWISE_PATH
+storms = settings.STORMS_DATA_PATH
 
 class HomePage(TemplateView):
     template_name = 'index.html'
@@ -18,7 +25,7 @@ class BulletinPage(TemplateView):
 def get_mrcffg_value(request):
     param = request.GET.get('param')
     date = '20200601'
-    data = 'static/data/ffgs/mrcffg_'+date+"06.csv"
+    data = mrcffgs+"_"+date+"06.csv"
     df = pd.read_csv(data)
     # filter_df = df[df["BASIN"]==basin_id]
     selected_col = df[["BASIN", param]]
@@ -30,7 +37,7 @@ def get_mrcffg_value(request):
 @xframe_options_exempt
 def get_mrcffg_bulletin_data(request):
     date = '20200601'
-    data = 'static/data/ffgs/mrcffg_'+date+"06.csv"
+    data = mrcffgs+"_"+date+"06.csv"
     df = pd.read_csv(data)
     selected_col = df[["BASIN", "ASMT", "MAP24", "FMAP06", "FFG06", "FFFT06", "FFR12", "FFR24"]]
     data = selected_col.to_json(orient='records')
@@ -70,9 +77,9 @@ def get_alert_stat_6hrs(request):
 
         :rtype: JsonResponse
     """
-    static_data_path = 'static/data/ffgs/FFGS_MekongXray_v2.csv'
+    static_data_path = mekongxray
     date = '20200601'
-    mrcffgs_data_path = 'static/data/ffgs/mrcffg_'+date+"06.csv"
+    mrcffgs_data_path = mrcffgs+"_"+date+"06.csv"
     df1 = pd.read_csv(static_data_path)
     df1[int_columns] = df1[int_columns].astype(int)
     df1[float_columns] = df1[float_columns].astype(float)
@@ -128,9 +135,9 @@ def get_risk_stat_12hrs(request):
 
         :rtype: JsonResponse
     """
-    static_data_path = 'static/data/ffgs/FFGS_MekongXray_v2.csv'
+    static_data_path = mekongxray
     date = '20200601'
-    mrcffgs_data_path = 'static/data/ffgs/mrcffg_'+date+"06.csv"
+    mrcffgs_data_path = mrcffgs+"_"+date+"06.csv"
     df1 = pd.read_csv(static_data_path)
     df1[int_columns] = df1[int_columns].astype(int)
     df1[float_columns] = df1[float_columns].astype(float)
@@ -184,9 +191,9 @@ def get_risk_stat_24hrs(request):
 
         :rtype: JsonResponse
     """
-    static_data_path = 'static/data/ffgs/FFGS_MekongXray_v2.csv'
+    static_data_path = mekongxray
     date = '20200601'
-    mrcffgs_data_path = 'static/data/ffgs/mrcffg_'+date+"06.csv"
+    mrcffgs_data_path = mrcffgs+"_"+date+"06.csv"
     df1 = pd.read_csv(static_data_path)
     df1[int_columns] = df1[int_columns].astype(int)
     df1[float_columns] = df1[float_columns].astype(float)
@@ -226,7 +233,7 @@ def get_risk_stat_24hrs(request):
 @csrf_exempt
 @xframe_options_exempt
 def get_storms(request):
-    data = 'static/data/storms/MK_storm_monsoon.csv'
+    data = storms
     df = pd.read_csv(data)
     scols = df[["Date", "Return_Period"]].copy()
     bins = [0, 10, 50, 500, 1000]
@@ -238,8 +245,17 @@ def get_storms(request):
 @csrf_exempt
 @xframe_options_exempt
 def get_storms_number_by_country(request):
-    data = 'static/data/csv/Events_country.csv'
+    data = events_country
     df = pd.read_csv(data)
     json = df.to_json(orient='records')
     # print(json)
+    return JsonResponse(json, safe=False)
+
+@csrf_exempt
+@xframe_options_exempt
+def get_datelist(request):
+    data = datelist
+    df = pd.read_csv(data)
+    json = df.to_json(orient='values')
+    print(json)
     return JsonResponse(json, safe=False)

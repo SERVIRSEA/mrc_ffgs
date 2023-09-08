@@ -4,6 +4,7 @@ from . import views
 urlpatterns = [
     path('', views.HomePage.as_view(), name='home'),
     path('bulletin/', views.BulletinPage.as_view(), name='bulletin'),
+    path('get-datelist/', views.get_datelist),
     path('get-mrcffg-bulletin-map-data/', views.get_mrcffg_bulletin_data),
     path('get_mrcffg_value/', views.get_mrcffg_value),
     path('get-alert-stat-6hrs/', views.get_alert_stat_6hrs),

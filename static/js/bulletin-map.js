@@ -59,7 +59,7 @@ document.addEventListener("DOMContentLoaded", function() {
         const white = '#FFFFFF';
         const weight = 1;
         const opacity = 1;
-        const fillOpacity = 0.1;
+        const fillOpacity = 0.8;
     
         function getValue(basin_id, param) {
             try {
