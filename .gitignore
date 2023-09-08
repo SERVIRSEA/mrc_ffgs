@@ -3,8 +3,8 @@
 
 #ignore static files
 static/vendor/*
-static/data/*
 static/js/map-backup.js
+static/data/*
 
 #ignore settings
 ffgs/settings.py
