@@ -107,6 +107,76 @@ document.addEventListener("DOMContentLoaded", function() {
         'dates': 'get-datelist/'
     };
 
+    function displayDetail(entry){
+        const dataKeyToElementIdMap = {
+            "NAME_1": "province_name",
+            "NAME_2": "subprovince_name",
+            "M1": "male_pop_m1_subprvnc",
+            "M2": "male_pop_m2_subprvnc",
+            "M3": "male_pop_m3_subprvnc",
+            "F1": "female_pop_f1_subprvnc",
+            "F2": "female_pop_f2_subprvnc",
+            "F3": "female_pop_f3_subprvnc",
+            "RTP1": "highwayRoad_subprvnc", 
+            "RTP2": "primaryRoad_subprvnc", 
+            "RTP3": "secondaryRoad_subprvnc", 
+            "RTP4": "tertiaryRoad_subprvnc", 
+            "Hospital": "hospital_subprvnc", 
+            "GDP": "gdp_subprvnc", 
+            "crop_sqm": "cropLands_subprvnc"
+        };
+        // console.log(entry)
+
+        const elements = ["province_name", "subprovince_name", "female_pop_f1_subprvnc", "female_pop_f2_subprvnc", 
+            "female_pop_f3_subprvnc", "male_pop_m1_subprvnc", "male_pop_m2_subprvnc", 
+            "male_pop_m3_subprvnc", "highwayRoad_subprvnc", "primaryRoad_subprvnc", "secondaryRoad_subprvnc", 
+            "tertiaryRoad_subprvnc", "hospital_subprvnc", "gdp_subprvnc", "cropLands_subprvnc"].map(id => document.querySelector(`#${id}`));
+
+        elements.forEach(el => el.innerHTML = '---');
+
+        if (!entry || Object.keys(entry).length === 0) {
+            return;
+        }
+
+        const totalMale = entry.M1 + entry.M2 + entry.M3;
+        const totalFemale = entry.F1 + entry.F2 + entry.F3;
+        const totalPop = totalMale + totalFemale;
+
+        document.querySelector('#total_male_pop_subprvnc').innerHTML = totalMale === 0 ? '---' : totalMale;
+        document.querySelector('#total_female_pop_subprvnc').innerHTML = totalFemale === 0 ? '---' : totalFemale;
+        document.querySelector('#total_pop_subprvnc').innerHTML = totalPop === 0 ? '---' : totalPop;
+
+        elements.forEach(el => {
+            // Find corresponding data key from the mapping using the element's ID
+            const dataKey = Object.keys(dataKeyToElementIdMap).find(key => dataKeyToElementIdMap[key] === el.id);
+        
+            const value = entry[dataKey];
+        
+            if (value === undefined || value <= 0 || el.id.includes('total_')) {
+                el.innerHTML = '---';
+                return;
+            }
+        
+            el.innerHTML = value;
+        });
+
+        const isoToCountryMap = {
+            "THA": "Thailand",
+            "VNM": "Vietnam",
+            "KHM": "Cambodia",
+            "LAO": "Laos"
+        };
+        
+        const iso = entry.ISO;
+        
+        const country = isoToCountryMap[iso];
+        if (country) {
+            document.querySelector("#country_name").innerHTML = country;
+        } else {
+            document.querySelector("#country_name").innerHTML = "---";
+        }
+    }
+
     // Generic function to fetch data based on the provided param
     async function getStats(param) {
         try {
@@ -165,9 +235,9 @@ document.addEventListener("DOMContentLoaded", function() {
         };
 
         const alertColors = {
-            "High": "red",
-            "Medium": "orange",
-            "Low": "green"
+            "High": "#FF0000",
+            "Medium": "#FFA500",
+            "Low": "#FFFF00"
         };
         
         const sortedData = parsed_data.sort((a, b) => {
@@ -196,6 +266,7 @@ document.addEventListener("DOMContentLoaded", function() {
             circle.className = 'circle';
             circle.style.backgroundColor = alertColors[entry.Alert_6Hrs];
             circleDiv.appendChild(circle);
+            // console.log(entry.Alert_6Hrs)
             
             const detailsDiv = document.createElement('div');
             detailsDiv.className = "col-sm-9";
@@ -217,74 +288,74 @@ document.addEventListener("DOMContentLoaded", function() {
                 // console.log(entry);
             });
 
-            function displayDetail(entry){
-                const dataKeyToElementIdMap = {
-                    "NAME_1": "province_name",
-                    "NAME_2": "subprovince_name",
-                    "M1": "male_pop_m1_subprvnc",
-                    "M2": "male_pop_m2_subprvnc",
-                    "M3": "male_pop_m3_subprvnc",
-                    "F1": "female_pop_f1_subprvnc",
-                    "F2": "female_pop_f2_subprvnc",
-                    "F3": "female_pop_f3_subprvnc",
-                    "RTP1": "highwayRoad_subprvnc", 
-                    "RTP2": "primaryRoad_subprvnc", 
-                    "RTP3": "secondaryRoad_subprvnc", 
-                    "RTP4": "tertiaryRoad_subprvnc", 
-                    "Hospital": "hospital_subprvnc", 
-                    "GDP": "gdp_subprvnc", 
-                    "crop_sqm": "cropLands_subprvnc"
-                };
+            // function displayDetail(entry){
+            //     const dataKeyToElementIdMap = {
+            //         "NAME_1": "province_name",
+            //         "NAME_2": "subprovince_name",
+            //         "M1": "male_pop_m1_subprvnc",
+            //         "M2": "male_pop_m2_subprvnc",
+            //         "M3": "male_pop_m3_subprvnc",
+            //         "F1": "female_pop_f1_subprvnc",
+            //         "F2": "female_pop_f2_subprvnc",
+            //         "F3": "female_pop_f3_subprvnc",
+            //         "RTP1": "highwayRoad_subprvnc", 
+            //         "RTP2": "primaryRoad_subprvnc", 
+            //         "RTP3": "secondaryRoad_subprvnc", 
+            //         "RTP4": "tertiaryRoad_subprvnc", 
+            //         "Hospital": "hospital_subprvnc", 
+            //         "GDP": "gdp_subprvnc", 
+            //         "crop_sqm": "cropLands_subprvnc"
+            //     };
 
-                const elements = ["province_name", "subprovince_name", "female_pop_f1_subprvnc", "female_pop_f2_subprvnc", 
-                    "female_pop_f3_subprvnc", "male_pop_m1_subprvnc", "male_pop_m2_subprvnc", 
-                    "male_pop_m3_subprvnc", "highwayRoad_subprvnc", "primaryRoad_subprvnc", "secondaryRoad_subprvnc", 
-                    "tertiaryRoad_subprvnc", "hospital_subprvnc", "gdp_subprvnc", "cropLands_subprvnc"].map(id => document.querySelector(`#${id}`));
+            //     const elements = ["province_name", "subprovince_name", "female_pop_f1_subprvnc", "female_pop_f2_subprvnc", 
+            //         "female_pop_f3_subprvnc", "male_pop_m1_subprvnc", "male_pop_m2_subprvnc", 
+            //         "male_pop_m3_subprvnc", "highwayRoad_subprvnc", "primaryRoad_subprvnc", "secondaryRoad_subprvnc", 
+            //         "tertiaryRoad_subprvnc", "hospital_subprvnc", "gdp_subprvnc", "cropLands_subprvnc"].map(id => document.querySelector(`#${id}`));
 
-                elements.forEach(el => el.innerHTML = '---');
+            //     elements.forEach(el => el.innerHTML = '---');
 
-                if (!entry || Object.keys(entry).length === 0) {
-                    return;
-                }
+            //     if (!entry || Object.keys(entry).length === 0) {
+            //         return;
+            //     }
 
-                const totalMale = entry.M1 + entry.M2 + entry.M3;
-                const totalFemale = entry.F1 + entry.F2 + entry.F3;
-                const totalPop = totalMale + totalFemale;
+            //     const totalMale = entry.M1 + entry.M2 + entry.M3;
+            //     const totalFemale = entry.F1 + entry.F2 + entry.F3;
+            //     const totalPop = totalMale + totalFemale;
 
-                document.querySelector('#total_male_pop_subprvnc').innerHTML = totalMale === 0 ? '---' : totalMale;
-                document.querySelector('#total_female_pop_subprvnc').innerHTML = totalFemale === 0 ? '---' : totalFemale;
-                document.querySelector('#total_pop_subprvnc').innerHTML = totalPop === 0 ? '---' : totalPop;
+            //     document.querySelector('#total_male_pop_subprvnc').innerHTML = totalMale === 0 ? '---' : totalMale;
+            //     document.querySelector('#total_female_pop_subprvnc').innerHTML = totalFemale === 0 ? '---' : totalFemale;
+            //     document.querySelector('#total_pop_subprvnc').innerHTML = totalPop === 0 ? '---' : totalPop;
 
-                elements.forEach(el => {
-                    // Find corresponding data key from the mapping using the element's ID
-                    const dataKey = Object.keys(dataKeyToElementIdMap).find(key => dataKeyToElementIdMap[key] === el.id);
+            //     elements.forEach(el => {
+            //         // Find corresponding data key from the mapping using the element's ID
+            //         const dataKey = Object.keys(dataKeyToElementIdMap).find(key => dataKeyToElementIdMap[key] === el.id);
                 
-                    const value = entry[dataKey];
+            //         const value = entry[dataKey];
                 
-                    if (value === undefined || value <= 0 || el.id.includes('total_')) {
-                        el.innerHTML = '---';
-                        return;
-                    }
+            //         if (value === undefined || value <= 0 || el.id.includes('total_')) {
+            //             el.innerHTML = '---';
+            //             return;
+            //         }
                 
-                    el.innerHTML = value;
-                });
+            //         el.innerHTML = value;
+            //     });
 
-                const isoToCountryMap = {
-                    "THA": "Thailand",
-                    "VNM": "Vietnam",
-                    "KHM": "Cambodia",
-                    "LAO": "Laos"
-                };
+            //     const isoToCountryMap = {
+            //         "THA": "Thailand",
+            //         "VNM": "Vietnam",
+            //         "KHM": "Cambodia",
+            //         "LAO": "Laos"
+            //     };
                 
-                const iso = entry.ISO;
+            //     const iso = entry.ISO;
                 
-                const country = isoToCountryMap[iso];
-                if (country) {
-                    document.querySelector("#country_name").innerHTML = country;
-                } else {
-                    document.querySelector("#country_name").innerHTML = "---";
-                }
-            }
+            //     const country = isoToCountryMap[iso];
+            //     if (country) {
+            //         document.querySelector("#country_name").innerHTML = country;
+            //     } else {
+            //         document.querySelector("#country_name").innerHTML = "---";
+            //     }
+            // }
         });
     }
 
@@ -601,6 +672,31 @@ document.addEventListener("DOMContentLoaded", function() {
         return defaultStyle;
     }
 
+    function onEachFeature(feature, layer) {
+        layer.on({
+            click: onSubProvinceClick
+        });
+        layer.bindTooltip(feature.properties.NAME_2);
+    }
+    
+    async function onSubProvinceClick(e) {
+        const clickedFeature = e.target.feature;
+        const fid = clickedFeature.properties.ID_2;
+        const data = await getStats("6hrs");
+        // console.log(data)
+        const parsed_data = JSON.parse(data);
+        const filteredData = parsed_data.filter(item => item.ID_2 === fid);
+        const entry = filteredData[0]
+        // console.log(filteredData);
+        displayDetail(entry);
+        popContent.style.display = 'block';
+    }
+    
+    // Add this in your updateSubProvinceMap function
+    subProvinceLayer.on('layeradd', function (e) {
+        onEachFeature(e.layer.feature, e.layer);
+    });
+
     async function updateSubProvinceMap(param){
         function determineStatsParam(param) {
             switch (param) {
@@ -667,7 +763,10 @@ document.addEventListener("DOMContentLoaded", function() {
         }  
     
         subProvinceLayer.clearLayers(); 
-        subProvinceLayer.addData(subProvinceData); 
+        // subProvinceLayer.addData(subProvinceData); 
+        subProvinceLayer.addData(subProvinceData, {
+            onEachFeature: onEachFeature
+        });
         subProvinceLayer.setStyle(feature => defineStyle(param, feature)); 
     }
     
@@ -786,7 +885,7 @@ fetch('/static/data/mainlakes_FFGS.geojson')
 .then(data => {
     mainlakes = L.geoJSON(data, {
         style: {
-            fillColor: '#40E0D0',
+            fillColor: 'darkgray',
             weight: 0,
             opacity: 0.1,
             color: 'white',
