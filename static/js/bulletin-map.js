@@ -28,7 +28,7 @@ document.addEventListener("DOMContentLoaded", function() {
     }
 
     const bulletin_map_data = {};
-    const bulletin_map_data_url = 'http://127.0.0.1:8000/get-mrcffg-bulletin-map-data/';
+    const bulletin_map_data_url = '/get-mrcffg-bulletin-map-data/';
 
     async function getBulletinMapData() {
         try {

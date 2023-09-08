@@ -100,9 +100,9 @@ document.addEventListener("DOMContentLoaded", function() {
         '24hrs': {}
     };
     const urls = {
-        '6hrs': 'http://127.0.0.1:8000/get-alert-stat-6hrs/',
-        '12hrs': 'http://127.0.0.1:8000/get-risk-stat-12hrs/',
-        '24hrs': 'http://127.0.0.1:8000/get-risk-stat-24hrs/'
+        '6hrs': 'get-alert-stat-6hrs/',
+        '12hrs': 'get-risk-stat-12hrs/',
+        '24hrs': 'get-risk-stat-24hrs/'
     };
 
     // Generic function to fetch data based on the provided duration
@@ -754,44 +754,44 @@ fetch('/static/data/storm_boundingbox.geojson')
     console.log(error)
 });
 
-var subprovince_map;
-fetch('/static/data/subprovincesFFGS_mekong.geojson')
-.then(response => response.json())
-.then(data => {
-    subprovince_map = L.geoJSON(data, {
-        style: {
-            fillColor: '#9999ff',
-            weight: 1,
-            opacity: 1,
-            color: 'gray',
-            dashArray: '3',
-            fillOpacity: 0.1
-        }
-    });
-})
-.catch((error) => {
-    console.log(error)
-});
+// var subprovince_map;
+// fetch('/static/data/subprovincesFFGS_mekong.geojson')
+// .then(response => response.json())
+// .then(data => {
+//     subprovince_map = L.geoJSON(data, {
+//         style: {
+//             fillColor: '#9999ff',
+//             weight: 1,
+//             opacity: 1,
+//             color: 'gray',
+//             dashArray: '3',
+//             fillOpacity: 0.1
+//         }
+//     });
+// })
+// .catch((error) => {
+//     console.log(error)
+// });
 
-var risk_subprovince;
-fetch('/static/data/subprovincesFFGS_mekong.geojson')
-.then(response => response.json())
-.then(data => {
-    risk_subprovince = L.geoJSON(data, {
-        style: {
-            fillColor: '#9999ff',
-            weight: 1,
-            opacity: 1,
-            color: '#FFF',
-            dashArray: '3',
-            fillOpacity: 0.1
-        }
-    });
-//   risk_subprovince.addTo(map);
-})
-.catch((error) => {
-    console.log(error)
-});
+// var risk_subprovince;
+// fetch('/static/data/subprovincesFFGS_mekong.geojson')
+// .then(response => response.json())
+// .then(data => {
+//     risk_subprovince = L.geoJSON(data, {
+//         style: {
+//             fillColor: '#9999ff',
+//             weight: 1,
+//             opacity: 1,
+//             color: '#FFF',
+//             dashArray: '3',
+//             fillOpacity: 0.1
+//         }
+//     });
+// //   risk_subprovince.addTo(map);
+// })
+// .catch((error) => {
+//     console.log(error)
+// });
 
 // Load main lakes Geojson
 var mainlakes;

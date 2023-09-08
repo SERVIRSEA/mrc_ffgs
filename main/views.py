@@ -13,11 +13,6 @@ class HomePage(TemplateView):
 class BulletinPage(TemplateView):
     template_name = 'bulletin.html'
 
-def get_riskmap(date):
-    date = date
-    data = '/static/data/ffgs'+date+"-0600_ff_risk.csv"
-    df = pd.read_csv(data)
-
 @csrf_exempt
 @xframe_options_exempt
 def get_mrcffg_value(request):

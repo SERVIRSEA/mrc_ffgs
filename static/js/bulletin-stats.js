@@ -1,6 +1,6 @@
 document.addEventListener("DOMContentLoaded", function() {
-    const storms_url = 'get-storms/';
-    const storms_by_country_url = 'get-storms-number-by-country/'
+    const storms_url = '/get-storms/';
+    const storms_by_country_url = '/get-storms-number-by-country/'
     
     async function getStorms() {
         try {
@@ -140,9 +140,9 @@ document.addEventListener("DOMContentLoaded", function() {
     let risk24hrsDataCache = {};
 
     // URL endpoints for fetching statistical data
-    const alert_stat_6hrs_data_url = 'get-alert-stat-6hrs/';
-    const risk_stat_12hrs_data_url = 'get-risk-stat-12hrs/';
-    const risk_stat_24hrs_data_url = 'get-risk-stat-24hrs/';
+    const alert_stat_6hrs_data_url = '/get-alert-stat-6hrs/';
+    const risk_stat_12hrs_data_url = '/get-risk-stat-12hrs/';
+    const risk_stat_24hrs_data_url = '/get-risk-stat-24hrs/';
 
     /**
     * Fetches 6 hour alert statistical data from the server or retrieves it from the cache.
