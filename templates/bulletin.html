@@ -4,6 +4,22 @@
 {% block container %}
 
 {% include 'navigation.html' %}
+<div class="loader-wrapper" id="loader">
+    <div class="loader"></div>
+</div>
+<div class="container">
+    <div class="row align-items-center mt-5">
+        <div class="col-auto">
+            <p for="dateDropdownBulletin">Select a Date</p>
+        </div>
+        <div class="col-auto">
+            <select class="form-select" id="dateDropdownBulletin"></select>
+        </div>
+        <div class="col-auto">
+            <button class="btn btn-primary" id="updateBulletin">Update Bulletin</button>
+        </div>
+    </div>
+</div>
 <div class="container bulletin-heading mt-5">
         <div class="row pt-4 pb-4">
             <div class="col-1 text-center ps-5">
@@ -15,7 +31,7 @@
         </div>
 </div>
 <div class="container">
-    <h3 class="fw-bold text-center p-4">Friday, 01 September 2023</h3>
+    <h3 class="fw-bold text-center p-4" id="displayDate"></h3>
 </div>
 <div class="container bulletin-sub-heading">
     <div class="row pb-4">
@@ -69,7 +85,7 @@
         <div class="col-md-6">
             <h4 class="fw-bold fs-4 text-center">CRITICAL INFRASTRUCTURE</h4>
             <p class="text-center">(Details in the table below)</p>
-            <ul class="nav nav-tabs temp-tab pt-3" id="ibfwTab" role="tablist">
+            <ul class="nav nav-tabs temp-tab pt-3" id="insTab" role="tablist">
                 <li class="nav-item" role="presentation">
                     <button class="nav-link active" id="tab6hrs" data-bs-toggle="tab" data-bs-target="#6hrs-tab-pane" type="button" role="tab" aria-controls="6hrs-tab-pane" aria-selected="true">06Hrs</button>
                 </li>
@@ -260,7 +276,7 @@
             <div class="card card-body pb-0 mb-0">
                 <ul class="horizontal-list">
                     <li>ASM - 06 hr</li>
-                    <li>2023-07-01 06:00 UTC</li>
+                    <li class="datePlaceholder"></li>
                     <li>REGIONAL</li>
                 </ul>
             </div>
@@ -275,7 +291,7 @@
             <div class="card card-body pb-0 mb-0">
                 <ul class="horizontal-list">
                     <li>MAP - 24 hr</li>
-                    <li>2023-07-01 06:00 UTC</li>
+                    <li class="datePlaceholder"></li>
                     <li>REGIONAL</li>
                 </ul>
             </div>
@@ -290,7 +306,7 @@
             <div class="card card-body pb-0 mb-0">
                 <ul class="horizontal-list">
                     <li>FMAP - 06 hr</li>
-                    <li>2023-07-01 06:00 UTC</li>
+                    <li class="datePlaceholder"></li>
                     <li>REGIONAL</li>
                 </ul>
             </div>
@@ -307,7 +323,7 @@
             <div class="card card-body pb-0 mb-0">
                 <ul class="horizontal-list">
                     <li>FFG - 06 hr</li>
-                    <li>2023-07-01 06:00 UTC</li>
+                    <li class="datePlaceholder"></li>
                     <li>REGIONAL</li>
                 </ul>
             </div>
@@ -322,7 +338,7 @@
             <div class="card card-body pb-0 mb-0">
                 <ul class="horizontal-list">
                     <li>FFFT - 06 hr</li>
-                    <li>2023-07-01 06:00 UTC</li>
+                    <li class="datePlaceholder"></li>
                     <li>REGIONAL</li>
                 </ul>
             </div>
@@ -337,7 +353,7 @@
             <div class="card card-body pb-0 mb-0">
                 <ul class="horizontal-list">
                     <li>FFR - 12 hr</li>
-                    <li>2023-07-01 06:00 UTC</li>
+                    <li class="datePlaceholder"></li>
                     <li>REGIONAL</li>
                 </ul>
             </div>
@@ -354,7 +370,7 @@
             <div class="card card-body pb-0 mb-0">
                 <ul class="horizontal-list">
                     <li>FFR - 24 hr</li>
-                    <li>2023-07-01 06:00 UTC</li>
+                    <li class="datePlaceholder"></li>
                     <li>REGIONAL</li>
                 </ul>
             </div>
@@ -410,6 +426,5 @@
 
 {% block extra_script %}
     <script src="https://code.highcharts.com/highcharts.js"></script>
-    <script src="{% static 'js/bulletin-map.js'  %}"></script>
-    <script src="{% static 'js/bulletin-stats.js'  %}"></script>
+    <script src="{% static 'js/bulletin.js'  %}"></script>
 {% endblock %}

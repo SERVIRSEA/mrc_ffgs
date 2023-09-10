@@ -17,14 +17,13 @@ document.addEventListener("DOMContentLoaded", function() {
             sidebarContent.style.display = "none";
             document.querySelector('.leaflet-left').style.marginLeft = '0px';
         }
-        
-        // document.querySelector('.leaflet-control-scale-line').style.marginLeft = '300px';
     };
+
     closeContentPanel.onclick = function(){
         sidebarContent.style.display = "none";
         document.querySelector('.leaflet-left').style.marginLeft = '0px';
-        // document.querySelector('.leaflet-control-scale-line').style.marginLeft = '0px';
     }
+
     // Define map center
     var MapOtions = {
         center: [19.9162, 102.9560],
@@ -33,6 +32,7 @@ document.addEventListener("DOMContentLoaded", function() {
         minZoom: 5,
         // maxZoom: 14
     }
+
     // Create a map
     var map = L.map('map', MapOtions);
 
@@ -60,6 +60,9 @@ document.addEventListener("DOMContentLoaded", function() {
     var expandPop = document.querySelector('#expandPop');
     var closePop = document.querySelector('#closePop');
     var risk = document.querySelector('#riskList');
+
+    // Get the dropdownDate element
+    var dropdownDate = document.getElementById("dateDropdown");
 
     rightSidebarBtn.onclick = function(){
         if (getComputedStyle(rightSidebarContent).display === "none"){
@@ -93,13 +96,18 @@ document.addEventListener("DOMContentLoaded", function() {
         popContent.style.display = 'block';
     }
 
-    // Caches and URLs for statistical data
+    var ffgsLayer = L.geoJSON();
+    var subProvinceLayer = L.geoJSON().addTo(map);
+
+    // Caches and URLs for data
     const caches = {
         '6hrs': {},
         '12hrs': {},
         '24hrs': {},
         'dates': {}
     };
+
+    // Fetch URLs
     const urls = {
         '6hrs': 'get-alert-stat-6hrs/',
         '12hrs': 'get-risk-stat-12hrs/',
@@ -177,15 +185,37 @@ document.addEventListener("DOMContentLoaded", function() {
         }
     }
 
-    // Generic function to fetch data based on the provided param
-    async function getStats(param) {
+    // Generic function to fetch data based on the provided param and selectedDate
+    async function getStats(param, selectedDate = null) {
         try {
-            if (Object.keys(caches[param]).length !== 0) {
-                return caches[param];
+            // Initialize the cache for the specified param if it doesn't exist
+            if (!caches[param]) {
+                caches[param] = {};
             }
-            const response = await fetch(urls[param]);
+            // Check if data is already in the cache for the specified param and date
+            if (selectedDate && caches[param][selectedDate]) {
+                return caches[param][selectedDate];
+            }
+
+            // Construct the URL with the selectedDate parameter
+            let url = urls[param];
+            if (selectedDate) {
+                url += `?date=${selectedDate}`;
+            }
+
+            const response = await fetch(url);
             const data = await response.json();
-            caches[param] = data;
+
+            // Cache the data based on both param and date
+            if (selectedDate) {
+                if (!caches[param]) {
+                    caches[param] = {};
+                }
+                caches[param][selectedDate] = data;
+            } else {
+                caches[param] = data;
+            }
+
             return data;
         } catch (error) {
             console.error('Error:', error);
@@ -193,7 +223,8 @@ document.addEventListener("DOMContentLoaded", function() {
     }
 
     // Update the table with statistical data
-    async function updateTable(dataToProcess) {
+    async function updateTable(param, selectedDate) {
+        const dataToProcess = await getStats(param, selectedDate);
         const parsed_data = JSON.parse(dataToProcess);
 
         const rightSidebar = document.querySelector("#rightSidebarContent");
@@ -230,20 +261,36 @@ document.addEventListener("DOMContentLoaded", function() {
         
         const sortOrder = {
             "High": 1,
-            "Medium": 2,
+            "Moderate": 2,
             "Low": 3
         };
 
         const alertColors = {
             "High": "#FF0000",
-            "Medium": "#FFA500",
+            "Moderate": "#FFA500",
+            "Low": "#FFFF00"
+        };
+
+        const riskColors = {
+            "High": "#FF0000",
+            "Moderate": "#FFA500",
             "Low": "#FFFF00"
         };
         
         const sortedData = parsed_data.sort((a, b) => {
-            // Primary sorting by Alert_6Hrs
-            if (sortOrder[a.Alert_6Hrs] !== sortOrder[b.Alert_6Hrs]) {
-                return sortOrder[a.Alert_6Hrs] - sortOrder[b.Alert_6Hrs];
+            let propToSortBy;
+
+            if (param === "6hrs") {
+                propToSortBy = "Alert_6Hrs";
+            } else if (param === "12hrs") {
+                propToSortBy = "Risk_12Hrs";
+            } else if (param === "24hrs") {
+                propToSortBy = "Risk_24Hrs";
+            }
+
+            // Primary sorting by the selected property
+            if (sortOrder[a[propToSortBy]] !== sortOrder[b[propToSortBy]]) {
+                return sortOrder[a[propToSortBy]] - sortOrder[b[propToSortBy]];
             }
             
             // Secondary sorting by ISO
@@ -285,219 +332,18 @@ document.addEventListener("DOMContentLoaded", function() {
 
             rowDiv.addEventListener('click', function() {
                 displayDetail(entry);
-                // console.log(entry);
             });
-
-            // function displayDetail(entry){
-            //     const dataKeyToElementIdMap = {
-            //         "NAME_1": "province_name",
-            //         "NAME_2": "subprovince_name",
-            //         "M1": "male_pop_m1_subprvnc",
-            //         "M2": "male_pop_m2_subprvnc",
-            //         "M3": "male_pop_m3_subprvnc",
-            //         "F1": "female_pop_f1_subprvnc",
-            //         "F2": "female_pop_f2_subprvnc",
-            //         "F3": "female_pop_f3_subprvnc",
-            //         "RTP1": "highwayRoad_subprvnc", 
-            //         "RTP2": "primaryRoad_subprvnc", 
-            //         "RTP3": "secondaryRoad_subprvnc", 
-            //         "RTP4": "tertiaryRoad_subprvnc", 
-            //         "Hospital": "hospital_subprvnc", 
-            //         "GDP": "gdp_subprvnc", 
-            //         "crop_sqm": "cropLands_subprvnc"
-            //     };
-
-            //     const elements = ["province_name", "subprovince_name", "female_pop_f1_subprvnc", "female_pop_f2_subprvnc", 
-            //         "female_pop_f3_subprvnc", "male_pop_m1_subprvnc", "male_pop_m2_subprvnc", 
-            //         "male_pop_m3_subprvnc", "highwayRoad_subprvnc", "primaryRoad_subprvnc", "secondaryRoad_subprvnc", 
-            //         "tertiaryRoad_subprvnc", "hospital_subprvnc", "gdp_subprvnc", "cropLands_subprvnc"].map(id => document.querySelector(`#${id}`));
-
-            //     elements.forEach(el => el.innerHTML = '---');
-
-            //     if (!entry || Object.keys(entry).length === 0) {
-            //         return;
-            //     }
-
-            //     const totalMale = entry.M1 + entry.M2 + entry.M3;
-            //     const totalFemale = entry.F1 + entry.F2 + entry.F3;
-            //     const totalPop = totalMale + totalFemale;
-
-            //     document.querySelector('#total_male_pop_subprvnc').innerHTML = totalMale === 0 ? '---' : totalMale;
-            //     document.querySelector('#total_female_pop_subprvnc').innerHTML = totalFemale === 0 ? '---' : totalFemale;
-            //     document.querySelector('#total_pop_subprvnc').innerHTML = totalPop === 0 ? '---' : totalPop;
-
-            //     elements.forEach(el => {
-            //         // Find corresponding data key from the mapping using the element's ID
-            //         const dataKey = Object.keys(dataKeyToElementIdMap).find(key => dataKeyToElementIdMap[key] === el.id);
-                
-            //         const value = entry[dataKey];
-                
-            //         if (value === undefined || value <= 0 || el.id.includes('total_')) {
-            //             el.innerHTML = '---';
-            //             return;
-            //         }
-                
-            //         el.innerHTML = value;
-            //     });
-
-            //     const isoToCountryMap = {
-            //         "THA": "Thailand",
-            //         "VNM": "Vietnam",
-            //         "KHM": "Cambodia",
-            //         "LAO": "Laos"
-            //     };
-                
-            //     const iso = entry.ISO;
-                
-            //     const country = isoToCountryMap[iso];
-            //     if (country) {
-            //         document.querySelector("#country_name").innerHTML = country;
-            //     } else {
-            //         document.querySelector("#country_name").innerHTML = "---";
-            //     }
-            // }
         });
     }
 
-    document.getElementById("btnradio06").addEventListener("click", async function() {
-        const data = await getStats("6hrs");
-        updateTable(data);
-    });
-
-    document.getElementById("btnradio12").addEventListener("click", async function() {
-        const data = await getStats("12hrs");
-        updateTable(data);
-    });
-
-    document.getElementById("btnradio24").addEventListener("click", async function() {
-        const data = await getStats("24hrs");
-        updateTable(data);
-    });
-
-    // Fetch and display initial 6-hour data on page load
-    (async function init() {
-        const data = await getStats('6hrs');
-        const dateList = await getStats('dates')
-        updateTable(data);
-        // console.log(dateList)
-    })();
-
-    // function onEachFeature(feature, subpLayer) {
-    //     var district = feature.properties.NAME_2;
-    //     var province = feature.properties.NAME_1;
-    //     var country = feature.properties.NAME_0;
-    //     var f_0_15 = feature.properties.F_0_15;
-    //     var f_15_65 = feature.properties.F_15_65;
-    //     var f_above_65 = feature.properties.F__65;
-    //     var f_total = f_0_15 + f_15_65 + f_above_65;
-    //     var m_0_15 = feature.properties.M_0_15;
-    //     var m_15_65 = feature.properties.M_15_65;
-    //     var m_above_65 = feature.properties.M__65;    
-    //     var m_total = m_0_15+m_15_65+m_above_65;
-    //     var hospitals = feature.properties.Hospitals;
-    //     var primary = feature.properties.Primary;
-    //     var secondary = feature.properties.Secondary;
-    //     var trunks = feature.properties.Trunks;
-    //     var gdp = feature.properties.GDP_in_cur;
-    //     var total_building = feature.properties.Bulding_nu;
-    //     var cropland = feature.properties.Cropland_E;
-        
-    //     subpLayer.on('mouseover', function (e) {
-    //         this.bindPopup(
-    //             '<h4 class="pt-2 pb-2 fw-bold">'+district+', '+province+', '+country+'</h4>'+
-    //             '<div class="table-responsive">'+
-    //                 '<table class="table">'+
-    //                     '<thead>'+
-    //                         '<tr class="table-secondary">'+
-    //                             '<th>'+"Population"+'</th>'+
-    //                             '<th>'+"Female"+'</th>'+
-    //                             '<th>'+"Male"+'</th>'+
-    //                         '</tr>'+
-    //                     '</thead>'+
-    //                     '<tbody>' +
-    //                         '<tr>'+
-    //                             '<td>'+"Age 0-15"+'</td>'+
-    //                             '<td>'+f_0_15+'</td>'+
-    //                             '<td>'+m_0_15+'</td>'+
-    //                         '</tr>'+
-    //                         '<tr>'+
-    //                             '<td>'+"Age 15-65"+'</td>'+
-    //                             '<td>'+f_15_65+'</td>'+
-    //                             '<td>'+m_15_65+'</td>'+
-    //                         '</tr>'+
-    //                         '<tr>'+
-    //                             '<td>'+"Age >65"+'</td>'+
-    //                             '<td>'+f_above_65+'</td>'+
-    //                             '<td>'+m_above_65+'</td>'+
-    //                         '</tr>'+
-    //                         '<tr>'+
-    //                             '<td>'+"Total"+'</td>'+
-    //                             '<td>'+f_total+'</td>'+
-    //                             '<td>'+m_total+'</td>'+
-    //                         '</tr>'+
-    //                     '</tbody>'+
-    //                     '<thead>'+
-    //                         '<tr class="table-secondary">'+
-    //                             '<th>'+"Health Facilities"+'</th>'+
-    //                             '<th class="text-center" colspan="2">'+"No."+'</th>'+
-    //                         '</tr>'+
-    //                     '</thead>'+
-    //                     '<tbody>'+
-    //                         '<tr>'+
-    //                             '<td>'+ "Hospitals" +'</td>'+
-    //                             '<td class="text-center" colspan="2">'+ hospitals +'</td>'+
-    //                         '</tr>'+
-    //                     '</tbody>'+
-    //                     '<thead>'+
-    //                         '<tr class="table-secondary">'+
-    //                             '<th>'+"Roads"+'</th>'+
-    //                             '<th class="text-center" colspan="2">'+"No."+'</th>'+
-    //                         '</tr>'+
-    //                     '</thead>'+
-    //                     '<tbody>'+
-    //                         '<tr>'+
-    //                             '<td>'+ "Primary" +'</td>'+
-    //                             '<td class="text-center" colspan="2">'+ primary +'</td>'+
-    //                         '</tr>'+
-    //                         '<tr>'+
-    //                             '<td>'+ "Secondary" +'</td>'+
-    //                             '<td class="text-center" colspan="2">'+ secondary +'</td>'+
-    //                         '</tr>'+
-    //                         '<tr>'+
-    //                             '<td>'+ "Trunks" +'</td>'+
-    //                             '<td class="text-center" colspan="2">'+ trunks +'</td>'+
-    //                         '</tr>'+
-    //                         '<tr class="table-secondary">'+
-    //                             '<th>Economy</th>'+
-    //                             '<th>'+""+'</th>'+
-    //                             '<th>'+""+'</th>'+
-    //                         '</tr>'+
-    //                         '<tr>'+
-    //                             '<td>GDP</td>'+
-    //                             '<td class="text-center" colspan="2">'+gdp+'</td>'+
-    //                         '</tr>'+
-    //                         '<tr>'+
-    //                             '<td>Number of Buildings</td>'+
-    //                             '<td class="text-center" colspan="2">'+total_building+'</td>'+
-    //                         '</tr>'+
-    //                         '<tr>'+
-    //                             '<td>Estimated Cropland Area</td>'+
-    //                             '<td class="text-center" colspan="2">'+cropland+'</td>'+
-    //                         '</tr>'+
-    //                     '</tbody>'+
-    //                 '</table>'+
-    //             '</div>'
-    //         )
-    //     });
-    // }
-
+    // Subprovince map
     const subProvinceCache = {};
     const subprovince_url  = '/static/data/subprovincesFFGS_MK.geojson';
 
     async function getsubProvinceData() {
         try {
-            if (subProvinceCache[url]) {
-                return subProvinceCache[url];
+            if (subProvinceCache[subprovince_url]) {
+                return subProvinceCache[subprovince_url];
             }
             const response = await fetch(subprovince_url);
             const data = await response.json();
@@ -507,18 +353,133 @@ document.addEventListener("DOMContentLoaded", function() {
             console.error('Error:', error);
         }
     }
+ 
+    function determineStatsParam(param) {
+        switch (param) {
+            case "FFG06":
+                return '6hrs';
+            case "FFR12":
+                return '12hrs';
+            case "FFR24":
+                return '24hrs';
+            default:
+                return null;  
+        }
+    }
 
+    async function updateSubProvinceMap(param, selectedDate){
+        const statsParam = determineStatsParam(param);
+        if (!statsParam) {
+            console.error('Invalid param provided.');
+            return;
+        }
+    
+        const data = await getStats(statsParam, selectedDate);
+        const parsedData = JSON.parse(data);
+        const subProvinceData = await getsubProvinceData();
+    
+        function getAlertValueById(param, fid) {
+            const filtered = parsedData.find(item => item.ID_2 === fid);
+            switch (param) {
+                case "FFG06":
+                    return filtered ? filtered.Alert_6Hrs : null;
+                case "FFR12":
+                    return filtered ? filtered.Risk_12Hrs : null;
+                case "FFR24":
+                    return filtered ? filtered.Risk_24Hrs : null;
+                default:
+                    return null;  // or some default value if necessary
+            }
+        }
+    
+        function getColorbyCategory(cat) {
+            switch(cat) {
+                case 'Low':
+                    return 'yellow';
+                case 'Moderate':
+                    return 'orange';
+                case 'High':
+                    return 'red';
+                default:
+                    return 'none';
+            }
+        }
+    
+        function defineStyle(param, feature){
+            const fid = feature.properties.ID_2;
+            const cat = getAlertValueById(param, fid);
+            const color = getColorbyCategory(cat);
+            let defaultStyle = { color: "#000", weight: 1, opacity: 1, fillOpacity: 1 };
+
+            if (color === 'none') {
+                defaultStyle = { ...defaultStyle, fillOpacity: 0, opacity: 0 }; // this will make the feature invisible
+            }
+
+            // const defaultStyle = { color: colors.white, weight: 1, opacity: 1, fillOpacity: 0.5 };
+            return color ? {...defaultStyle, color} : defaultStyle; 
+        }  
+
+        // Add this in your updateSubProvinceMap function
+        subProvinceLayer.on('layeradd', function (e) {
+            onEachFeature(e.layer.feature, e.layer);
+        });
+
+        function onEachFeature(feature, layer, data) {
+            layer.on({
+                click: onSubProvinceClick
+            });
+            layer.bindTooltip(feature.properties.NAME_2);
+        }
+
+        async function onSubProvinceClick(e, data) {
+            const clickedFeature = e.target.feature;
+            const fid = clickedFeature.properties.ID_2;
+            const filteredData = parsedData.filter(item => item.ID_2 === fid);
+            const entry = filteredData[0]
+            displayDetail(entry);
+            popContent.style.display = 'block';
+        }
+    
+        subProvinceLayer.clearLayers(); 
+        subProvinceLayer.addData(subProvinceData, {
+            onEachFeature: onEachFeature
+        });
+        subProvinceLayer.setStyle(feature => defineStyle(param, feature)); 
+    }
+
+    document.getElementById("btnradio06").addEventListener("click", async function() {
+        var selectedDate = dropdownDate.value;
+        let param = '6hrs';
+        updateTable(param, selectedDate);
+        updateSubProvinceMap("FFG06", selectedDate);
+    });
+
+    document.getElementById("btnradio12").addEventListener("click", async function() {
+        var selectedDate = dropdownDate.value;
+        let param = '12hrs';
+        updateTable(param, selectedDate);
+        updateSubProvinceMap("FFR12", selectedDate);
+    });
+
+    document.getElementById("btnradio24").addEventListener("click", async function() {
+        var selectedDate = dropdownDate.value;
+        let param = '24hrs';
+        updateTable(param, selectedDate);
+        updateSubProvinceMap("FFR24", selectedDate);
+    });
+    
+    // Basin Map
     var mrcBasinDataCache = {};
-    const url = '/static/data/mekong_mrcffg_basins.geojson';
+    const basin_url = '/static/data/mekong_mrcffg_basins.geojson';
 
     async function getMRCBasinData() {
         try {
-            if (mrcBasinDataCache[url]) {
-                return mrcBasinDataCache[url];
+            if (mrcBasinDataCache[basin_url]) {
+                return mrcBasinDataCache[basin_url];
             }
-            const response = await fetch(url);
+            const response = await fetch(basin_url);
             const data = await response.json();
-            mrcBasinDataCache[url] = data;
+            mrcBasinDataCache[basin_url] = data;
             return data;
         } catch (error) {
             console.error('Error:', error);
@@ -527,23 +488,21 @@ document.addEventListener("DOMContentLoaded", function() {
 
     let mrcffgDataCache = {};
 
-    async function getMRCFFGData(param) {
+    async function getMRCFFGData(param, selectedDate) {
         try {
-            if (mrcffgDataCache[param]) {
-                return mrcffgDataCache[param];
+            const cacheKey = `${param}_${selectedDate}`;
+            if (mrcffgDataCache[cacheKey]) {
+                return mrcffgDataCache[cacheKey];
             }
-            const mrcffg_url = '/get_mrcffg_value/?param=' + param;
+            const mrcffg_url = `/get_mrcffg_value/?param=${param}&date=${selectedDate}`;
             const response = await fetch(mrcffg_url);
             const data = await response.json();
-            mrcffgDataCache[param] = data;
+            mrcffgDataCache[cacheKey] = data;
             return data;
         } catch (error) {
             console.error('Error:', error);
         }
     }
-
-    var ffgsLayer = L.geoJSON();
-    var subProvinceLayer = L.geoJSON().addTo(map);
 
     const colors = {
         yellow: '#FFFF00',
@@ -561,7 +520,7 @@ document.addEventListener("DOMContentLoaded", function() {
     const styles = {
         ASMT: [
             {min: 0.01, max: 0.65, color: colors.yellow},
-            {min: 0.65, max: 0.9, color: colors.lightGreen, fillOpacity: 0.3},
+            {min: 0.65, max: 0.9, color: colors.lightGreen},
             {min: 0.9, max: 1.0, color: colors.blue},
         ],
         MAP01: [
@@ -659,7 +618,6 @@ document.addEventListener("DOMContentLoaded", function() {
 
     function getStyle(param, feature, data) {
         const ffgVal = data.find(x => x && x.BASIN === feature.properties.value)?.[param];
-        // console.log(ffgVal)
         const defaultStyle = { color: colors.white, weight: 1, opacity: 1, fillOpacity: 0.8 };
         const paramStyles = styles[param];
         if (!paramStyles) return defaultStyle;
@@ -671,139 +629,90 @@ document.addEventListener("DOMContentLoaded", function() {
         }
         return defaultStyle;
     }
-
-    function onEachFeature(feature, layer) {
-        layer.on({
-            click: onSubProvinceClick
-        });
-        layer.bindTooltip(feature.properties.NAME_2);
-    }
     
-    async function onSubProvinceClick(e) {
-        const clickedFeature = e.target.feature;
-        const fid = clickedFeature.properties.ID_2;
-        const data = await getStats("6hrs");
-        // console.log(data)
-        const parsed_data = JSON.parse(data);
-        const filteredData = parsed_data.filter(item => item.ID_2 === fid);
-        const entry = filteredData[0]
-        // console.log(filteredData);
-        displayDetail(entry);
-        popContent.style.display = 'block';
-    }
-    
-    // Add this in your updateSubProvinceMap function
-    subProvinceLayer.on('layeradd', function (e) {
-        onEachFeature(e.layer.feature, e.layer);
-    });
-
-    async function updateSubProvinceMap(param){
-        function determineStatsParam(param) {
-            switch (param) {
-                case "FFG06":
-                    return '6hrs';
-                case "FFR12":
-                    return '12hrs';
-                case "FFR24":
-                    return '24hrs';
-                default:
-                    return null;  // or some default value if necessary
-            }
-        }
-    
-        const statsParam = determineStatsParam(param);
-        if (!statsParam) {
-            console.error('Invalid param provided.');
-            return;
-        }
-    
-        const data = await getStats(statsParam);
-        const parsedData = JSON.parse(data);
-        const subProvinceData = await getsubProvinceData();
-    
-        function getAlertValueById(param, fid) {
-            const filtered = parsedData.find(item => item.ID_2 === fid);
-            switch (param) {
-                case "FFG06":
-                    return filtered ? filtered.Alert_6Hrs : null;
-                case "FFR12":
-                    return filtered ? filtered.Risk_12Hrs : null;
-                case "FFR24":
-                    return filtered ? filtered.Risk_24Hrs : null;
-                default:
-                    return null;  // or some default value if necessary
-            }
-        }
-    
-        function getColorbyCategory(cat) {
-            switch(cat) {
-                case 'Low':
-                    return 'yellow';
-                case 'Moderate':
-                    return 'orange';
-                case 'High':
-                    return 'red';
-                default:
-                    return 'none';
-            }
-        }
-    
-        function defineStyle(param, feature){
-            const fid = feature.properties.ID_2;
-            const cat = getAlertValueById(param, fid);
-            const color = getColorbyCategory(cat);
-            let defaultStyle = { color: "#000", weight: 1, opacity: 1, fillOpacity: 1 };
-
-            if (color === 'none') {
-                defaultStyle = { ...defaultStyle, fillOpacity: 0, opacity: 0 }; // this will make the feature invisible
-            }
-
-            // const defaultStyle = { color: colors.white, weight: 1, opacity: 1, fillOpacity: 0.5 };
-            return color ? {...defaultStyle, color} : defaultStyle; 
-        }  
-    
-        subProvinceLayer.clearLayers(); 
-        // subProvinceLayer.addData(subProvinceData); 
-        subProvinceLayer.addData(subProvinceData, {
-            onEachFeature: onEachFeature
-        });
-        subProvinceLayer.setStyle(feature => defineStyle(param, feature)); 
-    }
-    
-    updateSubProvinceMap("FFG06");
-    // Get all radio buttons with the name 'btnradio'
-    let radioButtons = document.querySelectorAll('input[name="btnradio"]');
-
-    const radioMapping = {
-        "btnradio06": "FFG06",
-        "btnradio12": "FFR12",
-        "btnradio24": "FFR24"
-    };
-    
-    radioButtons.forEach(radioButton => {
-        radioButton.addEventListener('change', function() {
-            if (this.checked && radioMapping[this.id]) {
-                updateSubProvinceMap(radioMapping[this.id]);
-            }
-        });
-    });
-    
-    async function updateMap(param){
-        const ffgData = await getMRCFFGData(param);
+    async function updateMap(param, selectedDate){
+        const ffgData = await getMRCFFGData(param, selectedDate);
         const parsed_data = JSON.parse(ffgData);
         const basinData = await getMRCBasinData();
         ffgsLayer.clearLayers();
         ffgsLayer.addData(basinData); // Add new data
         ffgsLayer.setStyle(feature => getStyle(param, feature, parsed_data)); 
     }
-    updateMap('MAP06');
 
     document.querySelectorAll('input[name="ffpRadio"]').forEach((elem) => {
         elem.addEventListener("change", function() {
-            updateMap(this.id);
+            var selectedDate = dropdownDate.value;
+            updateMap(this.id, selectedDate);
         });
     });
 
+    const radioButtonsBasin = document.querySelectorAll('input[name="ffpRadio"]');
+    
+    dropdownDate.addEventListener("change", async function() {
+        const selectedDate = dropdownDate.value; 
+    
+        const radioButtons2 = document.getElementsByName("btnradio");
+        let selectedRadioButton;
+    
+        for(let radioButton of radioButtons2) {
+            if (radioButton.checked) {
+                selectedRadioButton = radioButton;
+                break;
+            }
+        }
+    
+        const radioMapping = {
+            "btnradio06": "FFG06",
+            "btnradio12": "FFR12",
+            "btnradio24": "FFR24"
+        };
+    
+        const id = radioMapping[selectedRadioButton.id];
+
+        let checkedValue;
+
+        radioButtonsBasin.forEach((radio) => {
+            if (radio.checked) {
+                checkedValue = radio.id;
+            }
+        });
+    
+        try {
+            const statsParam = determineStatsParam(id);
+            if (!statsParam) {
+                console.error('Invalid param provided.');
+                return;
+            }
+            // const data = await getStats(statsParam, selectedDate);
+            // updateTable(data);
+            updateTable(statsParam, selectedDate);
+            updateSubProvinceMap(id, selectedDate);
+            updateMap(checkedValue, selectedDate);
+        } catch (error) {
+            console.error("Failed to update data:", error);
+        }
+    });
+
+    // Fetch and display initial 6-hour data on page load
+    (async function init() {
+        let dateList = await getStats('dates');
+        dateList = JSON.parse(dateList);
+
+        // Loop through the dateList and create options
+        dateList.forEach(function(date) {
+            var option = document.createElement("option");
+            option.text = date[0];
+            dropdownDate.add(option);
+        });
+
+        var selectedDate = dropdownDate.value; // Get the selected date
+        // const data = await getStats('6hrs', selectedDate);
+        // updateTable(data);
+        let param = '6hrs';
+        updateTable(param, selectedDate);
+        updateSubProvinceMap("FFG06", selectedDate);
+        updateMap('MAP06', selectedDate);
+    })();
 
     const subp_check = document.querySelector("#ffwSubp");
     subp_check.addEventListener("click", ()=> {
@@ -824,433 +733,433 @@ document.addEventListener("DOMContentLoaded", function() {
     });
 
 
-var adm0;
-fetch('/static/data/adm0.geojson')
-.then(response => response.json())
-.then(data => {
-    adm0 = L.geoJSON(data, {
-        style: {
-            fillColor: '#9999ff',
-            weight: 1,
-            opacity: 0.5,
-            color: 'gray',
-            // dashArray: '3',
-            fillOpacity: 0.0
-        }
-    }).addTo(map);
-})
-.catch((error) => {
-    console.log(error)
-});
-
-// Load geographic coverage area Geojson
-var storm_boundingbox;
-fetch('/static/data/storm_boundingbox.geojson')
-.then(response => response.json())
-.then(data => {
-    storm_boundingbox = L.geoJSON(data, {
-        style: {
-            fillColor: '#9999ff',
-            weight: 2,
-            opacity: 1,
-            color: 'white',
-            dashArray: '3',
-            fillOpacity: 0.1
-       }
+    var adm0;
+    fetch('/static/data/adm0.geojson')
+    .then(response => response.json())
+    .then(data => {
+        adm0 = L.geoJSON(data, {
+            style: {
+                fillColor: '#9999ff',
+                weight: 1,
+                opacity: 0.5,
+                color: 'gray',
+                // dashArray: '3',
+                fillOpacity: 0.0
+            }
+        }).addTo(map);
+    })
+    .catch((error) => {
+        console.log(error)
     });
-})
-.catch((error) => {
-    console.log(error)
-});
 
-var subprovince_map;
-async function subProvinceMap(){
-    const subprovince_data = await getsubProvinceData();
-    subprovince_map = L.geoJSON(subprovince_data, {
-        style: {
-            fillColor: '#9999ff',
-            weight: 1,
-            opacity: 1,
-            color: 'gray',
-            dashArray: '3',
-            fillOpacity: 0.5
+    // Load geographic coverage area Geojson
+    var storm_boundingbox;
+    fetch('/static/data/storm_boundingbox.geojson')
+    .then(response => response.json())
+    .then(data => {
+        storm_boundingbox = L.geoJSON(data, {
+            style: {
+                fillColor: '#9999ff',
+                weight: 2,
+                opacity: 1,
+                color: 'white',
+                dashArray: '3',
+                fillOpacity: 0.1
         }
+        });
+    })
+    .catch((error) => {
+        console.log(error)
     });
-}
 
-// Load main lakes Geojson
-var mainlakes;
-fetch('/static/data/mainlakes_FFGS.geojson')
-.then(response => response.json())
-.then(data => {
-    mainlakes = L.geoJSON(data, {
-        style: {
-            fillColor: 'darkgray',
-            weight: 0,
-            opacity: 0.1,
-            color: 'white',
-            dashArray: '3',
-            fillOpacity: 1
-        }
-    }).addTo(map);
-})
-.catch((error) => {
-    console.log(error)
-});
+    var subprovince_map;
+    async function subProvinceMap(){
+        const subprovince_data = await getsubProvinceData();
+        subprovince_map = L.geoJSON(subprovince_data, {
+            style: {
+                fillColor: '#9999ff',
+                weight: 1,
+                opacity: 1,
+                color: 'gray',
+                dashArray: '3',
+                fillOpacity: 0.5
+            }
+        });
+    }
 
-// Load river Geojson
-var river;
-fetch('/static/data/riverMK_FFGS.geojson')
-.then(response => response.json())
-.then(data => {
-    river = L.geoJSON(data, {
-        style: {
-            fillColor: '#9999ff',
-            weight: 2,
-            opacity: 1,
-            color: 'blue',
-            fillOpacity: 0.8
-        }
-    }).addTo(map);
-})
-.catch((error) => {
-    console.log(error)
-});
-
-// Load mekong basin Geojson
-var mekong_basin;
-fetch('/static/data/mekong_basin_area.geojson')
-.then(response => response.json())
-.then(data => {
-    mekong_basin = L.geoJSON(data, {
-        style: {
-            fillColor: '#2E86C1',
-            weight: 3,
-            opacity: 1,
-            color: 'darkgray',
-            fillOpacity: 0.0
-        }
-    }).addTo(map);
-})
-.catch((error) => {
-    console.log(error)
-});
-
-// Load mekong BBox area Geojson
-var mekong_bb;
-fetch('/static/data/mekong_bb.geojson')
-.then(response => response.json())
-.then(data => {
-    mekong_bb = L.geoJSON(data, {
-        style: {
-            fillColor: '#9999ff',
-            weight: 1,
-            opacity: 1,
-            color: 'white',
-            dashArray: '3',
-            fillOpacity: 0.1
-        }
+    // Load main lakes Geojson
+    var mainlakes;
+    fetch('/static/data/mainlakes_FFGS.geojson')
+    .then(response => response.json())
+    .then(data => {
+        mainlakes = L.geoJSON(data, {
+            style: {
+                fillColor: 'darkgray',
+                weight: 0,
+                opacity: 0.1,
+                color: 'white',
+                dashArray: '3',
+                fillOpacity: 1
+            }
+        }).addTo(map);
+    })
+    .catch((error) => {
+        console.log(error)
     });
-})
-.catch((error) => {
-    console.log(error)
-});
 
-var rainfall_cb = document.querySelector('#rainfallCB');
-var mlakes_cb = document.querySelector('#lakesCB');
-var river_cb = document.querySelector('#riverCB');
-var mba_cb = document.querySelector('#mbaCB');
-var subprov_cb = document.querySelector('#subprovinceCB');
-var gc_cb = document.querySelector('#gcCB');
-var lmbb_cb = document.querySelector('#lmbbCB');
-var country_cb = document.querySelector('#countryCB');
+    // Load river Geojson
+    var river;
+    fetch('/static/data/riverMK_FFGS.geojson')
+    .then(response => response.json())
+    .then(data => {
+        river = L.geoJSON(data, {
+            style: {
+                fillColor: '#9999ff',
+                weight: 2,
+                opacity: 1,
+                color: 'blue',
+                fillOpacity: 0.8
+            }
+        }).addTo(map);
+    })
+    .catch((error) => {
+        console.log(error)
+    });
 
-var rainacc = document.querySelector('#rainacc-control-panel')
+    // Load mekong basin Geojson
+    var mekong_basin;
+    fetch('/static/data/mekong_basin_area.geojson')
+    .then(response => response.json())
+    .then(data => {
+        mekong_basin = L.geoJSON(data, {
+            style: {
+                fillColor: '#2E86C1',
+                weight: 3,
+                opacity: 1,
+                color: 'darkgray',
+                fillOpacity: 0.0
+            }
+        }).addTo(map);
+    })
+    .catch((error) => {
+        console.log(error)
+    });
 
-rainfall_cb.onclick = function() {
-    if(this.checked) {
-        var tdWmsLayer;
-        rainacc.style.display = "block";
-        var btnPlay = document.querySelector("#btn-play");
-        var btnPrev = document.querySelector("#btn-prev");
-        var btnNext = document.querySelector("#btn-next");
-        var btnPause = document.querySelector("#btn-pause");
-        
-        var tdWmsRainLayer = L.tileLayer.wms("https://thredds-servir.adpc.net/thredds/wms/RAINSTORM/rainacc/Rain_accumulation_GSMAP_NOW.nc", {
-            layers: 'rain',
-            format: 'image/png',
-            transparent: true,
-            styles: 'boxfill/rainbow',
-            opacity:1,
-            version:'1.3.0',
-            zIndex:100,
-            colorscalerange:'0,150',
-            bounds: [[0, 90], [22, 120]],
-            logscale: false,
-            abovemaxcolor:'extend',
-            belowmincolor:'extend',
-            numcolorbands: 150,
+    // Load mekong BBox area Geojson
+    var mekong_bb;
+    fetch('/static/data/mekong_bb.geojson')
+    .then(response => response.json())
+    .then(data => {
+        mekong_bb = L.geoJSON(data, {
+            style: {
+                fillColor: '#9999ff',
+                weight: 1,
+                opacity: 1,
+                color: 'white',
+                dashArray: '3',
+                fillOpacity: 0.1
+            }
         });
+    })
+    .catch((error) => {
+        console.log(error)
+    });
 
-        var timeDimension = new L.TimeDimension();
-            map.timeDimension = timeDimension;
+    var rainfall_cb = document.querySelector('#rainfallCB');
+    var mlakes_cb = document.querySelector('#lakesCB');
+    var river_cb = document.querySelector('#riverCB');
+    var mba_cb = document.querySelector('#mbaCB');
+    var subprov_cb = document.querySelector('#subprovinceCB');
+    var gc_cb = document.querySelector('#gcCB');
+    var lmbb_cb = document.querySelector('#lmbbCB');
+    var country_cb = document.querySelector('#countryCB');
 
-        var player = new L.TimeDimension.Player({
-            loop: true,
-            startOver: true
-        }, timeDimension);
+    var rainacc = document.querySelector('#rainacc-control-panel')
 
-        btnPrev.onclick = (function() {
-            map.timeDimension.previousTime(1);
-        });
-        btnNext.onclick=(function() {
-            map.timeDimension.nextTime(1);
-        });
+    rainfall_cb.onclick = function() {
+        if(this.checked) {
+            var tdWmsLayer;
+            rainacc.style.display = "block";
+            var btnPlay = document.querySelector("#btn-play");
+            var btnPrev = document.querySelector("#btn-prev");
+            var btnNext = document.querySelector("#btn-next");
+            var btnPause = document.querySelector("#btn-pause");
+            
+            var tdWmsRainLayer = L.tileLayer.wms("https://thredds-servir.adpc.net/thredds/wms/RAINSTORM/rainacc/Rain_accumulation_GSMAP_NOW.nc", {
+                layers: 'rain',
+                format: 'image/png',
+                transparent: true,
+                styles: 'boxfill/rainbow',
+                opacity:1,
+                version:'1.3.0',
+                zIndex:100,
+                colorscalerange:'0,150',
+                bounds: [[0, 90], [22, 120]],
+                logscale: false,
+                abovemaxcolor:'extend',
+                belowmincolor:'extend',
+                numcolorbands: 150,
+            });
 
-        btnPause.style.display = "none";
-        btnPlay.style.display = "block";
+            var timeDimension = new L.TimeDimension();
+                map.timeDimension = timeDimension;
 
-        btnPlay.onclick=(function() {
-           btnPause.style.display = "block";
-           btnPlay.style.display = "none";
-        });
+            var player = new L.TimeDimension.Player({
+                loop: true,
+                startOver: true
+            }, timeDimension);
 
-        btnPause.onclick =  (function() {
+            btnPrev.onclick = (function() {
+                map.timeDimension.previousTime(1);
+            });
+            btnNext.onclick=(function() {
+                map.timeDimension.nextTime(1);
+            });
+
             btnPause.style.display = "none";
             btnPlay.style.display = "block";
-        });
 
-        tdWmsLayer = L.timeDimension.layer.wms(tdWmsRainLayer, {
-            updateTimeDimension: true,
-            setDefaultTime: true,
-            cache: 365,
-            zIndex: 100,
-        });
-        tdWmsLayer.addTo(map);
+            btnPlay.onclick=(function() {
+            btnPause.style.display = "block";
+            btnPlay.style.display = "none";
+            });
 
-        var firstLoad = 0;
-        map.timeDimension.on('timeload', function(data) {
-            var date = new Date(map.timeDimension.getCurrentTime());
-            // console.log(date)
-            // console.log(date.toUTCString())
-            // console.log(date.toLocaleString('en-GB'));
-            
-            var utc_dt = date.toUTCString();
-            var utcDate = new Date(utc_dt).toISOString().split('T')[0];
-            var utcTime = new Date(utc_dt).getUTCHours();
-            // console.log(utcDate)
-            // console.log(new Date(utc_dt).getUTCHours())
-            // document.querySelector("#date-text").html(moment(date).tz(zone).utc().format("YYYY/MM/DD"));
-            // document.querySelector("#time-text").html(moment(date).tz(zone).utc().format('HH:mm'));
-            document.querySelector("#date-text").innerHTML = utcDate;
-            document.querySelector("#time-text").innerHTML = utcTime + ":00";
+            btnPause.onclick =  (function() {
+                btnPause.style.display = "none";
+                btnPlay.style.display = "block";
+            });
 
-            firstLoad += 1;
-        });
-    } else {
-        // map.removeLayer();
-        rainacc.style.display = "none";
-    }
-}
-mlakes_cb.onclick = function(){
-    if(this.checked) {
-        map.addLayer(mainlakes);
-    } else {
-        map.removeLayer(mainlakes);
-    }
-}
-river_cb.onclick = function() {
-    if(this.checked) {
-        map.addLayer(river);
-    } else {
-        map.removeLayer(river);
-    }
-}
-mba_cb.onclick = function() {
-    if(this.checked) {
-        map.addLayer(mekong_basin);
-    } else {
-        map.removeLayer(mekong_basin);
-    }
-}
-subprov_cb.onclick = function() {
-    if(this.checked) {
-        map.addLayer(subprovince_map);
-    } else {
-        map.removeLayer(subprovince_map);
-    }
-}
-gc_cb.onclick = function() {
-    if(this.checked) {
-        map.addLayer(storm_boundingbox);
-    } else {
-        map.removeLayer(storm_boundingbox);
-    }
-}
-lmbb_cb.onclick = function() {
-    if(this.checked) {
-        map.addLayer(mekong_bb);
-    } else {
-        map.removeLayer(mekong_bb);
-    }
-}
-country_cb.onclick = function() {
-    if(this.checked) {
-        map.addLayer(adm0);
-    } else {
-        map.removeLayer(adm0);
-    }
-}
+            tdWmsLayer = L.timeDimension.layer.wms(tdWmsRainLayer, {
+                updateTimeDimension: true,
+                setDefaultTime: true,
+                cache: 365,
+                zIndex: 100,
+            });
+            tdWmsLayer.addTo(map);
 
-/* 
-    Basemap Panel
-*/
+            var firstLoad = 0;
+            map.timeDimension.on('timeload', function(data) {
+                var date = new Date(map.timeDimension.getCurrentTime());
+                // console.log(date)
+                // console.log(date.toUTCString())
+                // console.log(date.toLocaleString('en-GB'));
+                
+                var utc_dt = date.toUTCString();
+                var utcDate = new Date(utc_dt).toISOString().split('T')[0];
+                var utcTime = new Date(utc_dt).getUTCHours();
+                // console.log(utcDate)
+                // console.log(new Date(utc_dt).getUTCHours())
+                // document.querySelector("#date-text").html(moment(date).tz(zone).utc().format("YYYY/MM/DD"));
+                // document.querySelector("#time-text").html(moment(date).tz(zone).utc().format('HH:mm'));
+                document.querySelector("#date-text").innerHTML = utcDate;
+                document.querySelector("#time-text").innerHTML = utcTime + ":00";
 
-// Onclick switch basemap 
-var basemap_list = document.querySelectorAll(".basemap-card");
-
-for (var i = 0; i < basemap_list.length; i++) {
-    basemap_list[i].addEventListener("click", function(){
-        var elems = document.querySelector(".nav-basemap .active").classList.remove("active");
-        let selected_basemap = this.getAttribute('data-layer');
-        // console.log(selected_basemap);
-        if(selected_basemap === "dark-v10"){
-            basemap_layer.setUrl('https://api.mapbox.com/styles/v1/mapbox/dark-v10/tiles/256/{z}/{x}/{y}?access_token=pk.eyJ1Ijoia2FtYWxoMjciLCJhIjoiY2t3b2Roc2M3MDF2bDJ2cDY0ZmppdXl0MCJ9.Gn5rUJgaap_KDcnhyROMzQ'); 
-            this.className += " active";
-        }else if (selected_basemap === "streets-v11"){
-            basemap_layer.setUrl('https://api.mapbox.com/styles/v1/mapbox/streets-v11/tiles/256/{z}/{x}/{y}?access_token=pk.eyJ1Ijoia2FtYWxoMjciLCJhIjoiY2t3b2Roc2M3MDF2bDJ2cDY0ZmppdXl0MCJ9.Gn5rUJgaap_KDcnhyROMzQ');
-            this.className += " active";
-        }else if (selected_basemap === "satellite-streets-v12"){
-            basemap_layer.setUrl('https://api.mapbox.com/styles/v1/mapbox/satellite-streets-v12/tiles/256/{z}/{x}/{y}?access_token=pk.eyJ1Ijoia2FtYWxoMjciLCJhIjoiY2t3b2Roc2M3MDF2bDJ2cDY0ZmppdXl0MCJ9.Gn5rUJgaap_KDcnhyROMzQ');
-            this.className += " active";
-        }else if(selected_basemap === "satellite-v9"){
-            basemap_layer.setUrl('https://api.mapbox.com/styles/v1/mapbox/satellite-v9/tiles/512/{z}/{x}/{y}?access_token=pk.eyJ1Ijoia2FtYWxoMjciLCJhIjoiY2t3b2Roc2M3MDF2bDJ2cDY0ZmppdXl0MCJ9.Gn5rUJgaap_KDcnhyROMzQ');
-            this.className += " active";
-        }else if(selected_basemap === "light-v10"){
-            basemap_layer.setUrl('https://api.mapbox.com/styles/v1/mapbox/light-v10/tiles/512/{z}/{x}/{y}?access_token=pk.eyJ1Ijoia2FtYWxoMjciLCJhIjoiY2t3b2Roc2M3MDF2bDJ2cDY0ZmppdXl0MCJ9.Gn5rUJgaap_KDcnhyROMzQ');
-            this.className += " active";
-        }else if(selected_basemap === "outdoors-v11"){
-            basemap_layer.setUrl('https://api.mapbox.com/styles/v1/mapbox/outdoors-v11/tiles/512/{z}/{x}/{y}?access_token=pk.eyJ1Ijoia2FtYWxoMjciLCJhIjoiY2t3b2Roc2M3MDF2bDJ2cDY0ZmppdXl0MCJ9.Gn5rUJgaap_KDcnhyROMzQ');
-            this.className += " active";
-        }else if(selected_basemap === "mb-galaxy"){
-            basemap_layer.setUrl('https://api.mapbox.com/styles/v1/kamalh27/cl6d9l03u004o14paq58pbjmc/tiles/512/{z}/{x}/{y}?access_token=pk.eyJ1Ijoia2FtYWxoMjciLCJhIjoiY2t3b2Roc2M3MDF2bDJ2cDY0ZmppdXl0MCJ9.Gn5rUJgaap_KDcnhyROMzQ');
-            this.className += " active";
-        }else if(selected_basemap === "osm"){
-            basemap_layer.setUrl('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'); 
-            this.className += " active";
-        }else if((selected_basemap === "street")){
-            this.className += " active";
-            basemap_layer.setUrl('https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}');
-        }else if(selected_basemap === "satellite"){
-            this.className += " active";
-            basemap_layer.setUrl('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}');
-        }else if(selected_basemap === "terrain"){
-            this.className += " active";
-            basemap_layer.setUrl('https://server.arcgisonline.com/ArcGIS/rest/services/World_Terrain_Base/MapServer/tile/{z}/{y}/{x}');
+                firstLoad += 1;
+            });
+        } else {
+            // map.removeLayer();
+            rainacc.style.display = "none";
         }
-        else if(selected_basemap === "topo"){
-            this.className += " active";
-            basemap_layer.setUrl('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png');
-        }
-        else if(selected_basemap === "dark"){
-            this.className += " active";
-            basemap_layer.setUrl('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png');
-        }
-        else if(selected_basemap === "gray"){
-            this.className += " active";
-            basemap_layer.setUrl('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}');
-        }   
-    })
-}
-
-var btmClose = document.querySelector('.bottomClose');
-var bottombarContent = document.querySelector('#bottom-tabContent');
-btmClose.onclick = function(){
-    // alert('click')
-    if (getComputedStyle(bottombarContent).display === "none"){
-        bottombarContent.style.display ="block";
-    } else {
-        bottombarContent.style.display ="none";
     }
-}
-
-var bottom_filter = document.querySelector('#bottomFilter');
-bottom_filter.onclick = function(){
-    // alert('click')
-    if (getComputedStyle(bottombarContent).display === "none"){
-        bottombarContent.style.display ="block";
+    mlakes_cb.onclick = function(){
+        if(this.checked) {
+            map.addLayer(mainlakes);
+        } else {
+            map.removeLayer(mainlakes);
+        }
     }
-}
-
-var bottom_layer = document.querySelector('#bottomLayer');
-bottom_layer.onclick = function(){
-    // alert('click')
-    if (getComputedStyle(bottombarContent).display === "none"){
-        bottombarContent.style.display ="block";
+    river_cb.onclick = function() {
+        if(this.checked) {
+            map.addLayer(river);
+        } else {
+            map.removeLayer(river);
+        }
     }
-}
-var bottom_basemap = document.querySelector('#bottomBasemap');
-bottom_basemap.onclick = function(){
-    // alert('click')
-    if (getComputedStyle(bottombarContent).display === "none"){
-        bottombarContent.style.display ="block";
-    } 
-}
+    mba_cb.onclick = function() {
+        if(this.checked) {
+            map.addLayer(mekong_basin);
+        } else {
+            map.removeLayer(mekong_basin);
+        }
+    }
+    subprov_cb.onclick = function() {
+        if(this.checked) {
+            map.addLayer(subprovince_map);
+        } else {
+            map.removeLayer(subprovince_map);
+        }
+    }
+    gc_cb.onclick = function() {
+        if(this.checked) {
+            map.addLayer(storm_boundingbox);
+        } else {
+            map.removeLayer(storm_boundingbox);
+        }
+    }
+    lmbb_cb.onclick = function() {
+        if(this.checked) {
+            map.addLayer(mekong_bb);
+        } else {
+            map.removeLayer(mekong_bb);
+        }
+    }
+    country_cb.onclick = function() {
+        if(this.checked) {
+            map.addLayer(adm0);
+        } else {
+            map.removeLayer(adm0);
+        }
+    }
+
+    /* 
+        Basemap Panel
+    */
+
+    // Onclick switch basemap 
+    var basemap_list = document.querySelectorAll(".basemap-card");
+
+    for (var i = 0; i < basemap_list.length; i++) {
+        basemap_list[i].addEventListener("click", function(){
+            var elems = document.querySelector(".nav-basemap .active").classList.remove("active");
+            let selected_basemap = this.getAttribute('data-layer');
+            // console.log(selected_basemap);
+            if(selected_basemap === "dark-v10"){
+                basemap_layer.setUrl('https://api.mapbox.com/styles/v1/mapbox/dark-v10/tiles/256/{z}/{x}/{y}?access_token=pk.eyJ1Ijoia2FtYWxoMjciLCJhIjoiY2t3b2Roc2M3MDF2bDJ2cDY0ZmppdXl0MCJ9.Gn5rUJgaap_KDcnhyROMzQ'); 
+                this.className += " active";
+            }else if (selected_basemap === "streets-v11"){
+                basemap_layer.setUrl('https://api.mapbox.com/styles/v1/mapbox/streets-v11/tiles/256/{z}/{x}/{y}?access_token=pk.eyJ1Ijoia2FtYWxoMjciLCJhIjoiY2t3b2Roc2M3MDF2bDJ2cDY0ZmppdXl0MCJ9.Gn5rUJgaap_KDcnhyROMzQ');
+                this.className += " active";
+            }else if (selected_basemap === "satellite-streets-v12"){
+                basemap_layer.setUrl('https://api.mapbox.com/styles/v1/mapbox/satellite-streets-v12/tiles/256/{z}/{x}/{y}?access_token=pk.eyJ1Ijoia2FtYWxoMjciLCJhIjoiY2t3b2Roc2M3MDF2bDJ2cDY0ZmppdXl0MCJ9.Gn5rUJgaap_KDcnhyROMzQ');
+                this.className += " active";
+            }else if(selected_basemap === "satellite-v9"){
+                basemap_layer.setUrl('https://api.mapbox.com/styles/v1/mapbox/satellite-v9/tiles/512/{z}/{x}/{y}?access_token=pk.eyJ1Ijoia2FtYWxoMjciLCJhIjoiY2t3b2Roc2M3MDF2bDJ2cDY0ZmppdXl0MCJ9.Gn5rUJgaap_KDcnhyROMzQ');
+                this.className += " active";
+            }else if(selected_basemap === "light-v10"){
+                basemap_layer.setUrl('https://api.mapbox.com/styles/v1/mapbox/light-v10/tiles/512/{z}/{x}/{y}?access_token=pk.eyJ1Ijoia2FtYWxoMjciLCJhIjoiY2t3b2Roc2M3MDF2bDJ2cDY0ZmppdXl0MCJ9.Gn5rUJgaap_KDcnhyROMzQ');
+                this.className += " active";
+            }else if(selected_basemap === "outdoors-v11"){
+                basemap_layer.setUrl('https://api.mapbox.com/styles/v1/mapbox/outdoors-v11/tiles/512/{z}/{x}/{y}?access_token=pk.eyJ1Ijoia2FtYWxoMjciLCJhIjoiY2t3b2Roc2M3MDF2bDJ2cDY0ZmppdXl0MCJ9.Gn5rUJgaap_KDcnhyROMzQ');
+                this.className += " active";
+            }else if(selected_basemap === "mb-galaxy"){
+                basemap_layer.setUrl('https://api.mapbox.com/styles/v1/kamalh27/cl6d9l03u004o14paq58pbjmc/tiles/512/{z}/{x}/{y}?access_token=pk.eyJ1Ijoia2FtYWxoMjciLCJhIjoiY2t3b2Roc2M3MDF2bDJ2cDY0ZmppdXl0MCJ9.Gn5rUJgaap_KDcnhyROMzQ');
+                this.className += " active";
+            }else if(selected_basemap === "osm"){
+                basemap_layer.setUrl('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'); 
+                this.className += " active";
+            }else if((selected_basemap === "street")){
+                this.className += " active";
+                basemap_layer.setUrl('https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}');
+            }else if(selected_basemap === "satellite"){
+                this.className += " active";
+                basemap_layer.setUrl('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}');
+            }else if(selected_basemap === "terrain"){
+                this.className += " active";
+                basemap_layer.setUrl('https://server.arcgisonline.com/ArcGIS/rest/services/World_Terrain_Base/MapServer/tile/{z}/{y}/{x}');
+            }
+            else if(selected_basemap === "topo"){
+                this.className += " active";
+                basemap_layer.setUrl('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png');
+            }
+            else if(selected_basemap === "dark"){
+                this.className += " active";
+                basemap_layer.setUrl('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png');
+            }
+            else if(selected_basemap === "gray"){
+                this.className += " active";
+                basemap_layer.setUrl('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}');
+            }   
+        })
+    }
+
+    var btmClose = document.querySelector('.bottomClose');
+    var bottombarContent = document.querySelector('#bottom-tabContent');
+    btmClose.onclick = function(){
+        // alert('click')
+        if (getComputedStyle(bottombarContent).display === "none"){
+            bottombarContent.style.display ="block";
+        } else {
+            bottombarContent.style.display ="none";
+        }
+    }
+
+    var bottom_filter = document.querySelector('#bottomFilter');
+    bottom_filter.onclick = function(){
+        // alert('click')
+        if (getComputedStyle(bottombarContent).display === "none"){
+            bottombarContent.style.display ="block";
+        }
+    }
+
+    var bottom_layer = document.querySelector('#bottomLayer');
+    bottom_layer.onclick = function(){
+        // alert('click')
+        if (getComputedStyle(bottombarContent).display === "none"){
+            bottombarContent.style.display ="block";
+        }
+    }
+    var bottom_basemap = document.querySelector('#bottomBasemap');
+    bottom_basemap.onclick = function(){
+        // alert('click')
+        if (getComputedStyle(bottombarContent).display === "none"){
+            bottombarContent.style.display ="block";
+        } 
+    }
 
 
-var bottom_basemap_list = document.querySelectorAll(".bottom-basemap-card");
-for (var i = 0; i < bottom_basemap_list.length; i++) {
-    bottom_basemap_list[i].addEventListener("click", function(){
-        var elems = document.querySelector(".bottom-nav-basemap .active").classList.remove("active");
-        let selected_basemap = this.getAttribute('data-layer');
-        // console.log(selected_basemap);
-        if(selected_basemap === "dark-v10"){
-            basemap_layer.setUrl('https://api.mapbox.com/styles/v1/mapbox/dark-v10/tiles/256/{z}/{x}/{y}?access_token=pk.eyJ1Ijoia2FtYWxoMjciLCJhIjoiY2t3b2Roc2M3MDF2bDJ2cDY0ZmppdXl0MCJ9.Gn5rUJgaap_KDcnhyROMzQ'); 
-            this.className += " active";
-        }else if (selected_basemap === "streets-v11"){
-            basemap_layer.setUrl('https://api.mapbox.com/styles/v1/mapbox/streets-v11/tiles/256/{z}/{x}/{y}?access_token=pk.eyJ1Ijoia2FtYWxoMjciLCJhIjoiY2t3b2Roc2M3MDF2bDJ2cDY0ZmppdXl0MCJ9.Gn5rUJgaap_KDcnhyROMzQ');
-            this.className += " active";
-        }else if (selected_basemap === "satellite-streets-v12"){
-            basemap_layer.setUrl('https://api.mapbox.com/styles/v1/mapbox/satellite-streets-v12/tiles/256/{z}/{x}/{y}?access_token=pk.eyJ1Ijoia2FtYWxoMjciLCJhIjoiY2t3b2Roc2M3MDF2bDJ2cDY0ZmppdXl0MCJ9.Gn5rUJgaap_KDcnhyROMzQ');
-            this.className += " active";
-        }else if(selected_basemap === "satellite-v9"){
-            basemap_layer.setUrl('https://api.mapbox.com/styles/v1/mapbox/satellite-v9/tiles/512/{z}/{x}/{y}?access_token=pk.eyJ1Ijoia2FtYWxoMjciLCJhIjoiY2t3b2Roc2M3MDF2bDJ2cDY0ZmppdXl0MCJ9.Gn5rUJgaap_KDcnhyROMzQ');
-            this.className += " active";
-        }else if(selected_basemap === "light-v10"){
-            basemap_layer.setUrl('https://api.mapbox.com/styles/v1/mapbox/light-v10/tiles/512/{z}/{x}/{y}?access_token=pk.eyJ1Ijoia2FtYWxoMjciLCJhIjoiY2t3b2Roc2M3MDF2bDJ2cDY0ZmppdXl0MCJ9.Gn5rUJgaap_KDcnhyROMzQ');
-            this.className += " active";
-        }else if(selected_basemap === "outdoors-v11"){
-            basemap_layer.setUrl('https://api.mapbox.com/styles/v1/mapbox/outdoors-v11/tiles/512/{z}/{x}/{y}?access_token=pk.eyJ1Ijoia2FtYWxoMjciLCJhIjoiY2t3b2Roc2M3MDF2bDJ2cDY0ZmppdXl0MCJ9.Gn5rUJgaap_KDcnhyROMzQ');
-            this.className += " active";
-        }else if(selected_basemap === "mb-galaxy"){
-            basemap_layer.setUrl('https://api.mapbox.com/styles/v1/kamalh27/cl6d9l03u004o14paq58pbjmc/tiles/512/{z}/{x}/{y}?access_token=pk.eyJ1Ijoia2FtYWxoMjciLCJhIjoiY2t3b2Roc2M3MDF2bDJ2cDY0ZmppdXl0MCJ9.Gn5rUJgaap_KDcnhyROMzQ');
-            this.className += " active";
-        }else if(selected_basemap === "osm"){
-            basemap_layer.setUrl('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'); 
-            this.className += " active";
-        }else if((selected_basemap === "street")){
-            this.className += " active";
-            basemap_layer.setUrl('https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}');
-        }else if(selected_basemap === "satellite"){
-            this.className += " active";
-            basemap_layer.setUrl('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}');
-        }else if(selected_basemap === "terrain"){
-            this.className += " active";
-            basemap_layer.setUrl('https://server.arcgisonline.com/ArcGIS/rest/services/World_Terrain_Base/MapServer/tile/{z}/{y}/{x}');
-        }
-        else if(selected_basemap === "topo"){
-            this.className += " active";
-            basemap_layer.setUrl('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png');
-        }
-        else if(selected_basemap === "dark"){
-            this.className += " active";
-            basemap_layer.setUrl('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png');
-        }
-        else if(selected_basemap === "gray"){
-            this.className += " active";
-            basemap_layer.setUrl('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}');
-        }   
-    })
-}
-/** End Basemap Panel */
+    var bottom_basemap_list = document.querySelectorAll(".bottom-basemap-card");
+    for (var i = 0; i < bottom_basemap_list.length; i++) {
+        bottom_basemap_list[i].addEventListener("click", function(){
+            var elems = document.querySelector(".bottom-nav-basemap .active").classList.remove("active");
+            let selected_basemap = this.getAttribute('data-layer');
+            // console.log(selected_basemap);
+            if(selected_basemap === "dark-v10"){
+                basemap_layer.setUrl('https://api.mapbox.com/styles/v1/mapbox/dark-v10/tiles/256/{z}/{x}/{y}?access_token=pk.eyJ1Ijoia2FtYWxoMjciLCJhIjoiY2t3b2Roc2M3MDF2bDJ2cDY0ZmppdXl0MCJ9.Gn5rUJgaap_KDcnhyROMzQ'); 
+                this.className += " active";
+            }else if (selected_basemap === "streets-v11"){
+                basemap_layer.setUrl('https://api.mapbox.com/styles/v1/mapbox/streets-v11/tiles/256/{z}/{x}/{y}?access_token=pk.eyJ1Ijoia2FtYWxoMjciLCJhIjoiY2t3b2Roc2M3MDF2bDJ2cDY0ZmppdXl0MCJ9.Gn5rUJgaap_KDcnhyROMzQ');
+                this.className += " active";
+            }else if (selected_basemap === "satellite-streets-v12"){
+                basemap_layer.setUrl('https://api.mapbox.com/styles/v1/mapbox/satellite-streets-v12/tiles/256/{z}/{x}/{y}?access_token=pk.eyJ1Ijoia2FtYWxoMjciLCJhIjoiY2t3b2Roc2M3MDF2bDJ2cDY0ZmppdXl0MCJ9.Gn5rUJgaap_KDcnhyROMzQ');
+                this.className += " active";
+            }else if(selected_basemap === "satellite-v9"){
+                basemap_layer.setUrl('https://api.mapbox.com/styles/v1/mapbox/satellite-v9/tiles/512/{z}/{x}/{y}?access_token=pk.eyJ1Ijoia2FtYWxoMjciLCJhIjoiY2t3b2Roc2M3MDF2bDJ2cDY0ZmppdXl0MCJ9.Gn5rUJgaap_KDcnhyROMzQ');
+                this.className += " active";
+            }else if(selected_basemap === "light-v10"){
+                basemap_layer.setUrl('https://api.mapbox.com/styles/v1/mapbox/light-v10/tiles/512/{z}/{x}/{y}?access_token=pk.eyJ1Ijoia2FtYWxoMjciLCJhIjoiY2t3b2Roc2M3MDF2bDJ2cDY0ZmppdXl0MCJ9.Gn5rUJgaap_KDcnhyROMzQ');
+                this.className += " active";
+            }else if(selected_basemap === "outdoors-v11"){
+                basemap_layer.setUrl('https://api.mapbox.com/styles/v1/mapbox/outdoors-v11/tiles/512/{z}/{x}/{y}?access_token=pk.eyJ1Ijoia2FtYWxoMjciLCJhIjoiY2t3b2Roc2M3MDF2bDJ2cDY0ZmppdXl0MCJ9.Gn5rUJgaap_KDcnhyROMzQ');
+                this.className += " active";
+            }else if(selected_basemap === "mb-galaxy"){
+                basemap_layer.setUrl('https://api.mapbox.com/styles/v1/kamalh27/cl6d9l03u004o14paq58pbjmc/tiles/512/{z}/{x}/{y}?access_token=pk.eyJ1Ijoia2FtYWxoMjciLCJhIjoiY2t3b2Roc2M3MDF2bDJ2cDY0ZmppdXl0MCJ9.Gn5rUJgaap_KDcnhyROMzQ');
+                this.className += " active";
+            }else if(selected_basemap === "osm"){
+                basemap_layer.setUrl('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'); 
+                this.className += " active";
+            }else if((selected_basemap === "street")){
+                this.className += " active";
+                basemap_layer.setUrl('https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}');
+            }else if(selected_basemap === "satellite"){
+                this.className += " active";
+                basemap_layer.setUrl('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}');
+            }else if(selected_basemap === "terrain"){
+                this.className += " active";
+                basemap_layer.setUrl('https://server.arcgisonline.com/ArcGIS/rest/services/World_Terrain_Base/MapServer/tile/{z}/{y}/{x}');
+            }
+            else if(selected_basemap === "topo"){
+                this.className += " active";
+                basemap_layer.setUrl('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png');
+            }
+            else if(selected_basemap === "dark"){
+                this.className += " active";
+                basemap_layer.setUrl('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png');
+            }
+            else if(selected_basemap === "gray"){
+                this.className += " active";
+                basemap_layer.setUrl('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}');
+            }   
+        })
+    }
+    /** End Basemap Panel */
 });

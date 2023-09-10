@@ -24,24 +24,23 @@ class BulletinPage(TemplateView):
 @xframe_options_exempt
 def get_mrcffg_value(request):
     param = request.GET.get('param')
-    date = '20200601'
-    data = mrcffgs+"_"+date+"06.csv"
+    date_str = request.GET.get("date")
+    formatted_date = date_str.replace("-", "")
+    data = mrcffgs+"_"+formatted_date+"06.csv"
     df = pd.read_csv(data)
-    # filter_df = df[df["BASIN"]==basin_id]
     selected_col = df[["BASIN", param]]
     data = selected_col.to_json(orient='records')
-    # print(data)
     return JsonResponse(data, safe=False)
 
 @csrf_exempt
 @xframe_options_exempt
 def get_mrcffg_bulletin_data(request):
-    date = '20200601'
-    data = mrcffgs+"_"+date+"06.csv"
+    date_str = request.GET.get("date")
+    formatted_date = date_str.replace("-", "")
+    data = mrcffgs+"_"+formatted_date+"06.csv"
     df = pd.read_csv(data)
     selected_col = df[["BASIN", "ASMT", "MAP24", "FMAP06", "FFG06", "FFFT06", "FFR12", "FFR24"]]
     data = selected_col.to_json(orient='records')
-    # print(data)
     return JsonResponse(data, safe=False)
 
 # Function to assign alert
@@ -78,8 +77,9 @@ def get_alert_stat_6hrs(request):
         :rtype: JsonResponse
     """
     static_data_path = mekongxray
-    date = '20200601'
-    mrcffgs_data_path = mrcffgs+"_"+date+"06.csv"
+    date_str = request.GET.get("date")
+    formatted_date = date_str.replace("-", "")
+    mrcffgs_data_path = mrcffgs+"_"+formatted_date+"06.csv"
     df1 = pd.read_csv(static_data_path)
     df1[int_columns] = df1[int_columns].astype(int)
     df1[float_columns] = df1[float_columns].astype(float)
@@ -115,7 +115,6 @@ def get_alert_stat_6hrs(request):
     join_max['Alert_6Hrs'] = join_max.apply(lambda row: assign_alert(row), axis=1)
     final_df = join_max.dropna(subset=['Alert_6Hrs'], how='all')
     json = final_df.to_json(orient='records')
-    # print(json)
     return JsonResponse(json, safe=False)
 
 @csrf_exempt
@@ -136,8 +135,9 @@ def get_risk_stat_12hrs(request):
         :rtype: JsonResponse
     """
     static_data_path = mekongxray
-    date = '20200601'
-    mrcffgs_data_path = mrcffgs+"_"+date+"06.csv"
+    date_str = request.GET.get("date")
+    formatted_date = date_str.replace("-", "")
+    mrcffgs_data_path = mrcffgs+"_"+formatted_date+"06.csv"
     df1 = pd.read_csv(static_data_path)
     df1[int_columns] = df1[int_columns].astype(int)
     df1[float_columns] = df1[float_columns].astype(float)
@@ -192,8 +192,9 @@ def get_risk_stat_24hrs(request):
         :rtype: JsonResponse
     """
     static_data_path = mekongxray
-    date = '20200601'
-    mrcffgs_data_path = mrcffgs+"_"+date+"06.csv"
+    date_str = request.GET.get("date")
+    formatted_date = date_str.replace("-", "")
+    mrcffgs_data_path = mrcffgs+"_"+formatted_date+"06.csv"
     df1 = pd.read_csv(static_data_path)
     df1[int_columns] = df1[int_columns].astype(int)
     df1[float_columns] = df1[float_columns].astype(float)
