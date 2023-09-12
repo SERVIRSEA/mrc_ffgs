@@ -165,9 +165,9 @@
     color: #fff;
 } */
 /* .leaflet-control-container {position: absolute; margin-left: 300px;}  */
-.leaflet-left  {
+/* .leaflet-right  {
     margin-left: 300px;
-}
+} */
 /* .leaflet-control-attribution{
     z-index: 200;
 } */
@@ -265,3 +265,63 @@
     color: #aaa;  
     cursor: not-allowed;
 }
+
+#legend {
+    position: absolute;
+    background-color: #fff;
+    bottom: 0;
+    z-index: 999;
+    left: 300px;
+    max-width: 650px;
+}
+#legend .row {
+    flex-wrap: nowrap; /* Prevent columns from wrapping */
+}
+.legend-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 5px;
+}
+.legend-color {
+    width: 20px;
+    height: 20px;
+    margin-right: 8px;
+    display: inline-block;
+}
+#legend .ffwLegend {
+    display: block;
+}
+#legend .ffpLegend {
+    display: none;
+}
+.leaflet-control-scale {
+    position: absolute;
+    right: 250px;
+    bottom: 0;
+}
+
+#calendar {
+    display: flex;
+    flex-wrap: wrap;
+  }
+  
+  .month {
+    border: 1px solid black;
+    padding: 10px;
+    margin: 5px;
+  }
+  
+  .date-item {
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid #ddd;
+  }
+  
+  .date-item.clickable {
+    cursor: pointer;
+    background-color: #4CAF50;
+    color: white;
+  }

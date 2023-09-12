@@ -49,7 +49,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
     // Add scale control to map
     var scale = L.control.scale({
-        position:'bottomleft'
+        position:'bottomright'
     }).addTo(map);
 
     var rightSidebarBtn = document.querySelector('#rightSidebar');
@@ -616,6 +616,31 @@ document.addEventListener("DOMContentLoaded", function() {
         ],
     };
 
+    function populateLegend(key) {
+        // Reference to the legend element
+        const legendElement = document.getElementById("ffpLegend");
+    
+        // Clear existing legend items
+        legendElement.innerHTML = '<p class="pt-2 pb-0">Flash Flood Parameter <br>(Basin)</p>';
+    
+        // Iterate over each style in the specified key
+        styles[key].forEach(item => {
+            // Create a new legend item
+            const div = document.createElement("div");
+            div.classList.add("legend-item");
+    
+            // If max is not present, assume "above min"
+            const label = item.max ? `${item.min} - ${item.max}` : `above ${item.min}`;
+    
+            div.innerHTML = `
+                <span class="legend-color" style="background-color: ${item.color};"></span> ${label}
+            `;
+    
+            // Append to the legend
+            legendElement.appendChild(div);
+        });
+    }
+    
     function getStyle(param, feature, data) {
         const ffgVal = data.find(x => x && x.BASIN === feature.properties.value)?.[param];
         const defaultStyle = { color: colors.white, weight: 1, opacity: 1, fillOpacity: 0.8 };
@@ -643,6 +668,7 @@ document.addEventListener("DOMContentLoaded", function() {
         elem.addEventListener("change", function() {
             var selectedDate = dropdownDate.value;
             updateMap(this.id, selectedDate);
+            populateLegend(this.id);
         });
     });
 
@@ -693,6 +719,33 @@ document.addEventListener("DOMContentLoaded", function() {
         }
     });
 
+    const clickableDates = ["2023-01-01", "2023-01-20", "2023-09-10", "2023-09-11"];
+
+function generateDatepicker() {
+  const datepicker = document.getElementById('datepicker');
+  const today = new Date();
+  const daysInMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate();
+
+  for (let i = 1; i <= daysInMonth; i++) {
+    const dateItem = document.createElement('div');
+    dateItem.classList.add('date-item');
+    dateItem.textContent = i;
+
+    const currentDate = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
+
+    if (clickableDates.includes(currentDate)) {
+      dateItem.classList.add('clickable');
+      dateItem.addEventListener('click', function() {
+        alert(`Date ${currentDate} clicked!`);
+      });
+    }
+
+    datepicker.appendChild(dateItem);
+  }
+}
+
+generateDatepicker();
+
     // Fetch and display initial 6-hour data on page load
     (async function init() {
         let dateList = await getStats('dates');
@@ -712,14 +765,22 @@ document.addEventListener("DOMContentLoaded", function() {
         updateTable(param, selectedDate);
         updateSubProvinceMap("FFG06", selectedDate);
         updateMap('MAP06', selectedDate);
+        populateLegend('MAP06');
     })();
+
+    // Keep this layer always on top
+    // map.on('layeradd', function() {
+    //     subProvinceLayer.bringToFront();
+    // });
 
     const subp_check = document.querySelector("#ffwSubp");
     subp_check.addEventListener("click", ()=> {
         if(subp_check.checked){
             map.addLayer(subProvinceLayer);
+            document.getElementById("ffwLegend").style.display = "block";
         } else {
             map.removeLayer(subProvinceLayer);
+            document.getElementById("ffwLegend").style.display = "none";
         }
     });
 
@@ -727,8 +788,10 @@ document.addEventListener("DOMContentLoaded", function() {
     ffpBasin.addEventListener("click", ()=> {
         if(ffpBasin.checked){
             map.addLayer(ffgsLayer);
+            document.getElementById("ffpLegend").style.display = "block";
         } else {
             map.removeLayer(ffgsLayer);
+            document.getElementById("ffpLegend").style.display = "none";
         }
     });
 
