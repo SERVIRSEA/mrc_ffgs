@@ -3,9 +3,11 @@ html, body {
     background:none;
     padding: none;
     margin: none;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+    /* font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif; */
     font-size: 14px;
     height: 100%;
+    font-family: 'Lato', sans-serif;  /* Use Lato font from Google Fonts */
+    background-color: #f4f4f4;
 }
 /* Custom Scrollbar */
 *{
@@ -39,4 +41,39 @@ html, body {
 }
 .btn{
     border-radius: 0 !important;
+}
+
+/* Date Panel CSS */
+.dateCard {
+    max-width: 350px;
+    position: absolute;
+    /* top: 0;
+    right: 0; */
+    z-index: 1;
+}
+#calendar {
+    gap: 8px;
+}
+
+.date-item {
+    width: 35px;
+    height: 35px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;  /* Makes dates circles */
+    transition: all 0.3s ease;
+}
+
+.date-item.clickable {
+    cursor: pointer;
+    background-color: #4CAF50;
+    color: white;
+}
+.date-item.clickable:hover {
+    transform: scale(1.05);
+}
+.date-item.active {
+    background-color: red;
+    color: white;
 }

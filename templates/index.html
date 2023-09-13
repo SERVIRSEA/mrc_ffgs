@@ -44,10 +44,30 @@
                 </div> -->
                 <!-- <input type="text" id="dateInput" readonly onclick="showDatePicker()">
                 <div id="datePickerContainer"></div> -->
-                <p>Select a Date</p>
-                <select class="form-select" id="dateDropdown"></select>
+                <!-- <p>Select a Date</p>
+                <select class="form-select mb-5" id="dateDropdown"></select> -->
 
-                <div id="calendar"></div>
+                <div class="mb-3">
+                    <label for="dateInput" class="form-label">Select a Date</label>
+                    <input type="text" class="form-control" id="dateInput" readonly>
+                </div>
+
+                <div class="card dateCard" id="calendarWrapper">
+                    <div class="card-body">
+                        <div class="row mb-3">  <!-- Bootstrap row for year and month selectors -->
+                            <div class="col">
+                                <select class="form-select" id="yearSelector"></select>
+                            </div>
+                            <div class="col">
+                                <select class="form-select" id="monthSelector"></select>
+                            </div>
+                        </div>
+                        
+                        <div id="calendar" class="d-flex flex-wrap"> <!-- Using flexbox instead of grid for Bootstrap compatibility -->
+                            <!-- Dates will be populated here -->
+                        </div>
+                    </div>
+                </div>
 
                 <div class="form-check pt-3">
                     <input class="form-check-input" type="checkbox" value="" id="ffwSubp" checked>

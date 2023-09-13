@@ -1,5 +1,5 @@
 document.addEventListener("DOMContentLoaded", function() {
-
+    const dateInput = document.getElementById("dateInput");
     var openContentPanel = document.querySelector("#home");
     var closeContentPanel = document.querySelector("#close-home-content" );
     var sidebarContent = document.querySelector('#sidebar-content');
@@ -373,7 +373,7 @@ document.addEventListener("DOMContentLoaded", function() {
             console.error('Invalid param provided.');
             return;
         }
-    
+
         const data = await getStats(statsParam, selectedDate);
         const parsedData = JSON.parse(data);
         const subProvinceData = await getsubProvinceData();
@@ -428,7 +428,7 @@ document.addEventListener("DOMContentLoaded", function() {
             layer.on({
                 click: onSubProvinceClick
             });
-            layer.bindTooltip(feature.properties.NAME_2);
+            layer.bindTooltip('<h6 class="fw-bold p-2">'+feature.properties.NAME_2+', '+feature.properties.NAME_1+',<br>'+feature.properties.NAME_0+'</h6>');
         }
 
         async function onSubProvinceClick(e, data) {
@@ -448,21 +448,21 @@ document.addEventListener("DOMContentLoaded", function() {
     }
 
     document.getElementById("btnradio06").addEventListener("click", async function() {
-        var selectedDate = dropdownDate.value;
+        var selectedDate = dateInput.value;
         let param = '6hrs';
         updateTable(param, selectedDate);
         updateSubProvinceMap("FFG06", selectedDate);
     });
 
     document.getElementById("btnradio12").addEventListener("click", async function() {
-        var selectedDate = dropdownDate.value;
+        var selectedDate = dateInput.value;
         let param = '12hrs';
         updateTable(param, selectedDate);
         updateSubProvinceMap("FFR12", selectedDate);
     });
 
     document.getElementById("btnradio24").addEventListener("click", async function() {
-        var selectedDate = dropdownDate.value;
+        var selectedDate = dateInput.value;
         let param = '24hrs';
         updateTable(param, selectedDate);
         updateSubProvinceMap("FFR24", selectedDate);
@@ -666,7 +666,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
     document.querySelectorAll('input[name="ffpRadio"]').forEach((elem) => {
         elem.addEventListener("change", function() {
-            var selectedDate = dropdownDate.value;
+            var selectedDate = dateInput.value;
             updateMap(this.id, selectedDate);
             populateLegend(this.id);
         });
@@ -674,9 +674,43 @@ document.addEventListener("DOMContentLoaded", function() {
 
     const radioButtonsBasin = document.querySelectorAll('input[name="ffpRadio"]');
     
-    dropdownDate.addEventListener("change", async function() {
-        const selectedDate = dropdownDate.value; 
-    
+    //================ Date panel =======================>
+
+    const dateCard = document.querySelector(".dateCard");
+
+    // Initially hide the calendar
+    dateCard.style.display = 'none';
+
+    dateInput.addEventListener("click", function() {
+        if (dateCard.style.display === 'none' || dateCard.style.display === '') {
+            dateCard.style.display = 'block';  // Show calendar
+        } else {
+            dateCard.style.display = 'none';   // Hide calendar
+        }
+    });
+
+    // Add a click event listener to the year selector dropdown
+    document.getElementById("monthSelector").addEventListener("click", function (event) {
+        // Prevent event propagation to the body
+        event.stopPropagation();
+    });
+
+    // Add a click event listener to the year selector dropdown
+    document.getElementById("yearSelector").addEventListener("click", function (event) {
+        // Prevent event propagation to the body
+        event.stopPropagation();
+    });
+
+    // Add a click event listener to the document body
+    document.body.addEventListener('click', (event) => {
+        // Check if the click target is not the input field or the date panel
+        if (event.target !== dateInput && event.target !== dateCard) {
+        // Close the date panel (hide it)
+            dateCard.style.display = 'none';
+        }
+    });
+
+    function updateDataForSelectedDate(selectedDate) {
         const radioButtons2 = document.getElementsByName("btnradio");
         let selectedRadioButton;
     
@@ -694,9 +728,9 @@ document.addEventListener("DOMContentLoaded", function() {
         };
     
         const id = radioMapping[selectedRadioButton.id];
-
+    
         let checkedValue;
-
+    
         radioButtonsBasin.forEach((radio) => {
             if (radio.checked) {
                 checkedValue = radio.id;
@@ -709,60 +743,122 @@ document.addEventListener("DOMContentLoaded", function() {
                 console.error('Invalid param provided.');
                 return;
             }
-            // const data = await getStats(statsParam, selectedDate);
-            // updateTable(data);
             updateTable(statsParam, selectedDate);
             updateSubProvinceMap(id, selectedDate);
             updateMap(checkedValue, selectedDate);
         } catch (error) {
             console.error("Failed to update data:", error);
         }
-    });
-
-    const clickableDates = ["2023-01-01", "2023-01-20", "2023-09-10", "2023-09-11"];
-
-function generateDatepicker() {
-  const datepicker = document.getElementById('datepicker');
-  const today = new Date();
-  const daysInMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate();
-
-  for (let i = 1; i <= daysInMonth; i++) {
-    const dateItem = document.createElement('div');
-    dateItem.classList.add('date-item');
-    dateItem.textContent = i;
-
-    const currentDate = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
-
-    if (clickableDates.includes(currentDate)) {
-      dateItem.classList.add('clickable');
-      dateItem.addEventListener('click', function() {
-        alert(`Date ${currentDate} clicked!`);
-      });
     }
 
-    datepicker.appendChild(dateItem);
-  }
-}
+    function handleDateItemClick(dateItem, currentDate) {
+        dateItem.addEventListener('click', function() {
+            const prevActive = document.querySelector('.date-item.active');
+            if (prevActive) {
+                prevActive.classList.remove('active');
+            }
+    
+            // Set the current date as active and update the input
+            this.classList.add('active');
+            dateInput.value = currentDate;
+            dateCard.style.display = 'none';
+    
+            let selectedDate = currentDate;
+            updateDataForSelectedDate(selectedDate);
+        });
+    }
 
-generateDatepicker();
+    function createCustomCalender(clickableDates){
+        //let clickableDates = ["2023-01-01", "2023-01-20", "2023-09-10", "2023-09-11"];
+        const yearSelector = document.getElementById("yearSelector");
+        const monthSelector = document.getElementById("monthSelector");
+        const calendar = document.getElementById("calendar");
+
+        const currentYear = new Date().getFullYear();
+        const currentMonth = new Date().getMonth() + 1;  // JavaScript months are 0-indexed
+
+        function isDateClickable(date) {
+            return clickableDates.includes(date);
+        }
+
+        function daysInMonth(month, year) {
+            return new Date(year, month, 0).getDate();
+        }
+
+        function getLatestClickableDate() {
+            if (!clickableDates.length) return null;  // Check if the array is empty
+            return clickableDates.sort((a, b) => new Date(b) - new Date(a))[0];
+        }
+
+        const latestEventDate = getLatestClickableDate();
+        dateInput.value = latestEventDate;
+
+        function generateCalendar(month, year) {
+            calendar.innerHTML = ''; // Clear previous dates
+
+            let activeDate = dateInput.value || getLatestClickableDate(); // Use the value in the input or get the latest clickable date
+
+            for (let day = 1; day <= daysInMonth(month, year); day++) {
+                const dateItem = document.createElement('div');
+                dateItem.classList.add('date-item');
+                dateItem.textContent = day;
+
+                const currentDate = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+
+                if (isDateClickable(currentDate)) {
+                    dateItem.classList.add('clickable');
+                    if (currentDate === activeDate) {
+                        dateItem.classList.add('active');
+                    }
+                    handleDateItemClick(dateItem, currentDate); // use the separate function here
+                }
+                calendar.appendChild(dateItem);
+            }
+        }
+
+        // Populate the year selector
+        for (let i = currentYear - 3; i <= currentYear + 3; i++) {
+            let option = new Option(i, i);
+            yearSelector.appendChild(option);
+        }
+
+        // Set the default value of year selector to current year
+        yearSelector.value = currentYear;
+
+        // Populate the month selector
+        for (let i = 1; i <= 12; i++) {
+            let monthName = new Date(currentYear, i - 1, 1).toLocaleString('default', { month: 'long' });
+            let option = new Option(monthName, i);
+            monthSelector.appendChild(option);
+        }
+
+        // Set the default value of month selector to current month
+        monthSelector.value = currentMonth;
+
+        yearSelector.addEventListener("change", () => {
+            generateCalendar(Number(monthSelector.value), Number(yearSelector.value));
+        });
+
+        monthSelector.addEventListener("change", () => {
+            generateCalendar(Number(monthSelector.value), Number(yearSelector.value));
+        });
+
+        // Initial load with the current year and month
+        generateCalendar(currentMonth, currentYear);
+    }
+
+    //////////////////////////
 
     // Fetch and display initial 6-hour data on page load
     (async function init() {
         let dateList = await getStats('dates');
         dateList = JSON.parse(dateList);
-
-        // Loop through the dateList and create options
-        dateList.forEach(function(date) {
-            var option = document.createElement("option");
-            option.text = date[0];
-            dropdownDate.add(option);
-        });
-
-        var selectedDate = dropdownDate.value; // Get the selected date
-        // const data = await getStats('6hrs', selectedDate);
-        // updateTable(data);
-        let param = '6hrs';
-        updateTable(param, selectedDate);
+        clickableDates = dateList.map(innerArray => innerArray[0]);
+        createCustomCalender(clickableDates);
+        var selectedDate = dateInput.value; 
+        const data = await getStats('6hrs', selectedDate);
+        
+        updateTable('6hrs', selectedDate);
         updateSubProvinceMap("FFG06", selectedDate);
         updateMap('MAP06', selectedDate);
         populateLegend('MAP06');

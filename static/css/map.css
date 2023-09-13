@@ -300,28 +300,29 @@
     bottom: 0;
 }
 
-#calendar {
-    display: flex;
-    flex-wrap: wrap;
-  }
-  
-  .month {
-    border: 1px solid black;
-    padding: 10px;
-    margin: 5px;
-  }
-  
-  .date-item {
-    width: 30px;
-    height: 30px;
+/* #calendar {
+    gap: 8px;
+}
+
+.date-item {
+    width: 35px;
+    height: 35px;
     display: flex;
     align-items: center;
     justify-content: center;
-    border: 1px solid #ddd;
-  }
-  
-  .date-item.clickable {
+    border-radius: 50%;  
+    transition: all 0.3s ease;
+}
+
+.date-item.clickable {
     cursor: pointer;
     background-color: #4CAF50;
     color: white;
-  }
+}
+.date-item.clickable:hover {
+    transform: scale(1.05);
+}
+.date-item.active {
+    background-color: red;
+    color: white;
+} */

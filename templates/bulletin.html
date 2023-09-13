@@ -10,10 +10,28 @@
 <div class="container">
     <div class="row align-items-center mt-5">
         <div class="col-auto">
-            <p for="dateDropdownBulletin">Select a Date</p>
+            <!-- <p for="dateDropdownBulletin">Select a Date</p> -->
+            <p for="dateInput">Select a Date</p>
         </div>
         <div class="col-auto">
-            <select class="form-select" id="dateDropdownBulletin"></select>
+            <!-- <select class="form-select" id="dateDropdownBulletin"></select> -->
+            <input type="text" class="form-control" id="dateInput" readonly>
+            <div class="card dateCard" id="calendarWrapper">
+                <div class="card-body">
+                    <div class="row mb-3">  <!-- Bootstrap row for year and month selectors -->
+                        <div class="col">
+                            <select class="form-select" id="yearSelector"></select>
+                        </div>
+                        <div class="col">
+                            <select class="form-select" id="monthSelector"></select>
+                        </div>
+                    </div>
+                    
+                    <div id="calendar" class="d-flex flex-wrap"> <!-- Using flexbox instead of grid for Bootstrap compatibility -->
+                        <!-- Dates will be populated here -->
+                    </div>
+                </div>
+            </div>
         </div>
         <div class="col-auto">
             <button class="btn btn-primary" id="updateBulletin">Update Bulletin</button>

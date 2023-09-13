@@ -1,5 +1,6 @@
 document.addEventListener("DOMContentLoaded", function() {
-    var dateDropdownBulletin = document.getElementById("dateDropdownBulletin");
+    const dateInput = document.getElementById("dateInput");
+    // var dateInput = document.getElementById("dateInput");
     const updateBulletinBtn = document.getElementById("updateBulletin");
 
     const storms_url = '/get-storms/';
@@ -271,19 +272,19 @@ document.addEventListener("DOMContentLoaded", function() {
     }
 
     document.getElementById("tab6hrs").addEventListener("click", async function() {
-        var selected_date = dateDropdownBulletin.value;
+        var selected_date = dateInput.value;
         const data = await getStatsBulletin('6hrs', selected_date);
         updateTable(data);
     });
 
     document.getElementById("tab12hrs").addEventListener("click", async function() {
-        var selected_date = dateDropdownBulletin.value;
+        var selected_date = dateInput.value;
         const data = await getStatsBulletin('12hrs', selected_date);
         updateTable(data);
     });
 
     document.getElementById("tab24hrs").addEventListener("click", async function() {
-        var selected_date = dateDropdownBulletin.value;
+        var selected_date = dateInput.value;
         const data = await getStatsBulletin('24hrs', selected_date);
         updateTable(data);
     });
@@ -545,7 +546,7 @@ document.addEventListener("DOMContentLoaded", function() {
     updateBulletinBtn.addEventListener('click', async function () {
         try {
             loader.style.display = 'block';
-            var selected_date = dateDropdownBulletin.value; 
+            var selected_date = dateInput.value; 
             const formattedDate = formatDate(selected_date);
             displayDate.innerHTML = formattedDate;
 
@@ -593,50 +594,209 @@ document.addEventListener("DOMContentLoaded", function() {
         populateTable(tableElement, filteredData, interval);
     }
 
+    // ============== Date Panel ==================>
+
+    const dateCard = document.querySelector(".dateCard");
+
+    // Initially hide the calendar
+    dateCard.style.display = 'none';
+
+    dateInput.addEventListener("click", function() {
+        if (dateCard.style.display === 'none' || dateCard.style.display === '') {
+            dateCard.style.display = 'block';  // Show calendar
+        } else {
+            dateCard.style.display = 'none';   // Hide calendar
+        }
+    });
+
+    // Add a click event listener to the year selector dropdown
+    document.getElementById("monthSelector").addEventListener("click", function (event) {
+        // Prevent event propagation to the body
+        event.stopPropagation();
+    });
+
+    // Add a click event listener to the year selector dropdown
+    document.getElementById("yearSelector").addEventListener("click", function (event) {
+        // Prevent event propagation to the body
+        event.stopPropagation();
+    });
+
+    // Add a click event listener to the document body
+    document.body.addEventListener('click', (event) => {
+        // Check if the click target is not the input field or the date panel
+        if (event.target !== dateInput && event.target !== dateCard) {
+        // Close the date panel (hide it)
+            dateCard.style.display = 'none';
+        }
+    });
+  
+    function handleDateItemClick(dateItem, currentDate) {
+        dateItem.addEventListener('click', function() {
+            const prevActive = document.querySelector('.date-item.active');
+            if (prevActive) {
+                prevActive.classList.remove('active');
+            }
+    
+            // Set the current date as active and update the input
+            this.classList.add('active');
+            dateInput.value = currentDate;
+            dateCard.style.display = 'none';
+        });
+    }
+
+    function createCustomCalender(clickableDates){
+        //let clickableDates = ["2023-01-01", "2023-01-20", "2023-09-10", "2023-09-11"];
+        const yearSelector = document.getElementById("yearSelector");
+        const monthSelector = document.getElementById("monthSelector");
+        const calendar = document.getElementById("calendar");
+
+        const currentYear = new Date().getFullYear();
+        const currentMonth = new Date().getMonth() + 1;  // JavaScript months are 0-indexed
+
+        function isDateClickable(date) {
+            return clickableDates.includes(date);
+        }
+
+        function daysInMonth(month, year) {
+            return new Date(year, month, 0).getDate();
+        }
+
+        function getLatestClickableDate() {
+            if (!clickableDates.length) return null;  // Check if the array is empty
+            return clickableDates.sort((a, b) => new Date(b) - new Date(a))[0];
+        }
+
+        const latestEventDate = getLatestClickableDate();
+        dateInput.value = latestEventDate;
+
+        function generateCalendar(month, year) {
+            calendar.innerHTML = ''; // Clear previous dates
+
+            let activeDate = dateInput.value || getLatestClickableDate(); // Use the value in the input or get the latest clickable date
+
+            for (let day = 1; day <= daysInMonth(month, year); day++) {
+                const dateItem = document.createElement('div');
+                dateItem.classList.add('date-item');
+                dateItem.textContent = day;
+
+                const currentDate = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+
+                if (isDateClickable(currentDate)) {
+                    dateItem.classList.add('clickable');
+                    if (currentDate === activeDate) {
+                        dateItem.classList.add('active');
+                    }
+                    handleDateItemClick(dateItem, currentDate); // use the separate function here
+                }
+                calendar.appendChild(dateItem);
+            }
+        }
+
+        // Populate the year selector
+        for (let i = currentYear - 3; i <= currentYear + 3; i++) {
+            let option = new Option(i, i);
+            yearSelector.appendChild(option);
+        }
+
+        // Set the default value of year selector to current year
+        yearSelector.value = currentYear;
+
+        // Populate the month selector
+        for (let i = 1; i <= 12; i++) {
+            let monthName = new Date(currentYear, i - 1, 1).toLocaleString('default', { month: 'long' });
+            let option = new Option(monthName, i);
+            monthSelector.appendChild(option);
+        }
+
+        // Set the default value of month selector to current month
+        monthSelector.value = currentMonth;
+
+        yearSelector.addEventListener("change", () => {
+            generateCalendar(Number(monthSelector.value), Number(yearSelector.value));
+        });
+
+        monthSelector.addEventListener("change", () => {
+            generateCalendar(Number(monthSelector.value), Number(yearSelector.value));
+        });
+
+        // Initial load with the current year and month
+        generateCalendar(currentMonth, currentYear);
+    }
+    // ============== End Date Panel ==================!
+
     async function init() {
         try {
             loader.style.display = 'block';
             let dateList = await getDate();
             dateList = JSON.parse(dateList);
-    
-            dateList.forEach(function (date) {
-                var option = document.createElement("option");
-                option.text = date[0];
-                dateDropdownBulletin.add(option);
+            clickableDates = dateList.map(innerArray => innerArray[0]);
+            createCustomCalender(clickableDates);
+
+            var selected_date = dateInput.value; 
+
+            const data_6hrs = await getStatsBulletin('6hrs', selected_date);
+            updateTable(data_6hrs);
+
+            const formattedDisplayDate = formatDate(selected_date);
+            displayDate.innerHTML = formattedDisplayDate;
+
+            // 2023-07-01 06:00 UTC
+            dateElements.forEach(function (element) {
+                element.textContent = selected_date + " 06:00 UTC";
             });
+
+            // Call createMap sequentially for each parameter
+            for (const param in mapInstances) {
+                await createMap(param, selected_date);
+            }
+
+            // Loop through countries and intervals
+            for (const iso of countryISOs) {
+                for (const interval of ['6hrs', '12hrs', '24hrs']) {
+                    const tableElement = document.getElementById(`${iso}Table${interval}`);
+                    await populateTableForInterval(tableElement, iso, interval, selected_date);
+                }
+            }
+            loader.style.display = 'none';
+    
+            // dateList.forEach(function (date) {
+            //     var option = document.createElement("option");
+            //     option.text = date[0];
+            //     dateInput.add(option);
+            // });
     
             // Check if the dropdown is populated and has a selected value
-            if (dateDropdownBulletin.options.length > 0) {
-                var selected_date = dateDropdownBulletin.value; 
+            // if (dateInput.options.length > 0) {
+            //     var selected_date = dateInput.value; 
 
-                const data_6hrs = await getStatsBulletin('6hrs', selected_date);
-                updateTable(data_6hrs);
+            //     const data_6hrs = await getStatsBulletin('6hrs', selected_date);
+            //     updateTable(data_6hrs);
 
-                const formattedDisplayDate = formatDate(selected_date);
-                displayDate.innerHTML = formattedDisplayDate;
+            //     const formattedDisplayDate = formatDate(selected_date);
+            //     displayDate.innerHTML = formattedDisplayDate;
 
-                // 2023-07-01 06:00 UTC
-                dateElements.forEach(function (element) {
-                    element.textContent = selected_date + " 06:00 UTC";
-                });
+            //     // 2023-07-01 06:00 UTC
+            //     dateElements.forEach(function (element) {
+            //         element.textContent = selected_date + " 06:00 UTC";
+            //     });
 
-                // Call createMap sequentially for each parameter
-                for (const param in mapInstances) {
-                    await createMap(param, selected_date);
-                }
+            //     // Call createMap sequentially for each parameter
+            //     for (const param in mapInstances) {
+            //         await createMap(param, selected_date);
+            //     }
 
-                // Loop through countries and intervals
-                for (const iso of countryISOs) {
-                    for (const interval of ['6hrs', '12hrs', '24hrs']) {
-                        const tableElement = document.getElementById(`${iso}Table${interval}`);
-                        await populateTableForInterval(tableElement, iso, interval, selected_date);
-                    }
-                }
-                loader.style.display = 'none';
-            } else {
-                console.log('Dropdown has no options.');
-                loader.style.display = 'none';
-            }
+            //     // Loop through countries and intervals
+            //     for (const iso of countryISOs) {
+            //         for (const interval of ['6hrs', '12hrs', '24hrs']) {
+            //             const tableElement = document.getElementById(`${iso}Table${interval}`);
+            //             await populateTableForInterval(tableElement, iso, interval, selected_date);
+            //         }
+            //     }
+            //     loader.style.display = 'none';
+            // } else {
+            //     console.log('Dropdown has no options.');
+            //     loader.style.display = 'none';
+            // }
         } catch (error) {
             console.error('Error in init:', error);
             loader.style.display = 'none';
