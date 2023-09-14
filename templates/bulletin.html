@@ -10,11 +10,9 @@
 <div class="container">
     <div class="row align-items-center mt-5">
         <div class="col-auto">
-            <!-- <p for="dateDropdownBulletin">Select a Date</p> -->
-            <p for="dateInput">Select a Date</p>
+            <p class="pt-2" for="dateInput">Select a Date</p>
         </div>
         <div class="col-auto">
-            <!-- <select class="form-select" id="dateDropdownBulletin"></select> -->
             <input type="text" class="form-control" id="dateInput" readonly>
             <div class="card dateCard" id="calendarWrapper">
                 <div class="card-body">
@@ -32,6 +30,30 @@
                     </div>
                 </div>
             </div>
+        </div>
+        <div class="col-auto">
+            <p class="pt-2" for="hrSelection">Select Hours</p>
+        </div>
+        <div class="col-auto">
+            <select class="form-select" id="hrSelection">
+                <option value="01">01 Hrs</option>
+                <option value="03">03 Hrs</option>
+                <option value="06" selected>06 Hrs</option>
+                <option value="12">12 Hrs</option>
+                <option value="24">24 Hrs</option>
+            </select>
+        </div>
+        <div class="col-auto">
+            <p class="pt-2" for="countryBulletin">Select Country</p>
+        </div>
+        <div class="col-auto">
+            <select class="form-select" id="countryBulletin">
+                <option value="All" selected>All</option>
+                <option value="KHM">Cambodia</option>
+                <option value="LAO">Lao PDR</option>
+                <option value="THA">Thailand</option>
+                <option value="VNM">Vietnam</option>
+            </select>
         </div>
         <div class="col-auto">
             <button class="btn btn-primary" id="updateBulletin">Update Bulletin</button>

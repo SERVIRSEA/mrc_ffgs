@@ -3,6 +3,7 @@ from . import views
 
 urlpatterns = [
     path('', views.HomePage.as_view(), name='home'),
+    path('map/', views.MapPage.as_view(), name='map'),
     path('bulletin/', views.BulletinPage.as_view(), name='bulletin'),
     path('get-datelist/', views.get_datelist),
     path('get-mrcffg-bulletin-map-data/', views.get_mrcffg_bulletin_data),

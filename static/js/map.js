@@ -109,10 +109,10 @@ document.addEventListener("DOMContentLoaded", function() {
 
     // Fetch URLs
     const urls = {
-        '6hrs': 'get-alert-stat-6hrs/',
-        '12hrs': 'get-risk-stat-12hrs/',
-        '24hrs': 'get-risk-stat-24hrs/',
-        'dates': 'get-datelist/'
+        '6hrs': '/get-alert-stat-6hrs/',
+        '12hrs': '/get-risk-stat-12hrs/',
+        '24hrs': '/get-risk-stat-24hrs/',
+        'dates': '/get-datelist/'
     };
 
     function displayDetail(entry){
@@ -223,8 +223,8 @@ document.addEventListener("DOMContentLoaded", function() {
     }
 
     // Update the table with statistical data
-    async function updateTable(param, selectedDate) {
-        const dataToProcess = await getStats(param, selectedDate);
+    async function updateTable(param, dataToProcess) {
+        // const dataToProcess = await getStats(param, selectedDate);
         const parsed_data = JSON.parse(dataToProcess);
 
         const rightSidebar = document.querySelector("#rightSidebarContent");
@@ -270,12 +270,6 @@ document.addEventListener("DOMContentLoaded", function() {
             "Moderate": "#FFA500",
             "Low": "#FFFF00"
         };
-
-        const riskColors = {
-            "High": "#FF0000",
-            "Moderate": "#FFA500",
-            "Low": "#FFFF00"
-        };
         
         const sortedData = parsed_data.sort((a, b) => {
             let propToSortBy;
@@ -313,7 +307,6 @@ document.addEventListener("DOMContentLoaded", function() {
             circle.className = 'circle';
             circle.style.backgroundColor = alertColors[entry.Alert_6Hrs];
             circleDiv.appendChild(circle);
-            // console.log(entry.Alert_6Hrs)
             
             const detailsDiv = document.createElement('div');
             detailsDiv.className = "col-sm-9";
@@ -367,15 +360,8 @@ document.addEventListener("DOMContentLoaded", function() {
         }
     }
 
-    async function updateSubProvinceMap(param, selectedDate){
-        const statsParam = determineStatsParam(param);
-        if (!statsParam) {
-            console.error('Invalid param provided.');
-            return;
-        }
-
-        const data = await getStats(statsParam, selectedDate);
-        const parsedData = JSON.parse(data);
+    async function updateSubProvinceMap(param, dataToProcess){
+        const parsedData = JSON.parse(dataToProcess);
         const subProvinceData = await getsubProvinceData();
     
         function getAlertValueById(param, fid) {
@@ -424,14 +410,14 @@ document.addEventListener("DOMContentLoaded", function() {
             onEachFeature(e.layer.feature, e.layer);
         });
 
-        function onEachFeature(feature, layer, data) {
+        function onEachFeature(feature, layer) {
             layer.on({
                 click: onSubProvinceClick
             });
             layer.bindTooltip('<h6 class="fw-bold p-2">'+feature.properties.NAME_2+', '+feature.properties.NAME_1+',<br>'+feature.properties.NAME_0+'</h6>');
         }
 
-        async function onSubProvinceClick(e, data) {
+        async function onSubProvinceClick(e) {
             const clickedFeature = e.target.feature;
             const fid = clickedFeature.properties.ID_2;
             const filteredData = parsedData.filter(item => item.ID_2 === fid);
@@ -450,22 +436,25 @@ document.addEventListener("DOMContentLoaded", function() {
     document.getElementById("btnradio06").addEventListener("click", async function() {
         var selectedDate = dateInput.value;
         let param = '6hrs';
-        updateTable(param, selectedDate);
-        updateSubProvinceMap("FFG06", selectedDate);
+        const dataToProcess = await getStats(param, selectedDate)
+        updateTable(param, dataToProcess);
+        updateSubProvinceMap("FFG06", dataToProcess);
     });
 
     document.getElementById("btnradio12").addEventListener("click", async function() {
         var selectedDate = dateInput.value;
         let param = '12hrs';
-        updateTable(param, selectedDate);
-        updateSubProvinceMap("FFR12", selectedDate);
+        const dataToProcess = await getStats(param, selectedDate)
+        updateTable(param, dataToProcess);
+        updateSubProvinceMap("FFR12", dataToProcess);
     });
 
     document.getElementById("btnradio24").addEventListener("click", async function() {
         var selectedDate = dateInput.value;
         let param = '24hrs';
-        updateTable(param, selectedDate);
-        updateSubProvinceMap("FFR24", selectedDate);
+        const dataToProcess = await getStats(param, selectedDate)
+        updateTable(param, dataToProcess);
+        updateSubProvinceMap("FFR24", dataToProcess);
     });
     
     // Basin Map
@@ -710,7 +699,7 @@ document.addEventListener("DOMContentLoaded", function() {
         }
     });
 
-    function updateDataForSelectedDate(selectedDate) {
+    async function updateDataForSelectedDate(selectedDate) {
         const radioButtons2 = document.getElementsByName("btnradio");
         let selectedRadioButton;
     
@@ -743,8 +732,9 @@ document.addEventListener("DOMContentLoaded", function() {
                 console.error('Invalid param provided.');
                 return;
             }
-            updateTable(statsParam, selectedDate);
-            updateSubProvinceMap(id, selectedDate);
+            const dataToProcess = await getStats(statsParam, selectedDate)
+            updateTable(statsParam, dataToProcess);
+            updateSubProvinceMap(id, dataToProcess);
             updateMap(checkedValue, selectedDate);
         } catch (error) {
             console.error("Failed to update data:", error);
@@ -856,10 +846,11 @@ document.addEventListener("DOMContentLoaded", function() {
         clickableDates = dateList.map(innerArray => innerArray[0]);
         createCustomCalender(clickableDates);
         var selectedDate = dateInput.value; 
-        const data = await getStats('6hrs', selectedDate);
-        
-        updateTable('6hrs', selectedDate);
-        updateSubProvinceMap("FFG06", selectedDate);
+
+        const dataToProcess = await getStats('6hrs', selectedDate);
+
+        updateTable('6hrs', dataToProcess);
+        updateSubProvinceMap("FFG06", dataToProcess);
         updateMap('MAP06', selectedDate);
         populateLegend('MAP06');
     })();
@@ -891,138 +882,135 @@ document.addEventListener("DOMContentLoaded", function() {
         }
     });
 
+    let adm0;
+    let storm_boundingbox;
+    let subprovince_map;
+    let mainlakes;
+    let river;
+    let mekong_basin;
+    let mekong_bb;
 
-    var adm0;
-    fetch('/static/data/adm0.geojson')
-    .then(response => response.json())
-    .then(data => {
-        adm0 = L.geoJSON(data, {
-            style: {
-                fillColor: '#9999ff',
-                weight: 1,
-                opacity: 0.5,
-                color: 'gray',
-                // dashArray: '3',
-                fillOpacity: 0.0
+    const staticCache = {}; // Cache object for static data
+
+    async function fetchData(url) {
+        try {
+            if (staticCache[url]) {
+                return staticCache[url]; // Return cached data if available
             }
-        }).addTo(map);
-    })
-    .catch((error) => {
-        console.log(error)
-    });
 
-    // Load geographic coverage area Geojson
-    var storm_boundingbox;
-    fetch('/static/data/storm_boundingbox.geojson')
-    .then(response => response.json())
-    .then(data => {
-        storm_boundingbox = L.geoJSON(data, {
-            style: {
-                fillColor: '#9999ff',
-                weight: 2,
-                opacity: 1,
-                color: 'white',
-                dashArray: '3',
-                fillOpacity: 0.1
+            const response = await fetch(url);
+            if (!response.ok) {
+                throw new Error(`HTTP error! Status: ${response.status}`);
+            }
+            const data = await response.json();
+            staticCache[url] = data; 
+            return data;
+        } catch (error) {
+            console.error('Fetch error:', error);
+            throw error;
         }
-        });
-    })
-    .catch((error) => {
-        console.log(error)
-    });
-
-    var subprovince_map;
-    async function subProvinceMap(){
-        const subprovince_data = await getsubProvinceData();
-        subprovince_map = L.geoJSON(subprovince_data, {
-            style: {
-                fillColor: '#9999ff',
-                weight: 1,
-                opacity: 1,
-                color: 'gray',
-                dashArray: '3',
-                fillOpacity: 0.5
-            }
-        });
     }
 
-    // Load main lakes Geojson
-    var mainlakes;
-    fetch('/static/data/mainlakes_FFGS.geojson')
-    .then(response => response.json())
-    .then(data => {
-        mainlakes = L.geoJSON(data, {
-            style: {
-                fillColor: 'darkgray',
-                weight: 0,
-                opacity: 0.1,
-                color: 'white',
-                dashArray: '3',
-                fillOpacity: 1
-            }
-        }).addTo(map);
-    })
-    .catch((error) => {
-        console.log(error)
-    });
+    async function loadLayers() {
+        try {
+            // Load adm0 data
+            const adm0Data = await fetchData('/static/data/adm0.geojson');
+            adm0 = L.geoJSON(adm0Data, {
+                style: {
+                    fillColor: '#9999ff',
+                    weight: 1,
+                    opacity: 0.5,
+                    color: 'gray',
+                    fillOpacity: 0.0,
+                },
+            }).addTo(map);
 
-    // Load river Geojson
-    var river;
-    fetch('/static/data/riverMK_FFGS.geojson')
-    .then(response => response.json())
-    .then(data => {
-        river = L.geoJSON(data, {
-            style: {
-                fillColor: '#9999ff',
-                weight: 2,
-                opacity: 1,
-                color: 'blue',
-                fillOpacity: 0.8
-            }
-        }).addTo(map);
-    })
-    .catch((error) => {
-        console.log(error)
-    });
+            // Load storm bounding box data
+            const stormBoundingBoxData = await fetchData('/static/data/storm_boundingbox.geojson');
+            storm_boundingbox = L.geoJSON(stormBoundingBoxData, {
+                style: {
+                    fillColor: '#9999ff',
+                    weight: 2,
+                    opacity: 1,
+                    color: 'white',
+                    dashArray: '3',
+                    fillOpacity: 0.1,
+                },
+            });
 
-    // Load mekong basin Geojson
-    var mekong_basin;
-    fetch('/static/data/mekong_basin_area.geojson')
-    .then(response => response.json())
-    .then(data => {
-        mekong_basin = L.geoJSON(data, {
-            style: {
-                fillColor: '#2E86C1',
-                weight: 3,
-                opacity: 1,
-                color: 'darkgray',
-                fillOpacity: 0.0
-            }
-        }).addTo(map);
-    })
-    .catch((error) => {
-        console.log(error)
-    });
+            // Load subprovince map data
+            const subprovinceData = await getsubProvinceData();
+            subprovince_map = L.geoJSON(subprovinceData, {
+                style: {
+                    fillColor: '#9999ff',
+                    weight: 1,
+                    opacity: 1,
+                    color: 'gray',
+                    dashArray: '3',
+                    fillOpacity: 0.5,
+                },
+            });
 
-    // Load mekong BBox area Geojson
-    var mekong_bb;
-    fetch('/static/data/mekong_bb.geojson')
-    .then(response => response.json())
-    .then(data => {
-        mekong_bb = L.geoJSON(data, {
-            style: {
-                fillColor: '#9999ff',
-                weight: 1,
-                opacity: 1,
-                color: 'white',
-                dashArray: '3',
-                fillOpacity: 0.1
-            }
-        });
-    })
-    .catch((error) => {
-        console.log(error)
-    });
+            // Load main lakes data
+            const mainLakesData = await fetchData('/static/data/mainlakes_FFGS.geojson');
+            mainlakes = L.geoJSON(mainLakesData, {
+                style: {
+                    fillColor: 'darkgray',
+                    weight: 0,
+                    opacity: 0.1,
+                    color: 'white',
+                    dashArray: '3',
+                    fillOpacity: 1,
+                },
+            }).addTo(map);
+
+            // Load river data
+            const riverData = await fetchData('/static/data/riverMK_FFGS.geojson');
+            river = L.geoJSON(riverData, {
+                style: {
+                    fillColor: '#9999ff',
+                    weight: 2,
+                    opacity: 1,
+                    color: 'blue',
+                    fillOpacity: 0.8,
+                },
+            }).addTo(map);
+
+            // Load mekong basin data
+            const mekongBasinData = await fetchData('/static/data/mekong_basin_area.geojson');
+            mekong_basin = L.geoJSON(mekongBasinData, {
+                style: {
+                    fillColor: '#2E86C1',
+                    weight: 3,
+                    opacity: 0.5,
+                    color: '#000',
+                    fillOpacity: 0.0,
+                },
+            }).addTo(map);
+
+            // Load mekong BBox area data
+            const mekongBBoxData = await fetchData('/static/data/mekong_bb.geojson');
+            mekong_bb = L.geoJSON(mekongBBoxData, {
+                style: {
+                    fillColor: '#9999ff',
+                    weight: 1,
+                    opacity: 1,
+                    color: 'white',
+                    dashArray: '3',
+                    fillOpacity: 0.1,
+                },
+            });
+
+            // Now you can add event listeners or handle checkboxes as needed.
+            // For example, you can add checkboxes to toggle layers on and off.
+
+        } catch (error) {
+            console.error('Layer loading error:', error);
+        }
+    }
+
+    // Call the loadLayers function to load the layers asynchronously.
+    loadLayers();
 
     var rainfall_cb = document.querySelector('#rainfallCB');
     var mlakes_cb = document.querySelector('#lakesCB');
@@ -1034,15 +1022,18 @@ document.addEventListener("DOMContentLoaded", function() {
     var country_cb = document.querySelector('#countryCB');
 
     var rainacc = document.querySelector('#rainacc-control-panel')
-
+    
+    var tdWmsLayer;
     rainfall_cb.onclick = function() {
         if(this.checked) {
-            var tdWmsLayer;
             rainacc.style.display = "block";
             var btnPlay = document.querySelector("#btn-play");
             var btnPrev = document.querySelector("#btn-prev");
             var btnNext = document.querySelector("#btn-next");
             var btnPause = document.querySelector("#btn-pause");
+
+            // Initialize the start date to null
+            var startDate = null;
             
             var tdWmsRainLayer = L.tileLayer.wms("https://thredds-servir.adpc.net/thredds/wms/RAINSTORM/rainacc/Rain_accumulation_GSMAP_NOW.nc", {
                 layers: 'rain',
@@ -1061,16 +1052,60 @@ document.addEventListener("DOMContentLoaded", function() {
             });
 
             var timeDimension = new L.TimeDimension();
-                map.timeDimension = timeDimension;
+            map.timeDimension = timeDimension;
+
+            tdWmsLayer = L.timeDimension.layer.wms(tdWmsRainLayer, {
+                updateTimeDimension: true,
+                setDefaultTime: true,
+                cache: 365,
+                zIndex: 100,
+            });
+            
+            var firstLoad = 0;
+
+            map.timeDimension.on('timeload', function(data) {
+                var date = new Date(map.timeDimension.getCurrentTime());
+                if (firstLoad === 0) {
+                    // Set the startDate only on the first load
+                    startDate = new Date(date); // Clone the date
+                    startDate.setDate(startDate.getDate() - 2); // Subtract two days
+                    firstLoad = 1;
+                }
+
+                // var utc_dt = date.toUTCString();
+                // var utcDate = new Date(utc_dt).toISOString().split('T')[0];
+                // var utcTime = new Date(utc_dt).getUTCHours();
+                // document.querySelector("#date-text").innerHTML = utcDate;
+                // document.querySelector("#time-text").innerHTML = utcTime + ":00";
+
+                // Adjust the date to UTC+7 (420 minutes ahead of UTC)
+                date.setMinutes(date.getMinutes()); // +420
+
+                // Format the date and time in the UTC+7 time zone
+                var options = {
+                    timeZone: 'Asia/Bangkok', // UTC+7 (Bangkok)
+                    year: 'numeric',
+                    month: '2-digit',
+                    day: '2-digit',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    second: '2-digit',
+                };
+                var formattedDateTime = date.toLocaleString('en-US', options);
+                document.querySelector("#date-text").innerHTML = formattedDateTime.split(',')[0]; // Display date
+                document.querySelector("#time-text").innerHTML = formattedDateTime.split(',')[1]; // Display time
+            });
 
             var player = new L.TimeDimension.Player({
                 loop: true,
-                startOver: true
+                startOver: true,
+                buffer: 2
             }, timeDimension);
 
             btnPrev.onclick = (function() {
                 map.timeDimension.previousTime(1);
             });
+
             btnNext.onclick=(function() {
                 map.timeDimension.nextTime(1);
             });
@@ -1079,44 +1114,24 @@ document.addEventListener("DOMContentLoaded", function() {
             btnPlay.style.display = "block";
 
             btnPlay.onclick=(function() {
-            btnPause.style.display = "block";
-            btnPlay.style.display = "none";
+                btnPause.style.display = "block";
+                btnPlay.style.display = "none";
+                if (startDate) {
+                    // Start the animation from the dynamically determined startDate
+                    map.timeDimension.setCurrentTime(startDate);
+                    player.start();
+                }
             });
 
             btnPause.onclick =  (function() {
                 btnPause.style.display = "none";
                 btnPlay.style.display = "block";
+                player.stop();
             });
 
-            tdWmsLayer = L.timeDimension.layer.wms(tdWmsRainLayer, {
-                updateTimeDimension: true,
-                setDefaultTime: true,
-                cache: 365,
-                zIndex: 100,
-            });
-            tdWmsLayer.addTo(map);
-
-            var firstLoad = 0;
-            map.timeDimension.on('timeload', function(data) {
-                var date = new Date(map.timeDimension.getCurrentTime());
-                // console.log(date)
-                // console.log(date.toUTCString())
-                // console.log(date.toLocaleString('en-GB'));
-                
-                var utc_dt = date.toUTCString();
-                var utcDate = new Date(utc_dt).toISOString().split('T')[0];
-                var utcTime = new Date(utc_dt).getUTCHours();
-                // console.log(utcDate)
-                // console.log(new Date(utc_dt).getUTCHours())
-                // document.querySelector("#date-text").html(moment(date).tz(zone).utc().format("YYYY/MM/DD"));
-                // document.querySelector("#time-text").html(moment(date).tz(zone).utc().format('HH:mm'));
-                document.querySelector("#date-text").innerHTML = utcDate;
-                document.querySelector("#time-text").innerHTML = utcTime + ":00";
-
-                firstLoad += 1;
-            });
+            map.addLayer(tdWmsLayer);
         } else {
-            // map.removeLayer();
+            map.removeLayer(tdWmsLayer);
             rainacc.style.display = "none";
         }
     }

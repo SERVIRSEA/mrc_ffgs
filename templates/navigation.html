@@ -69,7 +69,11 @@
                 <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
                     {% url 'home' as homePage %} 
                     <li class="nav-item {% if request.path == homePage %}active{% endif %}">
-                        <a class="nav-link" href="{{ homePage }}">Map</a>
+                        <a class="nav-link" href="{{ homePage }}">Home</a>
+                    </li>
+                    {% url 'map' as mapPage %} 
+                    <li class="nav-item {% if request.path == mapPage %}active{% endif %}">
+                        <a class="nav-link" href="{{ mapPage }}">Map</a>
                     </li>
                     {% url 'bulletin' as bulletinPage %} 
                     <li class="nav-item {% if request.path == bulletinPage %}active{% endif %}">

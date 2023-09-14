@@ -207,7 +207,7 @@ document.addEventListener("DOMContentLoaded", function() {
             return;
         }
     
-        const parsed_data = JSON.parse(dataToProcess);
+        let parsed_data = dataToProcess; //JSON.parse(dataToProcess);
     
         // Population calculations
         let totalPopulation = 0;
@@ -252,7 +252,7 @@ document.addEventListener("DOMContentLoaded", function() {
             totalGDP += parseFloat(item.GDP);
             totalCroplands += parseFloat(item.crop_sqm);
         });
-    
+     
         total_pop.innerHTML = totalPopulation > 0 ? totalPopulation : "---";
         total_female_pop.innerHTML = totalFemalePopulation > 0 ? totalFemalePopulation : "---";
         female_pop_f1.innerHTML = femalePopulationF1 > 0 ? femalePopulationF1 : "---";
@@ -453,21 +453,34 @@ document.addEventListener("DOMContentLoaded", function() {
         ffgsLayers[param] = L.geoJSON().addTo(mapInstances[param]);
     }
 
-    async function createMap(param, selected_date) {
+    async function createMap(param, selected_date, selectedCountry) {
         const ffgData = await getBulletinMapData(selected_date);
-        const basinData = await getMRCBasin();
         let dataArray = JSON.parse(ffgData);
+        let basinData = await getMRCBasin();
 
         // Get the corresponding ffgsLayer variable based on the parameter
         const ffgsLayer = ffgsLayers[param];
+
+        if (selectedCountry === "All") {
+            basinData = basinData; // This line is redundant, as basinData remains unchanged. You can remove it.
+        } else if (["KHM", "VNM", "THA", "LAO"].includes(selectedCountry)) {
+            basinData = {
+                ...basinData,
+                features: basinData.features.filter(feature => feature.properties.iso === selectedCountry)
+            };
+        }
         
         // Clear the layer before adding new data
         ffgsLayer.clearLayers();
         ffgsLayer.addData(basinData);
         ffgsLayer.setStyle(feature => getStyle(param, feature, dataArray)); 
-
+        
         // Add the layer to the corresponding map instance
         mapInstances[param].addLayer(ffgsLayer);
+
+        const bounds = ffgsLayer.getBounds();
+        mapInstances[param].fitBounds(bounds);
+
     }
 
     async function populateTable(tableElement, data, interval) {
@@ -481,7 +494,7 @@ document.addEventListener("DOMContentLoaded", function() {
     
         const lowColor = 'yellow';
         const moderateColor = 'orange';
-        const highColor = 'pink';
+        const highColor = 'red';
     
         if (data.length === 0) {
             const row = tbody.insertRow();
@@ -546,6 +559,7 @@ document.addEventListener("DOMContentLoaded", function() {
     updateBulletinBtn.addEventListener('click', async function () {
         try {
             loader.style.display = 'block';
+            await new Promise(resolve => setTimeout(resolve, 0));
             var selected_date = dateInput.value; 
             const formattedDate = formatDate(selected_date);
             displayDate.innerHTML = formattedDate;
@@ -554,8 +568,9 @@ document.addEventListener("DOMContentLoaded", function() {
                 element.textContent = selected_date + " 06:00 UTC";
             });
 
-            // Get the active button within the 'ibfwTab' element
-            const insTab = document.getElementById('insTab');
+            const selectedCountry = document.getElementById("countryBulletin").value;
+
+            const insTab = document.getElementById('insTab'); // Critical infrastructure tab
             const activeButton = insTab.querySelector('.nav-link.active');
 
             // Get the 'id' attribute of the active button
@@ -563,7 +578,39 @@ document.addEventListener("DOMContentLoaded", function() {
             const selectedTabParam = tabMapping[activeButtonId];
 
             const data = await getStatsBulletin(selectedTabParam, selected_date);
-            updateTable(data);
+            const parsedData = JSON.parse(data);
+
+            const tableContainers = {
+                "KHM": document.getElementById("KHMTableContainer"),
+                "LAO": document.getElementById("LAOTableContainer"),
+                "THA": document.getElementById("THATableContainer"),
+                "VNM": document.getElementById("VNMTableContainer")
+            };
+            
+            function hideAllExcept(exceptISO) {
+                for (let countryISO of countryISOs) {
+                    if (tableContainers[countryISO]) { 
+                        if (countryISO === exceptISO) {
+                            tableContainers[countryISO].style.display = "block";
+                        } else {
+                            tableContainers[countryISO].style.display = "none";
+                        }
+                    } else {
+                        console.error(`Container for ${countryISO} is not defined in tableContainers.`);
+                    }
+                }
+            }
+            
+            if (selectedCountry === "All") {
+                for (let countryISO in tableContainers) {
+                    tableContainers[countryISO].style.display = "block";
+                }
+                updateTable(data);
+            } else {
+                hideAllExcept(selectedCountry); 
+                const filteredData = parsedData.filter(item => item.ISO === selectedCountry); ;
+                updateTable(filteredData);
+            }
 
             // Clear all ffgsLayer layers for all parameters
             for (const param in mapInstances) {
@@ -571,18 +618,39 @@ document.addEventListener("DOMContentLoaded", function() {
                 ffgsLayer.clearLayers();
             }
             for (const param in mapInstances) {
-                await createMap(param, selected_date);
+                await createMap(param, selected_date, selectedCountry);
             } 
+
+            let countriesToProcess = [];
+
+            if (selectedCountry === "All") {
+                countriesToProcess = countryISOs;
+            } else if (countryISOs.includes(selectedCountry)) {
+                countriesToProcess = [selectedCountry];
+            } else {
+                console.error(`Invalid selectedCountry value: ${selectedCountry}`);
+                return; // Exit the function or handle this case differently
+            }
+
             // Loop through countries and intervals
-            for (const iso of countryISOs) {
+            for (const iso of countriesToProcess) {
                 for (const interval of ['6hrs', '12hrs', '24hrs']) {
                     const tableElement = document.getElementById(`${iso}Table${interval}`);
                     await populateTableForInterval(tableElement, iso, interval, selected_date);
                 }
             }
+
+            // // Loop through countries and intervals
+            // for (const iso of countryISOs) {
+            //     for (const interval of ['6hrs', '12hrs', '24hrs']) {
+            //         const tableElement = document.getElementById(`${iso}Table${interval}`);
+            //         await populateTableForInterval(tableElement, iso, interval, selected_date);
+            //     }
+            // }
             loader.style.display = 'none';
         } catch (error) {
             console.error("Failed to update data:", error);
+        } finally {
             loader.style.display = 'none';
         }
     });
@@ -735,7 +803,8 @@ document.addEventListener("DOMContentLoaded", function() {
             var selected_date = dateInput.value; 
 
             const data_6hrs = await getStatsBulletin('6hrs', selected_date);
-            updateTable(data_6hrs);
+            const parsed_data = JSON.parse(data_6hrs);
+            updateTable(parsed_data);
 
             const formattedDisplayDate = formatDate(selected_date);
             displayDate.innerHTML = formattedDisplayDate;
@@ -758,45 +827,6 @@ document.addEventListener("DOMContentLoaded", function() {
                 }
             }
             loader.style.display = 'none';
-    
-            // dateList.forEach(function (date) {
-            //     var option = document.createElement("option");
-            //     option.text = date[0];
-            //     dateInput.add(option);
-            // });
-    
-            // Check if the dropdown is populated and has a selected value
-            // if (dateInput.options.length > 0) {
-            //     var selected_date = dateInput.value; 
-
-            //     const data_6hrs = await getStatsBulletin('6hrs', selected_date);
-            //     updateTable(data_6hrs);
-
-            //     const formattedDisplayDate = formatDate(selected_date);
-            //     displayDate.innerHTML = formattedDisplayDate;
-
-            //     // 2023-07-01 06:00 UTC
-            //     dateElements.forEach(function (element) {
-            //         element.textContent = selected_date + " 06:00 UTC";
-            //     });
-
-            //     // Call createMap sequentially for each parameter
-            //     for (const param in mapInstances) {
-            //         await createMap(param, selected_date);
-            //     }
-
-            //     // Loop through countries and intervals
-            //     for (const iso of countryISOs) {
-            //         for (const interval of ['6hrs', '12hrs', '24hrs']) {
-            //             const tableElement = document.getElementById(`${iso}Table${interval}`);
-            //             await populateTableForInterval(tableElement, iso, interval, selected_date);
-            //         }
-            //     }
-            //     loader.style.display = 'none';
-            // } else {
-            //     console.log('Dropdown has no options.');
-            //     loader.style.display = 'none';
-            // }
         } catch (error) {
             console.error('Error in init:', error);
             loader.style.display = 'none';

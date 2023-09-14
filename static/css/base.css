@@ -77,3 +77,29 @@ html, body {
     background-color: red;
     color: white;
 }
+
+ /* Container for the image and text */
+ .banner {
+    position: relative;
+    width: 100%;
+}
+
+/* Style for the image */
+.banner img {
+    width: 100%;
+    height: auto;
+    display: block;
+}
+
+/* Style for the overlay text */
+.banner .overlay-text {
+    position: absolute;
+    top: 50%; /* Adjust to vertically center the text */
+    left: 50%; /* Adjust to horizontally center the text */
+    transform: translate(-50%, -50%);
+    background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent background */
+    color: white;
+    padding: 10px 20px;
+    text-align: center;
+    font-size: 24px;
+}

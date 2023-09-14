@@ -17,6 +17,9 @@ storms = settings.STORMS_DATA_PATH
 class HomePage(TemplateView):
     template_name = 'index.html'
 
+class MapPage(TemplateView):
+    template_name = 'map.html'
+
 class BulletinPage(TemplateView):
     template_name = 'bulletin.html'
 

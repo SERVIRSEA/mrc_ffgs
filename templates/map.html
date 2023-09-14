@@ -1,0 +1,691 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block container %}
+
+{% include 'navigation.html' %}
+<!-- Sidebar -->
+<div class="sidebar" id="sidebar">
+    <nav>
+        <div class="nav nav-tabs flex-column" id="nav-tab" role="tablist">
+            <button class="nav-link pt-3 pb-3" id="home" data-bs-toggle="tab" data-bs-target="#nav-filter" type="button" role="tab" aria-controls="nav-filter" aria-selected="false" data-bs-toggle="tooltip" data-bs-placement="right" title="Menu"><i class="fas fa-bars fa-lg"></i></button>
+        </div>
+    </nav>
+</div>
+<!-- Sidebar Content -->
+<div class="sidebar-content bg-body" id="sidebar-content">
+    <div class="bg-dark bg-opacity-10">
+        <div class="row pt-3">
+            <div class="col-sm-8">
+                <nav>
+                    <div class="nav nav-tabs ms-2 mb-3" id="nav-tab" role="tablist">
+                        <button class="nav-link active" id="filter" data-bs-toggle="tab" data-bs-target="#nav-filter" type="button" role="tab" aria-controls="nav-filter" aria-selected="false" data-bs-toggle="tooltip" data-bs-placement="right" title="Filter Panel"><i class="fas fa-filter fa-lg"></i></button>
+                        <button class="nav-link" id="layer" data-bs-toggle="tab" data-bs-target="#nav-layer" type="button" role="tab" aria-controls="nav-layer" aria-selected="false" data-bs-toggle="tooltip" data-bs-placement="right" title="Layer Panel"><i class="fas fa-layer-group fa-lg"></i></button>
+                        <button class="nav-link" id="basemap" data-bs-toggle="tab" data-bs-target="#nav-basemap" type="button" role="tab" aria-controls="nav-basemap" aria-selected="false" data-bs-toggle="tooltip" data-bs-placement="right" title="Basemap Style"><i class="fa fa-globe fa-lg"></i></button>
+                    </div>
+                </nav>  
+            </div>
+            <div class="col-sm-4">
+                <div class="d-flex justify-content-end">
+                    <button type="button" class="btn btn-home-close shadow-none me-2" id="close-home-content" aria-label="Close" data-bs-toggle="tooltip" data-bs-placement="right" title="Close"><i class="fas fa-arrow-left fa-lg"></i></button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="tab-content" id="nav-tabContent">
+        <!-- Default tab content area -->
+        <div class="tab-pane fade show active" id="nav-filter" role="tabpanel" aria-labelledby="filter">  
+            <div class="card card-body layer-card m-2 border-0">
+                <!-- <h5>Filter Panel</h5> -->
+                <!-- <div class="form-group">
+                    <label for="exampleInputEmail1">Select Date</label>
+                    <input class="form-control"  type="date" name="select_date" id="select_date" value="2022-10-31">
+                </div> -->
+                <!-- <input type="text" id="dateInput" readonly onclick="showDatePicker()">
+                <div id="datePickerContainer"></div> -->
+                <!-- <p>Select a Date</p>
+                <select class="form-select mb-5" id="dateDropdown"></select> -->
+
+                <div class="mb-3">
+                    <label for="dateInput" class="form-label">Select a Date</label>
+                    <input type="text" class="form-control" id="dateInput" readonly>
+                </div>
+
+                <div class="card dateCard" id="calendarWrapper">
+                    <div class="card-body">
+                        <div class="row mb-3">  <!-- Bootstrap row for year and month selectors -->
+                            <div class="col">
+                                <select class="form-select" id="yearSelector"></select>
+                            </div>
+                            <div class="col">
+                                <select class="form-select" id="monthSelector"></select>
+                            </div>
+                        </div>
+                        
+                        <div id="calendar" class="d-flex flex-wrap"> <!-- Using flexbox instead of grid for Bootstrap compatibility -->
+                            <!-- Dates will be populated here -->
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-check pt-3">
+                    <input class="form-check-input" type="checkbox" value="" id="ffwSubp" checked>
+                    <label class="form-check-label" for="ffwSubp">
+                        Flash Flood Warning (Sub-province)
+                    </label>
+                </div>
+                
+                <div class="form-check pt-3">
+                    <input class="form-check-input" type="checkbox" value="" id="ffpBasin">
+                    <label class="form-check-label" for="ffpBasin">
+                        Flash Flood Parameter (Basin)
+                    </label>
+                </div>
+
+                <div class="ps-3 pt-2">
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="ffpRadio" id="MAP06">
+                        <label class="form-check-label" for="MAP06">
+                            Merged Mean Areal Precipitation (MAP) 6 Hour
+                        </label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="ffpRadio" id="MAP24">
+                        <label class="form-check-label" for="MAP24">
+                            Merged Mean Areal Precipitation (MAP) 24 Hour 
+                        </label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="ffpRadio" id="ASMT" checked>
+                        <label class="form-check-label" for="ASMT">
+                            Average Soil Moisture (ASM) 
+                        </label>
+                    </div>
+                    <div class="form-check pt-2">
+                        <input class="form-check-input" type="radio" name="ffpRadio" id="FFG01">
+                        <label class="form-check-label" for="FFG01">
+                            Flash Flood Guidance (FFG) 1 Hour
+                        </label>
+                    </div>
+                    <div class="form-check pt-2">
+                        <input class="form-check-input" type="radio" name="ffpRadio" id="FFG03">
+                        <label class="form-check-label" for="FFG03">
+                            Flash Flood Guidance (FFG) 3 Hour
+                        </label>
+                    </div>
+                    <div class="form-check pt-2">
+                        <input class="form-check-input" type="radio" name="ffpRadio" id="FFG06">
+                        <label class="form-check-label" for="FFG06">
+                            Flash Flood Guidance (FFG) 6 Hour
+                        </label>
+                    </div>
+                    <div class="form-check pt-2">
+                        <input class="form-check-input" type="radio" name="ffpRadio" id="FMAP01">
+                        <label class="form-check-label" for="FMAP01">
+                            Forecast Mean Areal Precipitation (FMAP) 1 Hour
+                        </label>
+                    </div>
+                    <div class="form-check pt-2">
+                        <input class="form-check-input" type="radio" name="ffpRadio" id="FMAP03">
+                        <label class="form-check-label" for="FMAP03">
+                            Forecast Mean Areal Precipitation (FMAP) 3 Hour
+                        </label>
+                    </div>
+                    <div class="form-check pt-2">
+                        <input class="form-check-input" type="radio" name="ffpRadio" id="FMAP06">
+                        <label class="form-check-label" for="FMAP06">
+                            Forecast Mean Areal Precipitation (FMAP) 6 Hour
+                        </label>
+                    </div>
+                    <div class="form-check pt-2">
+                        <input class="form-check-input" type="radio" name="ffpRadio" id="FMAP24">
+                        <label class="form-check-label" for="FMAP24">
+                            Forecast Mean Areal Precipitation (FMAP) 24 Hour
+                        </label>
+                    </div>
+                    <div class="form-check pt-2">
+                        <input class="form-check-input" type="radio" name="ffpRadio" id="FFFT01">
+                        <label class="form-check-label" for="FFFT01">
+                            Forecast Flash Flood Threat (FFFT) 1 Hour
+                        </label>
+                    </div>
+                    <div class="form-check pt-2">
+                        <input class="form-check-input" type="radio" name="ffpRadio" id="FFFT03">
+                        <label class="form-check-label" for="FFFT03">
+                            Forecast Flash Flood Threat (FFFT) 3 Hour
+                        </label>
+                    </div>
+                    <div class="form-check pt-2">
+                        <input class="form-check-input" type="radio" name="ffpRadio" id="FFFT06">
+                        <label class="form-check-label" for="FFFT06">
+                            Forecast Flash Flood Threat (FFFT) 6 Hour
+                        </label>
+                    </div>
+                    <div class="form-check pt-2">
+                        <input class="form-check-input" type="radio" name="ffpRadio" id="FFR12">
+                        <label class="form-check-label" for="FFR12">
+                            Flash Flood Risk (FFR) 12 Hour
+                        </label>
+                    </div>
+                    <div class="form-check pt-2">
+                        <input class="form-check-input" type="radio" name="ffpRadio" id="FFR24">
+                        <label class="form-check-label" for="FFR24">
+                            Flash Flood Risk (FFR) 24 Hour
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!--Layer tab content area -->
+        <div class="tab-pane fade" id="nav-layer" role="tabpanel" aria-labelledby="nav-layer-tab">          
+            <div class="card card-body layer-card m-2 border-0">
+                <div id="rainacc-control-panel" class="sidenav detail-right mb-4 bg-opacity-50" style="display:none; height: auto; background-color: black;">
+                    <div class="mt-3 mb-4 text-center">
+                        <p id="date-text" class="text-white p-0 fs-4 text-center"></p>
+                        <p id="time-text" class="text-warning fw-bold fs-3 text-center"></p>
+                        <p id="raindata_name" class="text-center text-white">Rainfall Accumulation Now (GSMAP)</p>
+                        <div class="btn-group text-center rounded" role="group" aria-label="Basic example">
+                            <button type="button" class="btn btn-light" id="btn-prev">prev</button>
+                            <button type="button" class="btn btn-light" id="btn-play">play</button>
+                            <button type="button" class="btn btn-light" id="btn-pause">pause</button>
+                            <button type="button" class="btn btn-light" id="btn-next">next</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-check form-switch">
+                    <input class="form-check-input" name="staticlayers" id="rainfallCB" type="checkbox">
+                    <label class="form-check-label" for="rainfallCB">Realtime Accumulated Rainfall (GSMAP)</label>
+                </div>
+                <div class="form-check form-switch">
+                    <input class="form-check-input" name="staticlayers" id="lakesCB" type="checkbox" checked>
+                    <label class="form-check-label" for="lakesCB">Main Lakes</label>
+                </div>
+                <div class="form-check form-switch">
+                    <input class="form-check-input" name="staticlayers" id="riverCB" type="checkbox" checked>
+                    <label class="form-check-label" for="riverCB">River</label>
+                </div> 
+                <div class="form-check form-switch">
+                    <input class="form-check-input" name="staticlayers" id="mbaCB" type="checkbox" checked>
+                    <label class="form-check-label" for="mbaCB">Mekong Basin Area</label>
+                </div>
+                <div class="form-check form-switch">
+                    <input class="form-check-input" name="staticlayers" id="subprovinceCB" type="checkbox" >
+                    <label class="form-check-label" for="subprovinceCB">Subprovince Boundary</label>
+                </div>
+                <div class="form-check form-switch">
+                    <input class="form-check-input" name="staticlayers" id="gcCB" type="checkbox" >
+                    <label class="form-check-label" for="gcCB">Geographic Coverage</label>
+                </div>
+                <div class="form-check form-switch">
+                    <input class="form-check-input" name="staticlayers" id="lmbbCB" type="checkbox" >
+                    <label class="form-check-label" for="lmbbCB">Lower Mekong Bounding Box</label>
+                </div>
+
+                <div class="form-check form-switch">
+                    <input class="form-check-input" name="staticlayers" id="countryCB" type="checkbox" checked>
+                    <label class="form-check-label" for="countryCB">Country Boundary</label>
+                </div>
+            </div>
+        </div>
+
+        <!-- Basemap tab content area -->
+        <div class="tab-pane fade nav-basemap" id="nav-basemap" role="tabpanel" aria-labelledby="nav-basemap-tab">
+            <!-- <div class="row">
+                <div class="col">
+                    <div class="card m-3 border-1" data-layer="dark-v10">
+                        <img src="/static/img/mapbox-dark.png" height="60px" width="80px" alt="MapBox World Dark Streets Map">
+                        <h6 class="text-center p-1">Dark</h6>
+                    </div>
+                </div>
+                <div class="col"></div>
+                <div class="col"></div>
+            </div> -->
+            <!-- Basemap from MapBox -->
+            <div class="card basemap-card active m-4" data-layer="dark-v10">
+                <div class="d-flex flex-row bd-highlight">
+                    <div class="bd-highlight"><img src="/static/img/mapbox-dark.png" class="basemap-img" height="60px" width="60px" alt="MapBox World Dark Streets Map"></div>
+                    <div class="bd-highlight pt-3 ps-4">
+                        <!-- <h6 class="ps-1 pt-2">Dark Map</h6>     -->
+                        <h6 class="ps-1 pt-2">Dark</h6>
+                    </div>
+                </div>
+            </div>
+            <div class="card basemap-card m-4" data-layer="streets-v11">
+                <div class="d-flex flex-row bd-highlight">
+                    <div class="bd-highlight"><img src="/static/img/mapbox-streets.png" class="basemap-img" height="60px" width="60px" alt="MapBox World Streets Map"></div>
+                    <div class="bd-highlight pt-3 ps-4">
+                        <h6 class="ps-1 pt-2">Streets</h6>    
+                    </div>
+                </div>
+            </div>
+            <div class="card basemap-card m-4" data-layer="satellite-v9">
+                <div class="d-flex flex-row bd-highlight">
+                    <div class="bd-highlight"><img src="/static/img/mapbox-satellite.png" class="basemap-img" height="60px" width="60px" alt="MapBox World Satellite Map"></div>
+                    <div class="bd-highlight pt-3 ps-4">
+                        <h6 class="ps-1 pt-2">Satellite</h6>    
+                    </div>
+                </div>
+            </div>
+            <div class="card basemap-card m-4" data-layer="satellite-streets-v12">
+                <div class="d-flex flex-row bd-highlight">
+                    <div class="bd-highlight"><img src="/static/img/mapbox-satellite.png" class="basemap-img" height="60px" width="60px" alt="MapBox World Satellite Map"></div>
+                    <div class="bd-highlight pt-3 ps-4">
+                        <h6 class="ps-1 pt-2">Satellite Streets</h6>    
+                    </div>
+                </div>
+            </div>
+            <div class="card basemap-card m-4" data-layer="topo">
+                <div class="d-flex flex-row bd-highlight">
+                    <div class="bd-highlight"><img src="/static/img/esri-topo.png" class="basemap-img" height="60px" width="60px" alt="Esri World Topographic Map"></div>
+                    <div class="bd-highlight pt-3 ps-4">
+                        <h6 class="ps-1 pt-2">Topographic</h6>    
+                    </div>
+                </div>
+            </div>
+            <div class="card basemap-card m-4" data-layer="terrain">
+                <div class="d-flex flex-row bd-highlight">
+                    <div class="bd-highlight"><img src="/static/img/esri-terrain.png" class="basemap-img" height="60px" width="60px" alt="Esri World Terrain Basemap"></div>
+                    <div class="bd-highlight pt-3 ps-4">
+                        <h6 class="ps-1 pt-2">Terrain</h6>    
+                    </div>
+                </div>
+            </div>
+            <div class="card basemap-card m-4" data-layer="light-v10">
+                <div class="d-flex flex-row bd-highlight">
+                    <div class="bd-highlight"><img src="/static/img/mapbox-light.png" class="basemap-img" height="60px" width="60px" alt="MapBox World Light Map"></div>
+                    <div class="bd-highlight pt-3 ps-4">
+                        <h6 class="ps-1 pt-2">Light</h6>    
+                    </div>
+                </div>
+            </div>
+            <div class="card basemap-card m-4" data-layer="outdoors-v11">
+                <div class="d-flex flex-row bd-highlight">
+                    <div class="bd-highlight"><img src="/static/img/mapbox-outdoor.png" class="basemap-img" height="60px" width="60px" alt="MapBox World Outdoors Map"></div>
+                    <div class="bd-highlight pt-3 ps-4">
+                        <h6 class="ps-1 pt-2">Outdoors</h6>    
+                    </div>
+                </div>
+            </div> 
+            <div class="card basemap-card m-4" data-layer="mb-galaxy">
+                <div class="d-flex flex-row bd-highlight">
+                    <div class="bd-highlight"><img src="/static/img/mb-galaxy.png" class="basemap-img" height="60px" width="60px" alt="MapBox World Outdoors Map"></div>
+                    <div class="bd-highlight pt-3 ps-4">
+                        <h6 class="ps-1 pt-2">Blue Light</h6>    
+                    </div>
+                </div>
+            </div> 
+
+            <!-- OSM Basemap -->
+            <div class="card basemap-card m-4" data-layer="osm">
+                <div class="d-flex flex-row bd-highlight">
+                    <div class="bd-highlight"><img src="/static/img/osm.png" class="basemap-img" height="60px" width="60px" alt="OSM World Streets Map"></div>
+                    <div class="bd-highlight pt-3 ps-4">
+                        <h6 class="ps-1 pt-2">OSM</h6>    
+                    </div>
+                </div>
+            </div>
+            <!-- Basemap from Esri -->
+            <div class="card basemap-card m-4" data-layer="street">
+                <div class="d-flex flex-row bd-highlight">
+                    <div class="bd-highlight"><img src="/static/img/esri-street.png" class="basemap-img" height="60px" width="60px" alt="Esri World Streets Basemap"></div>
+                    <div class="bd-highlight pt-3 ps-4">
+                        <h6 class="ps-1 pt-2">Esri Streets</h6>    
+                    </div>
+                </div>
+            </div>
+            <div class="card basemap-card m-4" data-layer="satellite">
+                <div class="d-flex flex-row bd-highlight">
+                    <div class="bd-highlight"><img src="/static/img/esri-satellite.png" class="basemap-img" height="60px" width="60px" alt="Esri World Satellite Imagery"></div>
+                    <div class="bd-highlight pt-3 ps-4">
+                        <h6 class="ps-1 pt-2">Esri Satellite</h6>    
+                    </div>
+                </div>
+            </div>
+            <div class="card basemap-card m-4" data-layer="gray">
+                <div class="d-flex flex-row bd-highlight">
+                    <div class="bd-highlight"><img src="/static/img/esri-gray.png" class="basemap-img" height="60px" width="60px" alt="Esri World Gray Map"></div>
+                    <div class="bd-highlight pt-3 ps-4">
+                        <h6 class="ps-1 pt-2">Esri Light</h6>    
+                    </div>
+                </div>
+            </div>
+            <!-- Basemap from Carto Map -->
+            <div class="card basemap-card m-4" data-layer="dark">
+                <div class="d-flex flex-row bd-highlight">
+                    <div class="bd-highlight"><img src="/static/img/carto-dark.png" class="basemap-img" height="60px" width="60px" alt="Carto World Dark Map"></div>
+                    <div class="bd-highlight pt-3 ps-4">
+                        <h6 class="ps-1 pt-2">Carto Dark</h6>    
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Bottom Sidebar (Mobile View Only) -->
+<div class="bottombar" id="bottombar">
+    <nav>
+        <div class="nav nav-tabs justify-content-between ms-3 me-3" id="nav-tab" role="tablist">
+            <button class="nav-link" id="bottomFilter" data-bs-toggle="tab" data-bs-target="#bottom-nav-filter" type="button" role="tab" aria-controls="bottom-nav-filter" aria-selected="false" data-bs-toggle="tooltip" data-bs-placement="right" title="Filter Panel"><i class="fas fa-filter fa-lg"></i><br>Filter Panel</button>
+            <button class="nav-link" id="bottomLayer" data-bs-toggle="tab" data-bs-target="#bottom-nav-layer" type="button" role="tab" aria-controls="bottom-nav-layer" aria-selected="false" data-bs-toggle="tooltip" data-bs-placement="right" title="Layer Panel"><i class="fas fa-layer-group fa-lg"></i><br>Layer Panel</button>
+            <button class="nav-link" id="bottomBasemap" data-bs-toggle="tab" data-bs-target="#bottom-nav-basemap" type="button" role="tab" aria-controls="bottom-nav-basemap" aria-selected="false" data-bs-toggle="tooltip" data-bs-placement="right" title="Basemap Style"><i class="fa fa-globe fa-lg"></i><br>Basemap</button>
+        </div>
+    </nav>  
+</div>
+<div class="tab-content" id="bottom-tabContent">
+    <div class="d-flex justify-content-end p-3 bg-secondary">
+        <button type="button" class="btn-close btn-close-white bottomClose" aria-label="Close"></button>
+    </div>
+    <div class="tab-pane fade show active" id="bottom-nav-filter" role="tabpanel" aria-labelledby="bottom-nav-filter-tab">  
+        
+        <div class="card card-body layer-card m-2 border-0">
+            <h5>Filter Panel</h5>   
+        </div>
+    </div>
+    <div class="tab-pane fade" id="bottom-nav-layer" role="tabpanel" aria-labelledby="bottom-nav-layer-tab">          
+        
+        <div class="card card-body layer-card m-2 border-0">
+            <h5>Layer Panel</h5>
+        </div>
+    </div>
+    <div class="tab-pane fade bottom-nav-basemap" id="bottom-nav-basemap" role="tabpanel" aria-labelledby="bottom-nav-basemap-tab">
+        <div class="d-flex flex-row p-4 justify-content-evenly">
+            <div class="card bottom-basemap-card active border-1 p-2 m-2" data-layer="dark-v10">
+                <img src="/static/img/mapbox-dark.png" class="basemap-img" height="60px" width="60px" alt="MapBox World Dark Streets Map">
+                <h6 class="pt-3 text-center">Dark</h6>
+            </div>
+            <div class="card bottom-basemap-card border-1 p-2 m-2" data-layer="streets-v11">
+                <img src="/static/img/mapbox-streets.png" class="basemap-img" height="60px" width="60px" alt="MapBox World Streets Map">
+                <h6 class="pt-3 text-center">Streets</h6>    
+            </div>
+            <div class="card bottom-basemap-card border-1 p-2 m-2" data-layer="satellite-v9">
+               <img src="/static/img/mapbox-satellite.png" class="basemap-img" height="60px" width="60px" alt="MapBox World Satellite Map">   
+                <h6 class="pt-3 text-center">Satellite</h6>    
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="map" id="map">
+    <div class="btn-group mt-2" role="group" aria-label="Basic mixed styles example">
+        <input type="radio" class="btn-check" name="btnradio" id="btnradio06" autocomplete="off" checked>
+        <label class="btn btn-outline-warning" for="btnradio06">06Hrs</label>
+
+        <input type="radio" class="btn-check" name="btnradio" id="btnradio12" autocomplete="off">
+        <label class="btn btn-outline-warning" for="btnradio12">12Hrs</label>
+
+        <input type="radio" class="btn-check" name="btnradio" id="btnradio24" autocomplete="off">
+        <label class="btn btn-outline-warning" for="btnradio24">24Hrs</label>
+    </div>
+    <div id="legend">
+        <div class="card card-body border-0">
+            <h6 class="fw-bold">Legend</h6>
+            <div class="ffwLegend" id ="ffwLegend">
+                <p class="pt-2 pb-0">Flash Flood Warning <br>(Sub-province)</p>
+                <div class="legend-item pt-0">
+                    <span class="legend-color" style="background-color: yellow;"></span> Low Risk
+                </div>
+                <div class="legend-item">
+                    <span class="legend-color" style="background-color: orange;"></span> Moderate Risk
+                </div>
+                <div class="legend-item">
+                    <span class="legend-color" style="background-color: red;"></span> High Risk
+                </div>
+            </div>
+            <div class="ffpLegend" id ="ffpLegend"></div>
+        </div>
+    </div>
+</div>
+
+<button id="rightSidebar"><i class="fas fa-arrow-left"></i></button>
+<div id="rightSidebarContent">
+    <div class="bg-dark bg-opacity-10">
+        <div class="row pt-3">
+            <div class="col-sm-8">
+                <h6 class="ps-4 fw-bold">Flash Flood Warning <br>(Sub-province)</br></h6>
+            </div>
+            <div class="col-sm-4">
+                <div class="d-flex justify-content-end">
+                    <button type="button" class="btn me-2" id="close-sidebar-content-right" aria-label="Close" data-bs-toggle="tooltip" data-bs-placement="right" title="Close"><i class="fas fa-times fa-lg"></i></button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="card card-body bg-transparent border-0 p-3" id="riskList">  
+        <!-- <div class="row mb-2">
+            <div class="col-sm-3">
+                <p class="circle" id="circle"></p>
+            </div>
+            <div class="col-sm-9">
+                <h5 class="card-title fw-bold">High Risk</h5>
+                <p>Country: <span id="countryName"></span><br>Subprovince: <span id="subProvName"></span><br></p>
+            </div>
+        </div> -->
+    </div>   
+</div>
+  
+<div id="popContent">
+    <div class="bg-dark bg-opacity-10">
+        <ul class="list-group list-group-horizontal bg-transparent justify-content-end">
+            <li class="list-group-item bg-transparent border-0">
+                <button type="button" class="btn" id="collapsePop"><i class="fas fa-chevron-up fa-lg"></i></button>
+                <button type="button" class="btn" id="expandPop"><i class="fas fa-chevron-down fa-lg"></i></button>
+                <!-- <button type="button" class="btn me-2" id="close-sidebar-content-right" aria-label="Close" data-bs-toggle="tooltip" data-bs-placement="right" title="Close"><i class="fas fa-times fa-lg"></i></button> -->
+            </li>
+            <li class="list-group-item bg-transparent border-0">
+                <button type="button" class="btn me-2" id="closePop" aria-label="Close" data-bs-toggle="tooltip" data-bs-placement="right" title="Close"><i class="fas fa-times fa-lg"></i></button>
+            </li>
+        </ul>
+    </div>
+    <div class="card card-body bg-transparent border-0 p-3" id="riskInfo">
+        <h4 class="fw-bold">Risk Level: <span id="risk_level"></span></h4>
+        <table class="table table-responsive bg-white mt-3">
+            <tbody>
+                <tr>
+                    <th>Country</th>
+                    <td>:</td>
+                    <td id="country_name"></td>
+                </tr>
+                <tr>
+                    <th>Province</th>
+                    <td>:</td>
+                    <td id="province_name"></td>
+                </tr>
+                <tr>
+                    <th>Sub-province</th>
+                    <td>:</td>
+                    <td id="subprovince_name"></td>
+                </tr>
+            </tbody>
+        </table>
+        <h5 class="fw-bold mt-3">Social Vulnerability</h5>
+        <div class="row">
+            <h6 class="fw-bold pt-3 text-uppercase">Population Exposed</h6>
+            <div class="col-sm-4">
+                <img class="fluid mt-2" src="/static/img/pop.png" width="120px" alt="pop">
+            </div>
+            <div class="col-sm-8">
+                <div class="card card-body bg-transparent border-0 ps-4 text-left">
+                    <h6 class="fw-bold pt-2">Total Population</h6>
+                    <h2 style="color: #2f80ed; font-weight: 700;" id="total_pop_subprvnc"></h2>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-sm-4">
+                <img class="fluid mt-5" src="/static/img/female.png" width="120px" alt="pop">
+            </div>
+            <div class="col-sm-8">
+                <div class="card card-body bg-transparent border-0 ps-4 text-left">
+                    <h6 class="fw-bold">Female Population</h6>
+                    <h4 style="color: #bb6bd9; font-weight: 700;" id="total_female_pop_subprvnc"></h4>
+                    <table class="table table-responsive custom-transparent">
+                        <thead>
+                            <tr>
+                                <th>Age</th>
+                                <th colspan="2">Population</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <th>0-15</th>
+                                <td>:</td>
+                                <td id="female_pop_f1_subprvnc"></td>
+                            </tr>
+                            <tr>
+                                <th>15-65</th>
+                                <td>:</td>
+                                <td id="female_pop_f2_subprvnc"></td>
+                            </tr>
+                            <tr>
+                                <th>> 65</th>
+                                <td>:</td>
+                                <td id="female_pop_f3_subprvnc"></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-sm-4">
+                <img class="fluid mt-4 pt-2" src="/static/img/male.png" width="120px" alt="pop">
+            </div>
+            <div class="col-sm-8">
+                <div class="card card-body bg-transparent border-0 ps-4 text-left">
+                    <h6 class="fw-bold">Male Population</h6>
+                    <h4 style="color: #bb6bd9; font-weight: 700;" id="total_male_pop_subprvnc"></h4>
+                    <table class="table table-responsive custom-transparent">
+                        <thead>
+                            <tr>
+                                <th>Age</th>
+                                <th colspan="2">Population</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <th>0-15</th>
+                                <td>:</td>
+                                <td id="male_pop_m1_subprvnc"></td>
+                            </tr>
+                            <tr>
+                                <th>15-65</th>
+                                <td>:</td>
+                                <td id="male_pop_m2_subprvnc"></td>
+                            </tr>
+                            <tr>
+                                <th>> 65</th>
+                                <td>:</td>
+                                <td id="male_pop_m3_subprvnc"></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <h5 class="fw-bold">Physical Vulnerability</h5>
+        <div class="row">
+            <h6 class="fw-bold pt-3">TOTAL ROAD</h6>
+            <div class="col-sm-4">
+                <img class="fluid mt-4" src="/static/img/road.png" width="80px" alt="Road">
+            </div>
+            <div class="col-sm-8">
+                <table class="table table-responsive custom-transparent text-left">
+                    <thead>
+                        <tr>
+                            <th class="fw-bold">Road Type</th>
+                            <th colspan="2" class="fw-bold">Length (KM)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <th scope="row">Highways</th>
+                            <td>:</td>
+                            <td id="highwayRoad_subprvnc"></td>
+                        </tr>
+                        <tr>
+                            <th scope="row">Primary</th>
+                            <td>:</td>
+                            <td id="primaryRoad_subprvnc"></td>
+                        </tr>
+                        <tr>
+                            <th scope="row">Secondary</th>
+                            <td>:</td>
+                            <td id="secondaryRoad_subprvnc"></td>
+                        </tr>
+                        <tr>
+                            <th scope="row">Tertiary</th>
+                            <td>:</td>
+                            <td id="tertiaryRoad_subprvnc"></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div class="row mt-3">
+            <h6 class="fw-bold">TOTAL HOSPITAL</h6>
+            <div class="col-sm-4">
+                <img class="fluid" src="/static/img/hospital.png" width="80px" alt="hospital">
+            </div>
+            <div class="col-sm-8">
+                <p class="text-center mt-4">
+                    <span class="fw-bold" id="hospital_subprvnc"></span>
+                        <br>
+                    <span>Hospital</span>
+                </p>
+            </div>
+        </div>
+        <div class="row mt-3">
+            <h5 class="fw-bold pt-3">Economic Vulnerability</h5>
+            <div class="col-sm-4">
+                <img class="fluid" src="/static/img/gdp.jpg" width="80px" alt="gdp">
+            </div>
+            <div class="col-sm-8">
+                <table class="table table-responsive custom-transparent text-left">
+                    <thead>
+                        <tr>
+                            <th colspan="3" class="fw-bold">Economic Losses (USD)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <th scope="row">GDP</th>
+                            <td>:</td>
+                            <td id="gdp_subprvnc"></td>
+                        </tr>
+                        <tr>
+                            <th scope="row">Crop Lands</th>
+                            <td>:</td>
+                            <td id="cropLands_subprvnc"></td>
+                        </tr>
+                    </tbody>
+                </table>
+                <small class="text-muted">*GDP = Gross Domestic Product</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- <div id="rainacc-control-panel" class="sidenav detail-right" style="display:none; left: 380px; position: fixed; height: auto; top: 160px; padding-top: 10px; width: 300px; max-height: 600px; overflow-y: scroll; z-index: 1000; background-color: black; opacity: 0.8;">
+    <div class="mt-3 mb-4 text-center">
+        <p id="date-text" class="text-white p-0 fs-4 text-center"></p>
+        <p id="time-text" class="text-warning fw-bold fs-3 text-center"></p>
+        <p id="raindata_name" class="text-center text-white">Rainfall Accumulation Now (GSMAP)</p>
+        <div class="btn-group text-center" role="group" aria-label="Basic example">
+            <button type="button" class="btn btn-light" id="btn-prev">prev</button>
+            <button type="button" class="btn btn-light" id="btn-play">play</button>
+            <button type="button" class="btn btn-light" id="btn-pause">pause</button>
+            <button type="button" class="btn btn-light" id="btn-next">next</button>
+        </div>
+    </div>
+</div> -->
+{% endblock container %}
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'css/map.css' %}">
+{% endblock %}
+{% block extra_script %}
+<script src="{% static 'js/map.js'  %}"></script>
+{% endblock %}
