@@ -608,7 +608,7 @@ document.addEventListener("DOMContentLoaded", function() {
                 updateTable(data);
             } else {
                 hideAllExcept(selectedCountry); 
-                const filteredData = parsedData.filter(item => item.ISO === selectedCountry); ;
+                const filteredData = parsedData.filter(item => item.ISO === selectedCountry); 
                 updateTable(filteredData);
             }
 

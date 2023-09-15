@@ -1,5 +1,6 @@
 document.addEventListener("DOMContentLoaded", function() {
     const dateInput = document.getElementById("dateInput");
+    let countryDropdown = document.getElementById("countrySelection");
     var openContentPanel = document.querySelector("#home");
     var closeContentPanel = document.querySelector("#close-home-content" );
     var sidebarContent = document.querySelector('#sidebar-content');
@@ -60,9 +61,6 @@ document.addEventListener("DOMContentLoaded", function() {
     var expandPop = document.querySelector('#expandPop');
     var closePop = document.querySelector('#closePop');
     var risk = document.querySelector('#riskList');
-
-    // Get the dropdownDate element
-    var dropdownDate = document.getElementById("dateDropdown");
 
     rightSidebarBtn.onclick = function(){
         if (getComputedStyle(rightSidebarContent).display === "none"){
@@ -223,10 +221,10 @@ document.addEventListener("DOMContentLoaded", function() {
     }
 
     // Update the table with statistical data
-    async function updateTable(param, dataToProcess) {
-        // const dataToProcess = await getStats(param, selectedDate);
-        const parsed_data = JSON.parse(dataToProcess);
-
+    async function updateTable(param, parsed_data) { // param, dataToProcess
+        // // const dataToProcess = await getStats(param, selectedDate);
+        // const parsed_data = JSON.parse(dataToProcess);
+        // console.log(parsed_data);
         const rightSidebar = document.querySelector("#rightSidebarContent");
 
         let container = document.getElementById('riskList');
@@ -257,76 +255,76 @@ document.addEventListener("DOMContentLoaded", function() {
         } else {
             document.documentElement.style.cursor = 'auto'; // Reset the cursor to default
             errorMessage.innerHTML = "";
-        }
-        
-        const sortOrder = {
-            "High": 1,
-            "Moderate": 2,
-            "Low": 3
-        };
 
-        const alertColors = {
-            "High": "#FF0000",
-            "Moderate": "#FFA500",
-            "Low": "#FFFF00"
-        };
-        
-        const sortedData = parsed_data.sort((a, b) => {
-            let propToSortBy;
+            const sortOrder = {
+                "High": 1,
+                "Moderate": 2,
+                "Low": 3
+            };
 
-            if (param === "6hrs") {
-                propToSortBy = "Alert_6Hrs";
-            } else if (param === "12hrs") {
-                propToSortBy = "Risk_12Hrs";
-            } else if (param === "24hrs") {
-                propToSortBy = "Risk_24Hrs";
-            }
-
-            // Primary sorting by the selected property
-            if (sortOrder[a[propToSortBy]] !== sortOrder[b[propToSortBy]]) {
-                return sortOrder[a[propToSortBy]] - sortOrder[b[propToSortBy]];
-            }
+            const alertColors = {
+                "High": "#FF0000",
+                "Moderate": "#FFA500",
+                "Low": "#FFFF00"
+            };
             
-            // Secondary sorting by ISO
-            if (a.ISO < b.ISO) {
-                return -1;
-            }
-            if (a.ISO > b.ISO) {
-                return 1;
-            }
-            return 0;
-        });
+            const sortedData = parsed_data.sort((a, b) => {
+                let propToSortBy;
 
-        sortedData.forEach(entry => {
-            const rowDiv = document.createElement('div');
-            rowDiv.className = "row mb-2";
-        
-            const circleDiv = document.createElement('div');
-            circleDiv.className = "col-sm-3";
-            const circle = document.createElement('p');
-            circle.className = 'circle';
-            circle.style.backgroundColor = alertColors[entry.Alert_6Hrs];
-            circleDiv.appendChild(circle);
-            
-            const detailsDiv = document.createElement('div');
-            detailsDiv.className = "col-sm-9";
-            const riskHeader = document.createElement('h5');
-            riskHeader.className = 'card-title fw-bold';
-            riskHeader.textContent = `${entry.Alert_6Hrs} Risk`;
-            detailsDiv.appendChild(riskHeader);
-            const countryDetail = document.createElement('p');
-            countryDetail.innerHTML = `Country: <span>${entry.ISO}</span><br>Subprovince: <span>${entry.NAME_2}</span>`;
-            detailsDiv.appendChild(countryDetail);
-            
-            rowDiv.appendChild(circleDiv);
-            rowDiv.appendChild(detailsDiv);
-        
-            container.appendChild(rowDiv);
+                if (param === "6hrs") {
+                    propToSortBy = "Alert_6Hrs";
+                } else if (param === "12hrs") {
+                    propToSortBy = "Risk_12Hrs";
+                } else if (param === "24hrs") {
+                    propToSortBy = "Risk_24Hrs";
+                }
 
-            rowDiv.addEventListener('click', function() {
-                displayDetail(entry);
+                // Primary sorting by the selected property
+                if (sortOrder[a[propToSortBy]] !== sortOrder[b[propToSortBy]]) {
+                    return sortOrder[a[propToSortBy]] - sortOrder[b[propToSortBy]];
+                }
+                
+                // Secondary sorting by ISO
+                if (a.ISO < b.ISO) {
+                    return -1;
+                }
+                if (a.ISO > b.ISO) {
+                    return 1;
+                }
+                return 0;
             });
-        });
+
+            sortedData.forEach(entry => {
+                const rowDiv = document.createElement('div');
+                rowDiv.className = "row mb-2";
+            
+                const circleDiv = document.createElement('div');
+                circleDiv.className = "col-sm-3";
+                const circle = document.createElement('p');
+                circle.className = 'circle';
+                circle.style.backgroundColor = alertColors[entry.Alert_6Hrs];
+                circleDiv.appendChild(circle);
+                
+                const detailsDiv = document.createElement('div');
+                detailsDiv.className = "col-sm-9";
+                const riskHeader = document.createElement('h5');
+                riskHeader.className = 'card-title fw-bold';
+                riskHeader.textContent = `${entry.Alert_6Hrs} Risk`;
+                detailsDiv.appendChild(riskHeader);
+                const countryDetail = document.createElement('p');
+                countryDetail.innerHTML = `Country: <span>${entry.ISO}</span><br>Subprovince: <span>${entry.NAME_2}</span>`;
+                detailsDiv.appendChild(countryDetail);
+                
+                rowDiv.appendChild(circleDiv);
+                rowDiv.appendChild(detailsDiv);
+            
+                container.appendChild(rowDiv);
+
+                rowDiv.addEventListener('click', function() {
+                    displayDetail(entry);
+                });
+            });
+        }
     }
 
     // Subprovince map
@@ -360,8 +358,8 @@ document.addEventListener("DOMContentLoaded", function() {
         }
     }
 
-    async function updateSubProvinceMap(param, dataToProcess){
-        const parsedData = JSON.parse(dataToProcess);
+    async function updateSubProvinceMap(param, parsedData){
+        // const parsedData = JSON.parse(dataToProcess);
         const subProvinceData = await getsubProvinceData();
     
         function getAlertValueById(param, fid) {
@@ -374,7 +372,7 @@ document.addEventListener("DOMContentLoaded", function() {
                 case "FFR24":
                     return filtered ? filtered.Risk_24Hrs : null;
                 default:
-                    return null;  // or some default value if necessary
+                    return null;  
             }
         }
     
@@ -436,25 +434,46 @@ document.addEventListener("DOMContentLoaded", function() {
     document.getElementById("btnradio06").addEventListener("click", async function() {
         var selectedDate = dateInput.value;
         let param = '6hrs';
-        const dataToProcess = await getStats(param, selectedDate)
-        updateTable(param, dataToProcess);
-        updateSubProvinceMap("FFG06", dataToProcess);
+        const dataToProcess = await getStats(param, selectedDate);
+        let parsedData = JSON.parse(dataToProcess);
+        let selectedCountry = countryDropdown.value;
+        if (selectedCountry === "All"){
+            parsedData = parsedData;
+        } else {
+            parsedData =  parsedData.filter(item => item.ISO === selectedCountry); 
+        }
+        updateTable(param, parsedData);
+        updateSubProvinceMap("FFG06", parsedData);
     });
 
     document.getElementById("btnradio12").addEventListener("click", async function() {
         var selectedDate = dateInput.value;
         let param = '12hrs';
         const dataToProcess = await getStats(param, selectedDate)
-        updateTable(param, dataToProcess);
-        updateSubProvinceMap("FFR12", dataToProcess);
+        let parsedData = JSON.parse(dataToProcess);
+        let selectedCountry = countryDropdown.value;
+        if (selectedCountry === "All"){
+            parsedData = parsedData;
+        } else {
+            parsedData =  parsedData.filter(item => item.ISO === selectedCountry); 
+        }
+        updateTable(param, parsedData);
+        updateSubProvinceMap("FFR12", parsedData);
     });
 
     document.getElementById("btnradio24").addEventListener("click", async function() {
         var selectedDate = dateInput.value;
         let param = '24hrs';
-        const dataToProcess = await getStats(param, selectedDate)
-        updateTable(param, dataToProcess);
-        updateSubProvinceMap("FFR24", dataToProcess);
+        const dataToProcess = await getStats(param, selectedDate);
+        let parsedData = JSON.parse(dataToProcess);
+        let selectedCountry = countryDropdown.value;
+        if (selectedCountry === "All"){
+            parsedData = parsedData;
+        } else {
+            parsedData =  parsedData.filter(item => item.ISO === selectedCountry); 
+        }
+        updateTable(param, parsedData);
+        updateSubProvinceMap("FFR24", parsedData);
     });
     
     // Basin Map
@@ -733,8 +752,17 @@ document.addEventListener("DOMContentLoaded", function() {
                 return;
             }
             const dataToProcess = await getStats(statsParam, selectedDate)
-            updateTable(statsParam, dataToProcess);
-            updateSubProvinceMap(id, dataToProcess);
+            let parsedData = JSON.parse(dataToProcess);
+
+            let selectedCountry = countryDropdown.value;
+            if (selectedCountry === "All"){
+                parsedData = parsedData;
+            } else {
+                parsedData =  parsedData.filter(item => item.ISO === selectedCountry); 
+            }
+
+            updateTable(statsParam, parsedData);
+            updateSubProvinceMap(id, parsedData);
             updateMap(checkedValue, selectedDate);
         } catch (error) {
             console.error("Failed to update data:", error);
@@ -837,6 +865,56 @@ document.addEventListener("DOMContentLoaded", function() {
         generateCalendar(currentMonth, currentYear);
     }
 
+    countryDropdown.addEventListener("change", async function () {
+        const radioButtons2 = document.getElementsByName("btnradio");
+        let selectedRadioButton;
+    
+        for(let radioButton of radioButtons2) {
+            if (radioButton.checked) {
+                selectedRadioButton = radioButton;
+                break;
+            }
+        }
+    
+        const radioMapping = {
+            "btnradio06": "FFG06",
+            "btnradio12": "FFR12",
+            "btnradio24": "FFR24"
+        };
+    
+        const id = radioMapping[selectedRadioButton.id];
+    
+        let checkedValue;
+    
+        radioButtonsBasin.forEach((radio) => {
+            if (radio.checked) {
+                checkedValue = radio.id;
+            }
+        });
+
+        const statsParam = determineStatsParam(id);
+        if (!statsParam) {
+            console.error('Invalid param provided.');
+            return;
+        }
+
+        let selectedDate = dateInput.value; 
+        let selectedCountry = countryDropdown.value;
+
+        const dataToProcess = await getStats(statsParam, selectedDate)
+        let parsedData = JSON.parse(dataToProcess);
+
+        if (selectedCountry === "All"){
+            parsedData = parsedData;
+        } else {
+            parsedData =  parsedData.filter(item => item.ISO === selectedCountry); 
+        }
+
+        updateTable(statsParam, parsedData); 
+        updateSubProvinceMap(id, parsedData);
+        updateMap(checkedValue, selectedDate);
+    });
+
     //////////////////////////
 
     // Fetch and display initial 6-hour data on page load
@@ -845,12 +923,14 @@ document.addEventListener("DOMContentLoaded", function() {
         dateList = JSON.parse(dateList);
         clickableDates = dateList.map(innerArray => innerArray[0]);
         createCustomCalender(clickableDates);
-        var selectedDate = dateInput.value; 
+
+        let selectedDate = dateInput.value; 
 
         const dataToProcess = await getStats('6hrs', selectedDate);
+        const parsedData = JSON.parse(dataToProcess);
 
-        updateTable('6hrs', dataToProcess);
-        updateSubProvinceMap("FFG06", dataToProcess);
+        updateTable('6hrs', parsedData);
+        updateSubProvinceMap("FFG06", parsedData);
         updateMap('MAP06', selectedDate);
         populateLegend('MAP06');
     })();
