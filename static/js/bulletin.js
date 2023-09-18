@@ -1,7 +1,14 @@
 document.addEventListener("DOMContentLoaded", function() {
     const dateInput = document.getElementById("dateInput");
-    // var dateInput = document.getElementById("dateInput");
+    const hourInput = document.getElementById("hrSelection");
+    const countryInput = document.getElementById("countryBulletin");
     const updateBulletinBtn = document.getElementById("updateBulletin");
+
+    let paramCache = {
+        date: null,
+        hour: null,
+        country: null
+    };
 
     const storms_url = '/get-storms/';
     const storms_by_country_url = '/get-storms-number-by-country/'
@@ -143,36 +150,38 @@ document.addEventListener("DOMContentLoaded", function() {
     };
 
     // Generic function to fetch data based on the provided param and selectedDate
-    async function getStatsBulletin(param, selectedDate = null) {
+    async function getStatsBulletin(param, selectedDate = null, selectedHrs=null) {
         try {
             // Initialize the cache for the specified param if it doesn't exist
             if (!statCache[param]) {
                 statCache[param] = {};
             }
-            // Check if data is already in the cache for the specified param and date
-            if (selectedDate && statCache[param][selectedDate]) {
-                return statCache[param][selectedDate];
+            // Check if data is already in the cache for the specified param, date and hours
+            if (selectedDate && statCache[param][selectedDate] && statCache[param][selectedDate][selectedHrs]) {
+                return statCache[param][selectedDate][selectedHrs];
             }
 
             // Construct the URL with the selectedDate parameter
             let url = urls[param];
-            if (selectedDate) {
-                url += `?date=${selectedDate}`;
+            if (selectedDate && selectedHrs) {
+                url += `?date=${selectedDate}&hrs=${selectedHrs}`;
             }
 
             const response = await fetch(url);
             const data = await response.json();
 
-            // Cache the data based on both param and date
-            if (selectedDate) {
+            // Cache the data based on both param, date and hrs
+            if (selectedDate && selectedHrs) {
                 if (!statCache[param]) {
                     statCache[param] = {};
                 }
-                statCache[param][selectedDate] = data;
+                if (!statCache[param][selectedDate]) {
+                    statCache[param][selectedDate] = {};
+                }
+                statCache[param][selectedDate][selectedHrs] = data;
             } else {
                 statCache[param] = data;
             }
-
             return data;
         } catch (error) {
             console.error('Error:', error);
@@ -272,21 +281,49 @@ document.addEventListener("DOMContentLoaded", function() {
     }
 
     document.getElementById("tab6hrs").addEventListener("click", async function() {
-        var selected_date = dateInput.value;
-        const data = await getStatsBulletin('6hrs', selected_date);
-        updateTable(data);
+        let selected_date = paramCache.date;
+        let selected_hrs = paramCache.hour;
+        let selected_country = paramCache.country;
+        // console.log(selected_country)
+        const data = await getStatsBulletin('6hrs', selected_date, selected_hrs);
+        const parsedData = JSON.parse(data);
+        if (selected_country === "All") {
+            updateTable(parsedData);
+        } else {
+            const filteredData = parsedData.filter(item => item.ISO === selected_country); 
+            updateTable(filteredData);
+        }
+        // updateTable(data);
     });
 
     document.getElementById("tab12hrs").addEventListener("click", async function() {
-        var selected_date = dateInput.value;
-        const data = await getStatsBulletin('12hrs', selected_date);
-        updateTable(data);
+        let selected_date = paramCache.date;
+        let selected_hrs = paramCache.hour;
+        let selected_country = paramCache.country;
+        const data = await getStatsBulletin('12hrs', selected_date, selected_hrs);
+        const parsedData = JSON.parse(data);
+        if (selected_country === "All") {
+            updateTable(parsedData);
+        } else {
+            const filteredData = parsedData.filter(item => item.ISO === selected_country); 
+            updateTable(filteredData);
+        }
+        // updateTable(data);
     });
 
     document.getElementById("tab24hrs").addEventListener("click", async function() {
-        var selected_date = dateInput.value;
-        const data = await getStatsBulletin('24hrs', selected_date);
-        updateTable(data);
+        let selected_date = paramCache.date;
+        let selected_hrs = paramCache.hour;
+        let selected_country = paramCache.country;
+        const data = await getStatsBulletin('24hrs', selected_date, selected_hrs);
+        const parsedData = JSON.parse(data);
+        if (selected_country === "All") {
+            updateTable(parsedData);
+        } else {
+            const filteredData = parsedData.filter(item => item.ISO === selected_country); 
+            updateTable(filteredData);
+        }
+        // updateTable(data);
     });
 
     const MapOptions = {
@@ -332,9 +369,9 @@ document.addEventListener("DOMContentLoaded", function() {
     const bulletin_map_data = {};
     const bulletin_map_data_url = '/get-mrcffg-bulletin-map-data/';
 
-    async function getBulletinMapData(date) {
+    async function getBulletinMapData(date, hrs) {
         try {
-            const fullUrl = `${bulletin_map_data_url}?date=${date}`;
+            const fullUrl = `${bulletin_map_data_url}?date=${date}&hrs=${hrs}`;
             if (bulletin_map_data[fullUrl]) {
                 return bulletin_map_data[fullUrl];
             }
@@ -453,8 +490,8 @@ document.addEventListener("DOMContentLoaded", function() {
         ffgsLayers[param] = L.geoJSON().addTo(mapInstances[param]);
     }
 
-    async function createMap(param, selected_date, selectedCountry) {
-        const ffgData = await getBulletinMapData(selected_date);
+    async function createMap(param, selected_date, selected_hrs, selectedCountry) {
+        const ffgData = await getBulletinMapData(selected_date, selected_hrs);
         let dataArray = JSON.parse(ffgData);
         let basinData = await getMRCBasin();
 
@@ -480,7 +517,6 @@ document.addEventListener("DOMContentLoaded", function() {
 
         const bounds = ffgsLayer.getBounds();
         mapInstances[param].fitBounds(bounds);
-
     }
 
     async function populateTable(tableElement, data, interval) {
@@ -562,13 +598,18 @@ document.addEventListener("DOMContentLoaded", function() {
             await new Promise(resolve => setTimeout(resolve, 0));
             var selected_date = dateInput.value; 
             const formattedDate = formatDate(selected_date);
+            const selectedHrs = hourInput.value;
             displayDate.innerHTML = formattedDate;
 
             dateElements.forEach(function (element) {
-                element.textContent = selected_date + " 06:00 UTC";
+                element.textContent = selected_date + " " + selectedHrs +":00 UTC";
             });
 
             const selectedCountry = document.getElementById("countryBulletin").value;
+
+            paramCache.date = selected_date;
+            paramCache.hour = selectedHrs;
+            paramCache.country = selectedCountry;
 
             const insTab = document.getElementById('insTab'); // Critical infrastructure tab
             const activeButton = insTab.querySelector('.nav-link.active');
@@ -577,7 +618,7 @@ document.addEventListener("DOMContentLoaded", function() {
             const activeButtonId = activeButton.getAttribute('id');
             const selectedTabParam = tabMapping[activeButtonId];
 
-            const data = await getStatsBulletin(selectedTabParam, selected_date);
+            const data = await getStatsBulletin(selectedTabParam, selected_date, selectedHrs);
             const parsedData = JSON.parse(data);
 
             const tableContainers = {
@@ -618,7 +659,7 @@ document.addEventListener("DOMContentLoaded", function() {
                 ffgsLayer.clearLayers();
             }
             for (const param in mapInstances) {
-                await createMap(param, selected_date, selectedCountry);
+                await createMap(param, selected_date, selectedHrs, selectedCountry);
             } 
 
             let countriesToProcess = [];
@@ -636,7 +677,7 @@ document.addEventListener("DOMContentLoaded", function() {
             for (const iso of countriesToProcess) {
                 for (const interval of ['6hrs', '12hrs', '24hrs']) {
                     const tableElement = document.getElementById(`${iso}Table${interval}`);
-                    await populateTableForInterval(tableElement, iso, interval, selected_date);
+                    await populateTableForInterval(tableElement, iso, interval, selected_date, selectedHrs);
                 }
             }
 
@@ -655,8 +696,8 @@ document.addEventListener("DOMContentLoaded", function() {
         }
     });
 
-    async function populateTableForInterval(tableElement, iso, interval, selected_date) {
-        const data = await getStatsBulletin(interval, selected_date);
+    async function populateTableForInterval(tableElement, iso, interval, selected_date, selected_hrs) {
+        const data = await getStatsBulletin(interval, selected_date, selected_hrs);
         const parsedData = JSON.parse(data);
         const filteredData = parsedData.filter(item => item.ISO === iso);
         populateTable(tableElement, filteredData, interval);
@@ -801,8 +842,16 @@ document.addEventListener("DOMContentLoaded", function() {
             createCustomCalender(clickableDates);
 
             var selected_date = dateInput.value; 
+            var selected_hrs = hourInput.value;
+            var selected_country = countryInput.value;
 
-            const data_6hrs = await getStatsBulletin('6hrs', selected_date);
+            paramCache.date = selected_date;
+            paramCache.hour = selected_hrs;
+            paramCache.country = selected_country;
+
+            // console.log(paramCache)
+
+            const data_6hrs = await getStatsBulletin('6hrs', selected_date, selected_hrs);
             const parsed_data = JSON.parse(data_6hrs);
             updateTable(parsed_data);
 
@@ -811,19 +860,19 @@ document.addEventListener("DOMContentLoaded", function() {
 
             // 2023-07-01 06:00 UTC
             dateElements.forEach(function (element) {
-                element.textContent = selected_date + " 06:00 UTC";
+                element.textContent = selected_date + " " + selected_hrs + ":00 UTC";
             });
 
             // Call createMap sequentially for each parameter
             for (const param in mapInstances) {
-                await createMap(param, selected_date);
+                await createMap(param, selected_date, selected_hrs, selected_country);
             }
 
             // Loop through countries and intervals
             for (const iso of countryISOs) {
                 for (const interval of ['6hrs', '12hrs', '24hrs']) {
                     const tableElement = document.getElementById(`${iso}Table${interval}`);
-                    await populateTableForInterval(tableElement, iso, interval, selected_date);
+                    await populateTableForInterval(tableElement, iso, interval, selected_date, selected_hrs);
                 }
             }
             loader.style.display = 'none';

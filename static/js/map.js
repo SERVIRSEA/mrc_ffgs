@@ -1,5 +1,6 @@
 document.addEventListener("DOMContentLoaded", function() {
-    const dateInput = document.getElementById("dateInput");
+    let dateInput = document.getElementById("dateInput");
+    let hourInput = document.getElementById("hrSelectionMap");
     let countryDropdown = document.getElementById("countrySelection");
     var openContentPanel = document.querySelector("#home");
     var closeContentPanel = document.querySelector("#close-home-content" );
@@ -184,32 +185,35 @@ document.addEventListener("DOMContentLoaded", function() {
     }
 
     // Generic function to fetch data based on the provided param and selectedDate
-    async function getStats(param, selectedDate = null) {
+    async function getStats(param, selectedDate = null, selectedHrs = null) {
         try {
             // Initialize the cache for the specified param if it doesn't exist
             if (!caches[param]) {
                 caches[param] = {};
             }
             // Check if data is already in the cache for the specified param and date
-            if (selectedDate && caches[param][selectedDate]) {
-                return caches[param][selectedDate];
+            if (selectedDate && caches[param][selectedDate] && caches[param][selectedDate][selectedHrs]) {
+                return caches[param][selectedDate][selectedHrs];
             }
 
             // Construct the URL with the selectedDate parameter
             let url = urls[param];
-            if (selectedDate) {
-                url += `?date=${selectedDate}`;
+            if (selectedDate && selectedHrs) {
+                url += `?date=${selectedDate}&hrs=${selectedHrs}`;
             }
 
             const response = await fetch(url);
             const data = await response.json();
 
             // Cache the data based on both param and date
-            if (selectedDate) {
+            if (selectedDate && selectedHrs) {
                 if (!caches[param]) {
                     caches[param] = {};
                 }
-                caches[param][selectedDate] = data;
+                if (!caches[param][selectedDate]) {
+                    caches[param][selectedDate] = {};
+                }
+                caches[param][selectedDate][selectedHrs] = data;
             } else {
                 caches[param] = data;
             }
@@ -433,8 +437,9 @@ document.addEventListener("DOMContentLoaded", function() {
 
     document.getElementById("btnradio06").addEventListener("click", async function() {
         var selectedDate = dateInput.value;
+        var selectedHrs = hourInput.value;
         let param = '6hrs';
-        const dataToProcess = await getStats(param, selectedDate);
+        const dataToProcess = await getStats(param, selectedDate, selectedHrs);
         let parsedData = JSON.parse(dataToProcess);
         let selectedCountry = countryDropdown.value;
         if (selectedCountry === "All"){
@@ -448,8 +453,9 @@ document.addEventListener("DOMContentLoaded", function() {
 
     document.getElementById("btnradio12").addEventListener("click", async function() {
         var selectedDate = dateInput.value;
+        var selectedHrs = hourInput.value;
         let param = '12hrs';
-        const dataToProcess = await getStats(param, selectedDate)
+        const dataToProcess = await getStats(param, selectedDate, selectedHrs)
         let parsedData = JSON.parse(dataToProcess);
         let selectedCountry = countryDropdown.value;
         if (selectedCountry === "All"){
@@ -463,8 +469,9 @@ document.addEventListener("DOMContentLoaded", function() {
 
     document.getElementById("btnradio24").addEventListener("click", async function() {
         var selectedDate = dateInput.value;
+        var selectedHrs = hourInput.value;
         let param = '24hrs';
-        const dataToProcess = await getStats(param, selectedDate);
+        const dataToProcess = await getStats(param, selectedDate, selectedHrs);
         let parsedData = JSON.parse(dataToProcess);
         let selectedCountry = countryDropdown.value;
         if (selectedCountry === "All"){
@@ -496,13 +503,13 @@ document.addEventListener("DOMContentLoaded", function() {
 
     let mrcffgDataCache = {};
 
-    async function getMRCFFGData(param, selectedDate) {
+    async function getMRCFFGData(param, selectedDate, selectedHrs) {
         try {
-            const cacheKey = `${param}_${selectedDate}`;
+            const cacheKey = `${param}_${selectedDate}_${selectedHrs}`;
             if (mrcffgDataCache[cacheKey]) {
                 return mrcffgDataCache[cacheKey];
             }
-            const mrcffg_url = `/get_mrcffg_value/?param=${param}&date=${selectedDate}`;
+            const mrcffg_url = `/get_mrcffg_value/?param=${param}&date=${selectedDate}&hrs=${selectedHrs}`;
             const response = await fetch(mrcffg_url);
             const data = await response.json();
             mrcffgDataCache[cacheKey] = data;
@@ -663,10 +670,19 @@ document.addEventListener("DOMContentLoaded", function() {
         return defaultStyle;
     }
     
-    async function updateMap(param, selectedDate){
-        const ffgData = await getMRCFFGData(param, selectedDate);
+    async function updateMap(param, selectedDate, selectedHrs, selectedCountry){
+        const ffgData = await getMRCFFGData(param, selectedDate, selectedHrs);
         const parsed_data = JSON.parse(ffgData);
-        const basinData = await getMRCBasinData();
+        let basinData = await getMRCBasinData();
+
+        if (selectedCountry === "All") {
+            basinData = basinData; // This line is redundant, as basinData remains unchanged. You can remove it.
+        } else if (["KHM", "VNM", "THA", "LAO"].includes(selectedCountry)) {
+            basinData = {
+                ...basinData,
+                features: basinData.features.filter(feature => feature.properties.iso === selectedCountry)
+            };
+        }
         ffgsLayer.clearLayers();
         ffgsLayer.addData(basinData); // Add new data
         ffgsLayer.setStyle(feature => getStyle(param, feature, parsed_data)); 
@@ -675,7 +691,9 @@ document.addEventListener("DOMContentLoaded", function() {
     document.querySelectorAll('input[name="ffpRadio"]').forEach((elem) => {
         elem.addEventListener("change", function() {
             var selectedDate = dateInput.value;
-            updateMap(this.id, selectedDate);
+            var selectedHrs = hourInput.value;
+            var selectedCountry = countryDropdown.value;
+            updateMap(this.id, selectedDate, selectedHrs, selectedCountry);
             populateLegend(this.id);
         });
     });
@@ -751,7 +769,8 @@ document.addEventListener("DOMContentLoaded", function() {
                 console.error('Invalid param provided.');
                 return;
             }
-            const dataToProcess = await getStats(statsParam, selectedDate)
+            var selectedHrs = hourInput.value;
+            const dataToProcess = await getStats(statsParam, selectedDate, selectedHrs)
             let parsedData = JSON.parse(dataToProcess);
 
             let selectedCountry = countryDropdown.value;
@@ -763,7 +782,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
             updateTable(statsParam, parsedData);
             updateSubProvinceMap(id, parsedData);
-            updateMap(checkedValue, selectedDate);
+            updateMap(checkedValue, selectedDate, selectedHrs, selectedCountry);
         } catch (error) {
             console.error("Failed to update data:", error);
         }
@@ -899,9 +918,10 @@ document.addEventListener("DOMContentLoaded", function() {
         }
 
         let selectedDate = dateInput.value; 
+        let selectedHrs = hourInput.value;
         let selectedCountry = countryDropdown.value;
 
-        const dataToProcess = await getStats(statsParam, selectedDate)
+        const dataToProcess = await getStats(statsParam, selectedDate, selectedHrs)
         let parsedData = JSON.parse(dataToProcess);
 
         if (selectedCountry === "All"){
@@ -912,7 +932,58 @@ document.addEventListener("DOMContentLoaded", function() {
 
         updateTable(statsParam, parsedData); 
         updateSubProvinceMap(id, parsedData);
-        updateMap(checkedValue, selectedDate);
+        updateMap(checkedValue, selectedDate, selectedHrs, selectedCountry);
+    });
+
+    hourInput.addEventListener("change", async function () {
+        const radioButtons2 = document.getElementsByName("btnradio");
+        let selectedRadioButton;
+    
+        for(let radioButton of radioButtons2) {
+            if (radioButton.checked) {
+                selectedRadioButton = radioButton;
+                break;
+            }
+        }
+    
+        const radioMapping = {
+            "btnradio06": "FFG06",
+            "btnradio12": "FFR12",
+            "btnradio24": "FFR24"
+        };
+    
+        const id = radioMapping[selectedRadioButton.id];
+    
+        let checkedValue;
+    
+        radioButtonsBasin.forEach((radio) => {
+            if (radio.checked) {
+                checkedValue = radio.id;
+            }
+        });
+
+        const statsParam = determineStatsParam(id);
+        if (!statsParam) {
+            console.error('Invalid param provided.');
+            return;
+        }
+
+        let selectedDate = dateInput.value; 
+        let selectedHrs = hourInput.value;
+        let selectedCountry = countryDropdown.value;
+
+        const dataToProcess = await getStats(statsParam, selectedDate, selectedHrs)
+        let parsedData = JSON.parse(dataToProcess);
+
+        if (selectedCountry === "All"){
+            parsedData = parsedData;
+        } else {
+            parsedData =  parsedData.filter(item => item.ISO === selectedCountry); 
+        }
+
+        updateTable(statsParam, parsedData); 
+        updateSubProvinceMap(id, parsedData);
+        updateMap(checkedValue, selectedDate, selectedHrs, selectedCountry);
     });
 
     //////////////////////////
@@ -925,13 +996,14 @@ document.addEventListener("DOMContentLoaded", function() {
         createCustomCalender(clickableDates);
 
         let selectedDate = dateInput.value; 
-
-        const dataToProcess = await getStats('6hrs', selectedDate);
+        let selectedHrs = hourInput.value;
+        let selectedCountry = countryDropdown.value;
+        const dataToProcess = await getStats('6hrs', selectedDate, selectedHrs);
         const parsedData = JSON.parse(dataToProcess);
 
         updateTable('6hrs', parsedData);
         updateSubProvinceMap("FFG06", parsedData);
-        updateMap('MAP06', selectedDate);
+        updateMap('MAP06', selectedDate, selectedHrs, selectedCountry);
         populateLegend('MAP06');
     })();
 

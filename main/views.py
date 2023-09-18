@@ -7,6 +7,7 @@ from django.http import JsonResponse, HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.clickjacking import xframe_options_exempt
 from django.conf import settings
+from .models import Bulletin
 
 datelist = settings.DATELIST_PATH
 mrcffgs = settings.MRCFFGS_PATH
@@ -23,13 +24,20 @@ class MapPage(TemplateView):
 class BulletinPage(TemplateView):
     template_name = 'bulletin.html'
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['bulletin_summary'] = Bulletin.objects.order_by('-created_at')[0]
+        return context
+
 @csrf_exempt
 @xframe_options_exempt
 def get_mrcffg_value(request):
     param = request.GET.get('param')
     date_str = request.GET.get("date")
     formatted_date = date_str.replace("-", "")
-    data = mrcffgs+"_"+formatted_date+"06.csv"
+    hrs = request.GET.get("hrs")
+    data = mrcffgs+"_"+formatted_date+hrs+".csv"
+    # data = mrcffgs+"_"+formatted_date+"06.csv"
     df = pd.read_csv(data)
     selected_col = df[["BASIN", param]]
     data = selected_col.to_json(orient='records')
@@ -40,7 +48,9 @@ def get_mrcffg_value(request):
 def get_mrcffg_bulletin_data(request):
     date_str = request.GET.get("date")
     formatted_date = date_str.replace("-", "")
-    data = mrcffgs+"_"+formatted_date+"06.csv"
+    hrs = request.GET.get("hrs")
+    data = mrcffgs+"_"+formatted_date+hrs+".csv"
+    # data = mrcffgs+"_"+formatted_date+"06.csv"
     df = pd.read_csv(data)
     selected_col = df[["BASIN", "ASMT", "MAP24", "FMAP06", "FFG06", "FFFT06", "FFR12", "FFR24"]]
     data = selected_col.to_json(orient='records')
@@ -82,7 +92,8 @@ def get_alert_stat_6hrs(request):
     static_data_path = mekongxray
     date_str = request.GET.get("date")
     formatted_date = date_str.replace("-", "")
-    mrcffgs_data_path = mrcffgs+"_"+formatted_date+"06.csv"
+    hrs = request.GET.get("hrs")
+    mrcffgs_data_path = mrcffgs+"_"+formatted_date+hrs+".csv"
     df1 = pd.read_csv(static_data_path)
     df1[int_columns] = df1[int_columns].astype(int)
     df1[float_columns] = df1[float_columns].astype(float)
@@ -140,7 +151,8 @@ def get_risk_stat_12hrs(request):
     static_data_path = mekongxray
     date_str = request.GET.get("date")
     formatted_date = date_str.replace("-", "")
-    mrcffgs_data_path = mrcffgs+"_"+formatted_date+"06.csv"
+    hrs = request.GET.get("hrs")
+    mrcffgs_data_path = mrcffgs+"_"+formatted_date+hrs+".csv"
     df1 = pd.read_csv(static_data_path)
     df1[int_columns] = df1[int_columns].astype(int)
     df1[float_columns] = df1[float_columns].astype(float)
@@ -197,7 +209,8 @@ def get_risk_stat_24hrs(request):
     static_data_path = mekongxray
     date_str = request.GET.get("date")
     formatted_date = date_str.replace("-", "")
-    mrcffgs_data_path = mrcffgs+"_"+formatted_date+"06.csv"
+    hrs = request.GET.get("hrs")
+    mrcffgs_data_path = mrcffgs+"_"+formatted_date+hrs+".csv"
     df1 = pd.read_csv(static_data_path)
     df1[int_columns] = df1[int_columns].astype(int)
     df1[float_columns] = df1[float_columns].astype(float)
@@ -261,5 +274,5 @@ def get_datelist(request):
     data = datelist
     df = pd.read_csv(data)
     json = df.to_json(orient='values')
-    print(json)
+    # print(json)
     return JsonResponse(json, safe=False)
