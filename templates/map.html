@@ -477,6 +477,21 @@
             <div class="ffpLegend" id ="ffpLegend"></div>
         </div>
     </div>
+    <!-- <div id="chartPanel">
+        <div class="card card-body border-0">
+            <div id="basinChart"></div>
+        </div>
+    </div> -->
+    <div id="chartPanel">
+        <a class="btn btn-light" data-bs-toggle="collapse" href="#collapseExample" role="button" aria-expanded="false" aria-controls="collapseExample">
+            <i class="fas fa-chevron-down" id="toggleIcon"></i>
+        </a>
+        <div class="collapse" id="collapseExample" onshow="changeIcon(true)" onhide="changeIcon(false)">
+            <div class="card card-body">
+                <div id="basinChart"></div>
+            </div>
+        </div>
+    </div>
 </div>
 
 <button id="rightSidebar"><i class="fas fa-arrow-left"></i></button>

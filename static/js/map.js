@@ -95,7 +95,7 @@ document.addEventListener("DOMContentLoaded", function() {
         popContent.style.display = 'block';
     }
 
-    var ffgsLayer = L.geoJSON();
+    var ffgsLayer; // = L.geoJSON();
     var subProvinceLayer = L.geoJSON().addTo(map);
 
     // Caches and URLs for data
@@ -519,6 +519,24 @@ document.addEventListener("DOMContentLoaded", function() {
         }
     }
 
+    let basinChartDataCache = {};
+
+    async function getBasinChartData(basin_id, selectedDate, selectedHrs) {
+        try {
+            const cacheKey = `${basin_id}_${selectedDate}_${selectedHrs}`;
+            if (basinChartDataCache[cacheKey]) {
+                return basinChartDataCache[cacheKey];
+            }
+            const chart_data_url = `/get-basin-chart-data/?basin_id=${basin_id}&date=${selectedDate}&hrs=${selectedHrs}`;
+            const response = await fetch(chart_data_url);
+            const data = await response.json();
+            basinChartDataCache[cacheKey] = data;
+            return data;
+        } catch (error) {
+            console.error('Error:', error);
+        }
+    }
+
     const colors = {
         yellow: '#FFFF00',
         lightGreen: '#90EE90',
@@ -669,6 +687,94 @@ document.addEventListener("DOMContentLoaded", function() {
         }
         return defaultStyle;
     }
+
+    function changeIcon(isShown) {
+        const iconElement = document.getElementById('toggleIcon');
+
+        if (isShown) {
+            iconElement.classList.remove('fa-chevron-down');
+            iconElement.classList.add('fa-chevron-up');
+        } else {
+            iconElement.classList.remove('fa-chevron-up');
+            iconElement.classList.add('fa-chevron-down');
+        }
+    }
+
+    document.getElementById('collapseExample').addEventListener('show.bs.collapse', function() {
+        changeIcon(true);
+    });
+
+    document.getElementById('collapseExample').addEventListener('hide.bs.collapse', function() {
+        changeIcon(false);
+    });
+
+    function cleanData(dataArray) {
+        return dataArray.map(item => {
+            ["FFG01", "FFG03", "FFG06"].forEach(key => {
+                if (item[key] === -999 || item[key] < -1 || item[key] === null) {
+                    item[key] = 0;
+                }
+            });
+            return item;
+        });
+    }
+
+    function generateChart(selectedDate, chartData){
+        // Given data
+        // var data = [{"BASIN":421366,"FFG01":1,"FFG03":2,"FFG06":1.5}];
+        const data = JSON.parse(chartData);
+        const cleanedData = cleanData(data);
+        // Extract data for chart
+        var categories = ['FFG01', 'FFG03', 'FFG06'];  // Define the x-axis labels
+        var values = categories.map(key => cleanedData[0][key] || null); // Retrieve values or default to null if key doesn't exist
+        let date = selectedDate;
+
+        Highcharts.chart('basinChart', {
+            chart: {
+                type: 'column'
+            },
+            title: {
+                text: 'Rainfall Forecast Basin ID: ' + data[0].BASIN,
+                style: {
+                    fontSize: '14px',
+                    fontWeight: 'bold',
+                    whiteSpace: 'nowrap'
+                }
+            },
+            subtitle: {
+                text: 'Date: ' + date,
+                style: {
+                    fontSize: '12px'
+                },
+            },
+            legend: false,
+            tooltip: false,
+            xAxis: {
+                categories: ["01", "03", "06"],
+                title: {
+                    text: 'Hour'
+                }
+            },
+            yAxis: {
+                title: {
+                    text: 'Rainfall (mm/h)'
+                }
+            },
+            plotOptions: {
+                column: {
+                    dataLabels: {
+                        enabled: true,
+                        color: '#000000'
+                    }
+                }
+            },
+            series: [{
+                name: 'BASIN ' + data[0].BASIN,
+                data: values,
+                color: 'darkblue'
+            }]
+        });
+    }
     
     async function updateMap(param, selectedDate, selectedHrs, selectedCountry){
         const ffgData = await getMRCFFGData(param, selectedDate, selectedHrs);
@@ -683,9 +789,78 @@ document.addEventListener("DOMContentLoaded", function() {
                 features: basinData.features.filter(feature => feature.properties.iso === selectedCountry)
             };
         }
+
+        // Add this in your updateSubProvinceMap function
+        // ffgsLayer.on('layeradd', function (e) {
+        //     onEachFeature(e.layer.feature, e.layer);
+        // });
+
+        function onEachFeature(feature, layer) {
+            layer.on({
+                click: onFFGSClick,
+                mouseover: highlightFeature,
+                mouseout: resetHighlight
+            });
+            // layer.bindTooltip('<h6 class="fw-bold p-2">'+feature.properties.NAME_2+', '+feature.properties.NAME_1+',<br>'+feature.properties.NAME_0+'</h6>');
+        }
+
+        function highlightFeature(e) {
+            var layer = e.target;
+        
+            // Highlight style, modify as needed
+            layer.setStyle({
+                weight: 1,  
+                color: 'red',
+                fillColor: "red",
+                fillOpacity: 0.2 
+            });
+        }
+        
+        function resetHighlight(e) {
+            var layer = e.target;
+
+            ffgsLayer.resetStyle(layer);
+        
+            // Reset to default style, modify as needed
+            // layer.setStyle({
+            //     weight: 2,  // default border width in pixels
+            //     color: '#000', // default border color
+            //     dashArray: '',
+            //     fillOpacity: 0.5 // default fill opacity
+            // });
+        }
+
+        async function onFFGSClick(e) {
+            const clickedFeature = e.target.feature;
+            const basin_id = clickedFeature.properties.value;
+            let selectedDate = dateInput.value;
+            let selectedHrs = hourInput.value;
+            const chart_data = await getBasinChartData(basin_id, selectedDate, selectedHrs);
+            // console.log(chart_data);
+            let collapseElem = document.getElementById('collapseExample');
+            let btnElem = document.querySelector('a[data-bs-toggle="collapse"]');
+            let chartPanel = document.getElementById('chartPanel');
+            chartPanel.style.display = "block";
+            if (!collapseElem.classList.contains('show')) {
+                btnElem.click();
+            }
+            generateChart(selectedDate, chart_data);
+        }
+
+        // Initialize the layer with onEachFeature callback
+        ffgsLayer = L.geoJSON(null, {
+            onEachFeature: onEachFeature,
+            style: function(feature) {
+                return getStyle(param, feature, parsed_data);
+            }
+        });
+        // Update the map
         ffgsLayer.clearLayers();
-        ffgsLayer.addData(basinData); // Add new data
-        ffgsLayer.setStyle(feature => getStyle(param, feature, parsed_data)); 
+        ffgsLayer.addData(basinData);
+
+        // ffgsLayer.clearLayers();
+        // ffgsLayer.addData(basinData, {onEachFeature: onEachFeature}); // Add new data
+        // ffgsLayer.setStyle(feature => getStyle(param, feature, parsed_data)); 
     }
 
     document.querySelectorAll('input[name="ffpRadio"]').forEach((elem) => {

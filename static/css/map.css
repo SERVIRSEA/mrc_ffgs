@@ -299,6 +299,19 @@
     right: 250px;
     bottom: 0;
 }
+#chartPanel {
+    position: absolute;
+    background-color: #fff;
+    bottom: 0;
+    z-index: 999;
+    left: 35%;
+    display: none;
+    max-width: 350px;
+}
+#chartPanel #basinChart {
+    height: 250px;
+    width: 280px;
+}
 
 /* #calendar {
     gap: 8px;

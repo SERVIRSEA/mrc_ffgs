@@ -276,3 +276,17 @@ def get_datelist(request):
     json = df.to_json(orient='values')
     # print(json)
     return JsonResponse(json, safe=False)
+
+@csrf_exempt
+@xframe_options_exempt
+def get_basin_chart(request):
+    basin_id = request.GET.get("basin_id")
+    date_str = request.GET.get("date")
+    formatted_date = date_str.replace("-", "")
+    hrs = request.GET.get("hrs")
+    mrcffgs_data_path = mrcffgs+"_"+formatted_date+hrs+".csv"
+    df = pd.read_csv(mrcffgs_data_path)
+    df = df[["BASIN", "FFG01", "FFG03", "FFG06"]]
+    selected_basin = df[df['BASIN'] == int(basin_id)]
+    json = selected_basin.to_json(orient='records')
+    return JsonResponse(json, safe=False)
