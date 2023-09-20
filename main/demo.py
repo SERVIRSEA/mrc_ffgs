@@ -1,5 +1,16 @@
 import pandas as pd
 import numpy as np
+from datetime import datetime
+
+def get_mrcffgs_data_path(date):
+    base_path = "static/data"
+    date_string = date
+    date_object = datetime.strptime(date_string, '%Y-%m-%d')
+    year = date_object.year
+    data_path = f"{base_path}/{year}/csv/"
+    print(data_path)
+
+get_mrcffgs_data_path("2023-01-10")
 
 # Function to assign alert
 def assign_alert(row):

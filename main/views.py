@@ -8,6 +8,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.clickjacking import xframe_options_exempt
 from django.conf import settings
 from .models import Bulletin
+from datetime import datetime
 
 datelist = settings.DATELIST_PATH
 mrcffgs = settings.MRCFFGS_PATH
@@ -29,6 +30,13 @@ class BulletinPage(TemplateView):
         context['bulletin_summary'] = Bulletin.objects.order_by('-created_at')[0]
         return context
 
+def get_mrcffgs_data_path(date_string):
+    base_path = mrcffgs
+    date_object = datetime.strptime(date_string, '%Y-%m-%d')
+    year = date_object.year
+    data_path = f"{base_path}/{year}/csv/"
+    return data_path
+
 @csrf_exempt
 @xframe_options_exempt
 def get_mrcffg_value(request):
@@ -36,8 +44,8 @@ def get_mrcffg_value(request):
     date_str = request.GET.get("date")
     formatted_date = date_str.replace("-", "")
     hrs = request.GET.get("hrs")
-    data = mrcffgs+"_"+formatted_date+hrs+".csv"
-    # data = mrcffgs+"_"+formatted_date+"06.csv"
+    get_data_path = get_mrcffgs_data_path(date_str)
+    data = get_data_path+"mrcffg_"+formatted_date+hrs+".csv"
     df = pd.read_csv(data)
     selected_col = df[["BASIN", param]]
     data = selected_col.to_json(orient='records')
@@ -49,8 +57,8 @@ def get_mrcffg_bulletin_data(request):
     date_str = request.GET.get("date")
     formatted_date = date_str.replace("-", "")
     hrs = request.GET.get("hrs")
-    data = mrcffgs+"_"+formatted_date+hrs+".csv"
-    # data = mrcffgs+"_"+formatted_date+"06.csv"
+    get_data_path = get_mrcffgs_data_path(date_str)
+    data = get_data_path+"mrcffg_"+formatted_date+hrs+".csv"
     df = pd.read_csv(data)
     selected_col = df[["BASIN", "ASMT", "MAP24", "FMAP06", "FFG06", "FFFT06", "FFR12", "FFR24"]]
     data = selected_col.to_json(orient='records')
@@ -89,11 +97,13 @@ def get_alert_stat_6hrs(request):
 
         :rtype: JsonResponse
     """
+    # "2023/csv/mrcffg"
     static_data_path = mekongxray
     date_str = request.GET.get("date")
     formatted_date = date_str.replace("-", "")
     hrs = request.GET.get("hrs")
-    mrcffgs_data_path = mrcffgs+"_"+formatted_date+hrs+".csv"
+    get_data_path = get_mrcffgs_data_path(date_str)
+    mrcffgs_data_path = get_data_path+"mrcffg_"+formatted_date+hrs+".csv"
     df1 = pd.read_csv(static_data_path)
     df1[int_columns] = df1[int_columns].astype(int)
     df1[float_columns] = df1[float_columns].astype(float)
@@ -152,7 +162,8 @@ def get_risk_stat_12hrs(request):
     date_str = request.GET.get("date")
     formatted_date = date_str.replace("-", "")
     hrs = request.GET.get("hrs")
-    mrcffgs_data_path = mrcffgs+"_"+formatted_date+hrs+".csv"
+    get_data_path = get_mrcffgs_data_path(date_str)
+    mrcffgs_data_path = get_data_path+"mrcffg_"+formatted_date+hrs+".csv"
     df1 = pd.read_csv(static_data_path)
     df1[int_columns] = df1[int_columns].astype(int)
     df1[float_columns] = df1[float_columns].astype(float)
@@ -210,7 +221,8 @@ def get_risk_stat_24hrs(request):
     date_str = request.GET.get("date")
     formatted_date = date_str.replace("-", "")
     hrs = request.GET.get("hrs")
-    mrcffgs_data_path = mrcffgs+"_"+formatted_date+hrs+".csv"
+    get_data_path = get_mrcffgs_data_path(date_str)
+    mrcffgs_data_path = get_data_path+"mrcffg_"+formatted_date+hrs+".csv"
     df1 = pd.read_csv(static_data_path)
     df1[int_columns] = df1[int_columns].astype(int)
     df1[float_columns] = df1[float_columns].astype(float)

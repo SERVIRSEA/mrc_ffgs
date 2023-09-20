@@ -95,7 +95,7 @@ document.addEventListener("DOMContentLoaded", function() {
         popContent.style.display = 'block';
     }
 
-    var ffgsLayer; // = L.geoJSON();
+    var ffgsLayer = L.geoJSON();
     var subProvinceLayer = L.geoJSON().addTo(map);
 
     // Caches and URLs for data
@@ -790,45 +790,34 @@ document.addEventListener("DOMContentLoaded", function() {
             };
         }
 
-        // Add this in your updateSubProvinceMap function
-        // ffgsLayer.on('layeradd', function (e) {
-        //     onEachFeature(e.layer.feature, e.layer);
-        // });
+        ffgsLayer.on('layeradd', function (e) {
+            onEachFeature(e.layer.feature, e.layer);
+        });
 
         function onEachFeature(feature, layer) {
             layer.on({
                 click: onFFGSClick,
-                mouseover: highlightFeature,
-                mouseout: resetHighlight
-            });
-            // layer.bindTooltip('<h6 class="fw-bold p-2">'+feature.properties.NAME_2+', '+feature.properties.NAME_1+',<br>'+feature.properties.NAME_0+'</h6>');
-        }
-
-        function highlightFeature(e) {
-            var layer = e.target;
-        
-            // Highlight style, modify as needed
-            layer.setStyle({
-                weight: 1,  
-                color: 'red',
-                fillColor: "red",
-                fillOpacity: 0.2 
+                // mouseover: highlightFeature,
+                // mouseout: resetHighlight
             });
         }
-        
-        function resetHighlight(e) {
-            var layer = e.target;
 
-            ffgsLayer.resetStyle(layer);
+        // function highlightFeature(e) {
+        //     var layer = e.target;
         
-            // Reset to default style, modify as needed
-            // layer.setStyle({
-            //     weight: 2,  // default border width in pixels
-            //     color: '#000', // default border color
-            //     dashArray: '',
-            //     fillOpacity: 0.5 // default fill opacity
-            // });
-        }
+        //     // Highlight style, modify as needed
+        //     layer.setStyle({
+        //         weight: 1,  
+        //         color: 'red',
+        //         fillColor: "red",
+        //         fillOpacity: 0.2 
+        //     });
+        // }
+        
+        // function resetHighlight(e) {
+        //     var layer = e.target;
+        //     ffgsLayer.resetStyle(layer);
+        // }
 
         async function onFFGSClick(e) {
             const clickedFeature = e.target.feature;
@@ -847,20 +836,18 @@ document.addEventListener("DOMContentLoaded", function() {
             generateChart(selectedDate, chart_data);
         }
 
-        // Initialize the layer with onEachFeature callback
-        ffgsLayer = L.geoJSON(null, {
-            onEachFeature: onEachFeature,
-            style: function(feature) {
-                return getStyle(param, feature, parsed_data);
-            }
-        });
-        // Update the map
+        // function defaultStyle(feature) {
+        //     return getStyle(param, feature, parsed_data);
+        // }
+
+        // ffgsLayer = L.geoJSON(null, {
+        //     style: defaultStyle,
+        //     onEachFeature: onEachFeature
+        // });
+
         ffgsLayer.clearLayers();
         ffgsLayer.addData(basinData);
-
-        // ffgsLayer.clearLayers();
-        // ffgsLayer.addData(basinData, {onEachFeature: onEachFeature}); // Add new data
-        // ffgsLayer.setStyle(feature => getStyle(param, feature, parsed_data)); 
+        ffgsLayer.setStyle(feature => getStyle(param, feature, parsed_data)); 
     }
 
     document.querySelectorAll('input[name="ffpRadio"]').forEach((elem) => {
