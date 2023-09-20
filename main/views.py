@@ -296,7 +296,8 @@ def get_basin_chart(request):
     date_str = request.GET.get("date")
     formatted_date = date_str.replace("-", "")
     hrs = request.GET.get("hrs")
-    mrcffgs_data_path = mrcffgs+"_"+formatted_date+hrs+".csv"
+    get_data_path = get_mrcffgs_data_path(date_str)
+    mrcffgs_data_path = get_data_path+"mrcffg_"+formatted_date+hrs+".csv"
     df = pd.read_csv(mrcffgs_data_path)
     df = df[["BASIN", "FFG01", "FFG03", "FFG06"]]
     selected_basin = df[df['BASIN'] == int(basin_id)]
