@@ -10,12 +10,37 @@ document.addEventListener("DOMContentLoaded", function() {
         country: null
     };
 
+    function showBootstrapAlert(message) {
+        const alertPlaceholder = document.getElementById('alert-placeholder');
+        const alertHTML = `
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                <i class="fas fa-exclamation-triangle mr-2"></i> ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        `;
+        alertPlaceholder.innerHTML = alertHTML;
+    }
+
+    function clearBootstrapAlert() {
+        const alertPlaceholder = document.getElementById('alert-placeholder');
+        alertPlaceholder.innerHTML = '';
+    }
+
     const storms_url = '/get-storms/';
     const storms_by_country_url = '/get-storms-number-by-country/'
     
     async function getStorms() {
         try {
             const response = await fetch(storms_url);
+            if (!response.ok) {
+                if (response.status === 404) {
+                    showBootstrapAlert("Oops! Data is not found.");
+                    throw new Error("Data is not found");
+                }
+                throw new Error("Network response was not ok");
+            } else {
+                clearBootstrapAlert();
+            }
             const data = await response.json();
             return data;
         } catch (error) {
@@ -26,6 +51,15 @@ document.addEventListener("DOMContentLoaded", function() {
     async function getStormsByCountry() {
         try {
             const response = await fetch(storms_by_country_url);
+            if (!response.ok) {
+                if (response.status === 404) {
+                    showBootstrapAlert("Oops! Data is not found.");
+                    throw new Error("Data is not found");
+                }
+                throw new Error("Network response was not ok");
+            } else {
+                clearBootstrapAlert();
+            }
             const data = await response.json();
             return data;
         } catch (error) {
@@ -158,6 +192,7 @@ document.addEventListener("DOMContentLoaded", function() {
             }
             // Check if data is already in the cache for the specified param, date and hours
             if (selectedDate && statCache[param][selectedDate] && statCache[param][selectedDate][selectedHrs]) {
+                clearBootstrapAlert();
                 return statCache[param][selectedDate][selectedHrs];
             }
 
@@ -168,6 +203,15 @@ document.addEventListener("DOMContentLoaded", function() {
             }
 
             const response = await fetch(url);
+            if (!response.ok) {
+                if (response.status === 404) {
+                    showBootstrapAlert("Data is not found for the selected date and hours. Please try changing the date and hours again.");
+                    throw new Error("Data is not found for the selected date and hours");
+                }
+                throw new Error("Network response was not ok");
+            } else {
+                clearBootstrapAlert();
+            }
             const data = await response.json();
 
             // Cache the data based on both param, date and hrs
@@ -377,7 +421,13 @@ document.addEventListener("DOMContentLoaded", function() {
             }
             const response = await fetch(fullUrl);
             if (!response.ok) {
-                throw new Error(`HTTP error! Status: ${response.status}`);
+                if (response.status === 404) {
+                    showBootstrapAlert("Oops! No data found for the selected date and hours. Please select a different date and try again.");
+                    throw new Error("Data not found for the selected date and hours");
+                }
+                throw new Error("Network response was not ok");
+            } else {
+                clearBootstrapAlert();
             }
             const data = await response.json();
             bulletin_map_data[fullUrl] = data;

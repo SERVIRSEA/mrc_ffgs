@@ -97,49 +97,52 @@ def get_alert_stat_6hrs(request):
 
         :rtype: JsonResponse
     """
-    # "2023/csv/mrcffg"
-    static_data_path = mekongxray
-    date_str = request.GET.get("date")
-    formatted_date = date_str.replace("-", "")
-    hrs = request.GET.get("hrs")
-    get_data_path = get_mrcffgs_data_path(date_str)
-    mrcffgs_data_path = get_data_path+"mrcffg_"+formatted_date+hrs+".csv"
-    df1 = pd.read_csv(static_data_path)
-    df1[int_columns] = df1[int_columns].astype(int)
-    df1[float_columns] = df1[float_columns].astype(float)
-    df1[float_round_0_cols] = df1[float_round_0_cols].round(0)
-    df1[float_round_2_cols] = df1[float_round_2_cols].round(2)
-    df1.rename(columns={'value': 'BASIN'}, inplace=True)
-    df2 = pd.read_csv(mrcffgs_data_path)
-    df2 = df2[["BASIN", "FFG06", "FFFT06"]]
-    join_df = df1.merge(df2, on='BASIN', how='inner')
-    scols_ffg = join_df[['ID_2', 'ISO', 'NAME_1', 'NAME_2', 'M1', 'M2', 'M3', 'F1', 'F2', 'F3', 'RTP1', 'RTP2', 'RTP3', 'RTP4', 'Hospital', 'GDP', 'crop_sqm', 'FFG06']]
-    scols_ffft = join_df[['NAME_2', 'FFFT06']]
-    grouped_max_FFG = scols_ffg.groupby(['NAME_2']).agg({
-        'ID_2': 'first',
-        'ISO': 'first',
-        'NAME_1': 'first',
-        'M1': 'sum',
-        'M2': 'sum',
-        'M3': 'sum',
-        'F1': 'sum',
-        'F2': 'sum',
-        'F3': 'sum',
-        'RTP1': 'sum',
-        'RTP2': 'sum',
-        'RTP3': 'sum',
-        'RTP4': 'sum',
-        'Hospital': 'sum',
-        'GDP': 'sum',
-        'crop_sqm': 'sum',
-        'FFG06': 'min',
-    }).reset_index()
-    grouped_max_FFFT = scols_ffft.groupby(['NAME_2']).agg({'FFFT06': 'max'})
-    join_max = grouped_max_FFG.merge(grouped_max_FFFT, on="NAME_2")
-    join_max['Alert_6Hrs'] = join_max.apply(lambda row: assign_alert(row), axis=1)
-    final_df = join_max.dropna(subset=['Alert_6Hrs'], how='all')
-    json = final_df.to_json(orient='records')
-    return JsonResponse(json, safe=False)
+    try:
+        static_data_path = mekongxray
+        date_str = request.GET.get("date")
+        formatted_date = date_str.replace("-", "")
+        hrs = request.GET.get("hrs")
+        get_data_path = get_mrcffgs_data_path(date_str)
+        mrcffgs_data_path = get_data_path+"mrcffg_"+formatted_date+hrs+".csv"
+        df1 = pd.read_csv(static_data_path)
+        df1[int_columns] = df1[int_columns].astype(int)
+        df1[float_columns] = df1[float_columns].astype(float)
+        df1[float_round_0_cols] = df1[float_round_0_cols].round(0)
+        df1[float_round_2_cols] = df1[float_round_2_cols].round(2)
+        df1.rename(columns={'value': 'BASIN'}, inplace=True)
+        df2 = pd.read_csv(mrcffgs_data_path)
+        df2 = df2[["BASIN", "FFG06", "FFFT06"]]
+        join_df = df1.merge(df2, on='BASIN', how='inner')
+        scols_ffg = join_df[['ID_2', 'ISO', 'NAME_1', 'NAME_2', 'M1', 'M2', 'M3', 'F1', 'F2', 'F3', 'RTP1', 'RTP2', 'RTP3', 'RTP4', 'Hospital', 'GDP', 'crop_sqm', 'FFG06']]
+        scols_ffft = join_df[['NAME_2', 'FFFT06']]
+        grouped_max_FFG = scols_ffg.groupby(['NAME_2']).agg({
+            'ID_2': 'first',
+            'ISO': 'first',
+            'NAME_1': 'first',
+            'M1': 'sum',
+            'M2': 'sum',
+            'M3': 'sum',
+            'F1': 'sum',
+            'F2': 'sum',
+            'F3': 'sum',
+            'RTP1': 'sum',
+            'RTP2': 'sum',
+            'RTP3': 'sum',
+            'RTP4': 'sum',
+            'Hospital': 'sum',
+            'GDP': 'sum',
+            'crop_sqm': 'sum',
+            'FFG06': 'min',
+        }).reset_index()
+        grouped_max_FFFT = scols_ffft.groupby(['NAME_2']).agg({'FFFT06': 'max'})
+        join_max = grouped_max_FFG.merge(grouped_max_FFFT, on="NAME_2")
+        join_max['Alert_6Hrs'] = join_max.apply(lambda row: assign_alert(row), axis=1)
+        final_df = join_max.dropna(subset=['Alert_6Hrs'], how='all')
+        json = final_df.to_json(orient='records')
+        return JsonResponse(json, safe=False)
+    except FileNotFoundError:
+        # Return a JSON response indicating that data was not found.
+        return JsonResponse({"error": "Data not found"}, status=404)
 
 @csrf_exempt
 @xframe_options_exempt

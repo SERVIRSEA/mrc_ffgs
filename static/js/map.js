@@ -95,6 +95,22 @@ document.addEventListener("DOMContentLoaded", function() {
         popContent.style.display = 'block';
     }
 
+    function showBootstrapAlert(message) {
+        const alertPlaceholder = document.getElementById('alert-placeholder');
+        const alertHTML = `
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                <i class="fas fa-exclamation-triangle mr-2"></i> ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        `;
+        alertPlaceholder.innerHTML = alertHTML;
+    }
+
+    function clearBootstrapAlert() {
+        const alertPlaceholder = document.getElementById('alert-placeholder');
+        alertPlaceholder.innerHTML = '';
+    }
+
     var ffgsLayer = L.geoJSON();
     var subProvinceLayer = L.geoJSON().addTo(map);
 
@@ -193,6 +209,7 @@ document.addEventListener("DOMContentLoaded", function() {
             }
             // Check if data is already in the cache for the specified param and date
             if (selectedDate && caches[param][selectedDate] && caches[param][selectedDate][selectedHrs]) {
+                clearBootstrapAlert();
                 return caches[param][selectedDate][selectedHrs];
             }
 
@@ -203,6 +220,15 @@ document.addEventListener("DOMContentLoaded", function() {
             }
 
             const response = await fetch(url);
+            if (!response.ok) {
+                if (response.status === 404) {
+                    showBootstrapAlert("Oops! No data found for the selected date and hours. Please select a different date and try again.");
+                    throw new Error("Data not found for the selected date and hours");
+                }
+                throw new Error("Network response was not ok");
+            } else {
+                clearBootstrapAlert();
+            }
             const data = await response.json();
 
             // Cache the data based on both param and date
@@ -507,10 +533,20 @@ document.addEventListener("DOMContentLoaded", function() {
         try {
             const cacheKey = `${param}_${selectedDate}_${selectedHrs}`;
             if (mrcffgDataCache[cacheKey]) {
+                clearBootstrapAlert();
                 return mrcffgDataCache[cacheKey];
             }
             const mrcffg_url = `/get_mrcffg_value/?param=${param}&date=${selectedDate}&hrs=${selectedHrs}`;
             const response = await fetch(mrcffg_url);
+            if (!response.ok) {
+                if (response.status === 404) {
+                    showBootstrapAlert("Oops! No data found for the selected date and hours. Please select a different date and try again.");
+                    throw new Error("Data not found for the selected date and hours");
+                }
+                throw new Error("Network response was not ok");
+            } else {
+                clearBootstrapAlert();
+            }
             const data = await response.json();
             mrcffgDataCache[cacheKey] = data;
             return data;
@@ -525,10 +561,20 @@ document.addEventListener("DOMContentLoaded", function() {
         try {
             const cacheKey = `${basin_id}_${selectedDate}_${selectedHrs}`;
             if (basinChartDataCache[cacheKey]) {
+                clearBootstrapAlert();
                 return basinChartDataCache[cacheKey];
             }
             const chart_data_url = `/get-basin-chart-data/?basin_id=${basin_id}&date=${selectedDate}&hrs=${selectedHrs}`;
             const response = await fetch(chart_data_url);
+            if (!response.ok) {
+                if (response.status === 404) {
+                    showBootstrapAlert("Oops! No data found for the selected date and hours. Please select a different date and try again.");
+                    throw new Error("Data not found for the selected date and hours");
+                }
+                throw new Error("Network response was not ok");
+            } else {
+                clearBootstrapAlert();
+            }
             const data = await response.json();
             basinChartDataCache[cacheKey] = data;
             return data;
