@@ -646,7 +646,7 @@ document.addEventListener("DOMContentLoaded", function() {
                 for (let countryISO in tableContainers) {
                     tableContainers[countryISO].style.display = "block";
                 }
-                updateTable(data);
+                updateTable(parsedData);
             } else {
                 hideAllExcept(selectedCountry); 
                 const filteredData = parsedData.filter(item => item.ISO === selectedCountry); 
