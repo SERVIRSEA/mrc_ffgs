@@ -287,7 +287,7 @@ def get_storms_number_by_country(request):
 @xframe_options_exempt
 def get_datelist(request):
     data = datelist
-    df = pd.read_csv(data)
+    df = pd.read_csv(data, header=None, encoding='utf-8-sig')
     json = df.to_json(orient='values')
     # print(json)
     return JsonResponse(json, safe=False)
