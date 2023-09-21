@@ -78,7 +78,8 @@ document.addEventListener("DOMContentLoaded", function() {
     }
 
     collapsePop.onclick = function(){
-        popContent.style.height = '55px';
+        document.getElementById('riskInfo').style.display = 'none';
+        popContent.style.height = '50px';
         collapsePop.style.display = 'none';
         expandPop.style.display = 'block';
     }
@@ -86,6 +87,7 @@ document.addEventListener("DOMContentLoaded", function() {
         popContent.style.height = 'calc(100% - 105px)';
         collapsePop.style.display = 'block';
         expandPop.style.display = 'none';
+        document.getElementById('riskInfo').style.display = 'block';
     }
     closePop.onclick = function(){
         popContent.style.display = 'none';

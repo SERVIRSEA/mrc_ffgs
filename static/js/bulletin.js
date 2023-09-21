@@ -407,7 +407,16 @@ document.addEventListener("DOMContentLoaded", function() {
 
     async function getDate() {
         const date_url = '/get-datelist/';
-        return await fetchData(date_url);
+        try {
+            const response = await fetch(date_url);
+            if (!response.ok) {
+                throw new Error(`HTTP error! Status: ${response.status}`);
+            }
+            const data = await response.json();
+            return data;
+        } catch (error) {
+            console.error('Error:', error);
+        }
     }
 
     const bulletin_map_data = {};
