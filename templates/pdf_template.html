@@ -1,0 +1,824 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FFG PDF</title>
+    <!-- Favicon -->
+    <link rel="icon" href="{% static 'img/favicon.png' %}" type="image/png" sizes="16x16"> 
+    <link href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700&display=swap" rel="stylesheet">
+    <!-- Font-awesome -->
+    <link rel="stylesheet" href="{% static 'vendor/components-font-awesome/css/all.min.css' %}">
+    <!-- Bootstrap CSS-->
+    <link rel="stylesheet" href="{% static 'vendor/bootstrap/dist/css/bootstrap.min.css' %}">  
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+    
+    <!-- Custom CSS files -->
+    <link rel="stylesheet" href="{% static 'css/base.css' %}">
+    <link rel="stylesheet" href="{% static 'css/bulletin.css' %}">
+    <link rel="stylesheet" href="{% static 'css/pdf-template.css' %}">
+</head>
+
+<body>
+    <section id="default-section">
+        <div class="container-fluid m-0 p-0">
+            <div class="row bulletin-heading">
+                <div class="col-sm-2 text-center">
+                    <img class="pt-3 pb-3" src="/static/img/MRC-logo-white.svg" width="60px" alt="MRC">
+                </div>
+                <div class="col-sm-10">
+                    <h2 style="font-size: 25px; font-weight: 900; padding-top: 30px; font-family: 'Arial'; padding-left: 0px;">MEKONG FLASH FLOOD BULLETIN</h2>
+                </div>
+            </div>
+        </div>
+        <div class="container-fluid m-0 p-0">
+            <h4 class="fw-bold text-center p-4" id="displayDate"></h4>
+        </div>
+        <div class="container-fluid m-0 p-0">
+            <div class="row bulletin-sub-heading">
+                <div class="col-12">
+                    <h6 class="fw-bold fs-6 pt-4 text-decoration-underline">MAIN CONCLUSIONS AND GUIDANCE FOR FLASH FLOOD IN THE LOWER MEKONG BASIN:</h6>
+                    <ul>
+                        <li>
+                            In the next 1, 3 and 6 hours, the flash flood risk will likely be detected in some areas of Viet Nam and Lao PDR.
+                        </li>
+                        <li>
+                            Details on the location of the flash flood risk areas in the LMB are in the attached excel file and on the webpage: <a href="http://ffw.mrcmekong.org/ffg.php" target="_blank" rel="noopener noreferrer">http://ffw.mrcmekong.org/ffg.php</a>
+                        </li>
+                        <li>
+                            The updated flash flood information will be provided at 08:30 on 02 July 2023 and available on the webpage.
+                        </li>
+                    </ul>
+                    <!-- {{ bulletin_summary.content | safe }} -->
+                </div>
+            </div>
+        </div>
+        <div class="container-fluid m-0 p-0">
+            <div class="card card-body justify-content-center border-0 p-0 m-0">
+                <h5 class="fw-bold fs-5 text-center pt-5">RAINSTORMS TRACKER</h5>
+                <p class="text-center">(In the last 24-48 hours)</p>
+                <div id="stormsChart"></div>
+                <div class="btn-group stormsBtn mt-4 mb-3" role="group" aria-label="Basic mixed styles example">
+                    <button type="button" class="btn bg-primary bg-opacity-25 fs-6 fw-bold p-3 me-2"><span id="cambodiaStorms">0</span><br>Cambodia</button>
+                    <button type="button" class="btn bg-primary bg-opacity-25 fs-6 fw-bold p-3 me-2"><span id="laosStorms">0</span><br>Laos</button>
+                    <button type="button" class="btn bg-primary bg-opacity-25 fs-6 fw-bold p-3 me-2"><span id="thailandStorms">0</span><br>Thailand</button>
+                    <button type="button" class="btn bg-primary bg-opacity-25 fs-6 fw-bold p-3"><span id="vietnamStorms">0</span><br>Vietnam</button>
+                </div>   
+            </div>
+        </div>
+    </section>
+
+    <div class="page-break"></div>
+
+    <section id="default-section">
+        <div class="container-fluid m-0 p-0">
+            <h4 class="fw-bold fs-5 text-center">CRITICAL INFRASTRUCTURE</h4>
+            <p class="text-center">(Details in the table below)</p>
+            <h5 class="fw-bold text-decoration-underline">06 Hrs</h5>
+            <div class="row">
+                <div class="col-md-6 pe-5">
+                    <div class="row">
+                        <h6 class="fw-bold pt-3">Population Exposed</h6>
+                        <div class="col-sm-4">
+                            <img class="fluid mt-2" src="/static/img/pop.png" width="120px" alt="pop">
+                        </div>
+                        <div class="col-sm-8">
+                            <div class="card card-body border-0 ps-4 text-left">
+                                <h5 class="pt-2">Total Population</h5>
+                                <h2 style="color: #2f80ed; font-weight: 700;" id="total_pop_06hrs"></h2>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-sm-4">
+                            <img class="fluid mt-5" src="/static/img/female.png" width="120px" alt="pop">
+                        </div>
+                        <div class="col-sm-8">
+                            <div class="card card-body border-0 ps-4 text-left">
+                                <h6>Female Population</h6>
+                                <h4 style="color: #bb6bd9; font-weight: 700;" id="total_female_pop_06hrs"></h4>
+                                <table class="table table-responsive table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>Age</th>
+                                            <th colspan="2">Population</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <th>0-15</th>
+                                            <td>:</td>
+                                            <td id="female_pop_f1_06hrs"></td>
+                                        </tr>
+                                        <tr>
+                                            <th>15-65</th>
+                                            <td>:</td>
+                                            <td id="female_pop_f2_06hrs"></td>
+                                        </tr>
+                                        <tr>
+                                            <th>> 65</th>
+                                            <td>:</td>
+                                            <td id="female_pop_f3_06hrs"></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-sm-4">
+                            <img class="fluid mt-4 pt-2" src="/static/img/male.png" width="120px" alt="pop">
+                        </div>
+                        <div class="col-sm-8">
+                            <div class="card card-body border-0 ps-4 text-left">
+                                <h6>Male Population</h6>
+                                <h4 style="color: #bb6bd9; font-weight: 700;" id="total_male_pop_06hrs"></h4>
+                                <table class="table table-responsive table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>Age</th>
+                                            <th colspan="2">Population</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <th>0-15</th>
+                                            <td>:</td>
+                                            <td id="male_pop_m1_06hrs"></td>
+                                        </tr>
+                                        <tr>
+                                            <th>15-65</th>
+                                            <td>:</td>
+                                            <td id="male_pop_m2_06hrs"></td>
+                                        </tr>
+                                        <tr>
+                                            <th>> 65</th>
+                                            <td>:</td>
+                                            <td id="male_pop_m3_06hrs"></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6 ps-5">
+                    <h6 class="fw-bold pt-3">Physical Vulnerability</h6>
+                    <div class="row">
+                        <h6 class="fw-bold pt-3">TOTAL ROAD</h6>
+                        <div class="col-sm-4">
+                            <img class="fluid mt-4" src="/static/img/road.png" width="80px" alt="Road">
+                        </div>
+                        <div class="col-sm-8">
+                            <table class="table table-responsive table-hover text-left">
+                                <thead>
+                                    <tr>
+                                        <th class="fw-bold">Road Type</th>
+                                        <th colspan="2" class="fw-bold">Length (KM)</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <th scope="row">Highways</th>
+                                        <td>:</td>
+                                        <td id="highwayRoad_06hrs"></td>
+                                    </tr>
+                                    <tr>
+                                        <th scope="row">Primary</th>
+                                        <td>:</td>
+                                        <td id="primaryRoad_06hrs"></td>
+                                    </tr>
+                                    <tr>
+                                        <th scope="row">Secondary</th>
+                                        <td>:</td>
+                                        <td id="secondaryRoad_06hrs"></td>
+                                    </tr>
+                                    <tr>
+                                        <th scope="row">Tertiary</th>
+                                        <td>:</td>
+                                        <td id="tertiaryRoad_06hrs"></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="row mt-3">
+                        <h6 class="fw-bold">TOTAL HOSPITAL</h6>
+                        <div class="col-sm-4">
+                            <img class="fluid" src="/static/img/hospital.png" width="80px" alt="hospital">
+                        </div>
+                        <div class="col-sm-8">
+                            <p class="text-center mt-4">
+                                <span class="fw-bold" id="hospital_06hrs"></span>
+                                <br>
+                                <span>Hospital</span>
+                            </p>
+                        </div>
+                    </div>
+                    <div class="row mt-3">
+                        <h6 class="fw-bold pt-3">Economic Vulnerability</h6>
+                        <div class="col-sm-4">
+                            <img class="fluid" src="/static/img/gdp.jpg" width="80px" alt="gdp">
+                        </div>
+                        <div class="col-sm-8">
+                            <table class="table table-responsive table-hover text-left">
+                                <thead>
+                                    <tr>
+                                        <th colspan="3" class="fw-bold">Economic Losses (USD)</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <th scope="row">GDP</th>
+                                        <td>:</td>
+                                        <td id="gdp_06hrs"></td>
+                                    </tr>
+                                    <tr>
+                                        <th scope="row">Crop Lands</th>
+                                        <td>:</td>
+                                        <td id="cropLands_06hrs"></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                            <small class="text-muted">*GDP = Gross Domestic Product</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>               
+    </section>
+
+    <section id="default-section">
+        <div class="container-fluid m-0 p-0">
+            <h4 class="fw-bold fs-5 text-center">CRITICAL INFRASTRUCTURE</h4>
+            <p class="text-center">(Details in the table below)</p>
+            <h5 class="fw-bold text-decoration-underline">12 Hrs</h5>
+            <div class="row">
+                <div class="col-md-6 pe-5">
+                    <div class="row">
+                        <h6 class="fw-bold pt-3">Population Exposed</h6>
+                        <div class="col-sm-4">
+                            <img class="fluid mt-2" src="/static/img/pop.png" width="120px" alt="pop">
+                        </div>
+                        <div class="col-sm-8">
+                            <div class="card card-body border-0 ps-4 text-left">
+                                <h5 class="pt-2">Total Population</h5>
+                                <h2 style="color: #2f80ed; font-weight: 700;" id="total_pop_12hrs"></h2>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-sm-4">
+                            <img class="fluid mt-5" src="/static/img/female.png" width="120px" alt="pop">
+                        </div>
+                        <div class="col-sm-8">
+                            <div class="card card-body border-0 ps-4 text-left">
+                                <h6>Female Population</h6>
+                                <h4 style="color: #bb6bd9; font-weight: 700;" id="total_female_pop_12hrs"></h4>
+                                <table class="table table-responsive table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>Age</th>
+                                            <th colspan="2">Population</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <th>0-15</th>
+                                            <td>:</td>
+                                            <td id="female_pop_f1_12hrs"></td>
+                                        </tr>
+                                        <tr>
+                                            <th>15-65</th>
+                                            <td>:</td>
+                                            <td id="female_pop_f2_12hrs"></td>
+                                        </tr>
+                                        <tr>
+                                            <th>> 65</th>
+                                            <td>:</td>
+                                            <td id="female_pop_f3_12hrs"></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-sm-4">
+                            <img class="fluid mt-4 pt-2" src="/static/img/male.png" width="120px" alt="pop">
+                        </div>
+                        <div class="col-sm-8">
+                            <div class="card card-body border-0 ps-4 text-left">
+                                <h6>Male Population</h6>
+                                <h4 style="color: #bb6bd9; font-weight: 700;" id="total_male_pop_12hrs"></h4>
+                                <table class="table table-responsive table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>Age</th>
+                                            <th colspan="2">Population</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <th>0-15</th>
+                                            <td>:</td>
+                                            <td id="male_pop_m1_12hrs"></td>
+                                        </tr>
+                                        <tr>
+                                            <th>15-65</th>
+                                            <td>:</td>
+                                            <td id="male_pop_m2_12hrs"></td>
+                                        </tr>
+                                        <tr>
+                                            <th>> 65</th>
+                                            <td>:</td>
+                                            <td id="male_pop_m3_12hrs"></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6 ps-5">
+                    <h6 class="fw-bold pt-3">Physical Vulnerability</h6>
+                    <div class="row">
+                        <h6 class="fw-bold pt-3">TOTAL ROAD</h6>
+                        <div class="col-sm-4">
+                            <img class="fluid mt-4" src="/static/img/road.png" width="80px" alt="Road">
+                        </div>
+                        <div class="col-sm-8">
+                            <table class="table table-responsive table-hover text-left">
+                                <thead>
+                                    <tr>
+                                        <th class="fw-bold">Road Type</th>
+                                        <th colspan="2" class="fw-bold">Length (KM)</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <th scope="row">Highways</th>
+                                        <td>:</td>
+                                        <td id="highwayRoad_12hrs"></td>
+                                    </tr>
+                                    <tr>
+                                        <th scope="row">Primary</th>
+                                        <td>:</td>
+                                        <td id="primaryRoad_12hrs"></td>
+                                    </tr>
+                                    <tr>
+                                        <th scope="row">Secondary</th>
+                                        <td>:</td>
+                                        <td id="secondaryRoad_12hrs"></td>
+                                    </tr>
+                                    <tr>
+                                        <th scope="row">Tertiary</th>
+                                        <td>:</td>
+                                        <td id="tertiaryRoad_12hrs"></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="row mt-3">
+                        <h6 class="fw-bold">TOTAL HOSPITAL</h6>
+                        <div class="col-sm-4">
+                            <img class="fluid" src="/static/img/hospital.png" width="80px" alt="hospital">
+                        </div>
+                        <div class="col-sm-8">
+                            <p class="text-center mt-4">
+                                <span class="fw-bold" id="hospital_12hrs"></span>
+                                <br>
+                                <span>Hospital</span>
+                            </p>
+                        </div>
+                    </div>
+                    <div class="row mt-3">
+                        <h6 class="fw-bold pt-3">Economic Vulnerability</h6>
+                        <div class="col-sm-4">
+                            <img class="fluid" src="/static/img/gdp.jpg" width="80px" alt="gdp">
+                        </div>
+                        <div class="col-sm-8">
+                            <table class="table table-responsive table-hover text-left">
+                                <thead>
+                                    <tr>
+                                        <th colspan="3" class="fw-bold">Economic Losses (USD)</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <th scope="row">GDP</th>
+                                        <td>:</td>
+                                        <td id="gdp_12hrs"></td>
+                                    </tr>
+                                    <tr>
+                                        <th scope="row">Crop Lands</th>
+                                        <td>:</td>
+                                        <td id="cropLands_12hrs"></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                            <small class="text-muted">*GDP = Gross Domestic Product</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>        
+    </section>
+
+    <section id="default-section">
+        <div class="container-fluid m-0 p-0">
+            <h4 class="fw-bold fs-5 text-center">CRITICAL INFRASTRUCTURE</h4>
+            <p class="text-center">(Details in the table below)</p>
+            <h5 class="fw-bold text-decoration-underline">24 Hrs</h5>
+            <div class="row">
+                <div class="col-md-6 pe-5">
+                    <div class="row">
+                        <h6 class="fw-bold pt-3">Population Exposed</h6>
+                        <div class="col-sm-4">
+                            <img class="fluid mt-2" src="/static/img/pop.png" width="120px" alt="pop">
+                        </div>
+                        <div class="col-sm-8">
+                            <div class="card card-body border-0 ps-4 text-left">
+                                <h5 class="pt-2">Total Population</h5>
+                                <h2 style="color: #2f80ed; font-weight: 700;" id="total_pop_24hrs"></h2>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-sm-4">
+                            <img class="fluid mt-5" src="/static/img/female.png" width="120px" alt="pop">
+                        </div>
+                        <div class="col-sm-8">
+                            <div class="card card-body border-0 ps-4 text-left">
+                                <h6>Female Population</h6>
+                                <h4 style="color: #bb6bd9; font-weight: 700;" id="total_female_pop_24hrs"></h4>
+                                <table class="table table-responsive table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>Age</th>
+                                            <th colspan="2">Population</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <th>0-15</th>
+                                            <td>:</td>
+                                            <td id="female_pop_f1_24hrs"></td>
+                                        </tr>
+                                        <tr>
+                                            <th>15-65</th>
+                                            <td>:</td>
+                                            <td id="female_pop_f2_24hrs"></td>
+                                        </tr>
+                                        <tr>
+                                            <th>> 65</th>
+                                            <td>:</td>
+                                            <td id="female_pop_f3_24hrs"></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-sm-4">
+                            <img class="fluid mt-4 pt-2" src="/static/img/male.png" width="120px" alt="pop">
+                        </div>
+                        <div class="col-sm-8">
+                            <div class="card card-body border-0 ps-4 text-left">
+                                <h6>Male Population</h6>
+                                <h4 style="color: #bb6bd9; font-weight: 700;" id="total_male_pop_24hrs"></h4>
+                                <table class="table table-responsive table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>Age</th>
+                                            <th colspan="2">Population</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <th>0-15</th>
+                                            <td>:</td>
+                                            <td id="male_pop_m1_24hrs"></td>
+                                        </tr>
+                                        <tr>
+                                            <th>15-65</th>
+                                            <td>:</td>
+                                            <td id="male_pop_m2_24hrs"></td>
+                                        </tr>
+                                        <tr>
+                                            <th>> 65</th>
+                                            <td>:</td>
+                                            <td id="male_pop_m3_24hrs"></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6 ps-5">
+                    <h6 class="fw-bold pt-3">Physical Vulnerability</h6>
+                    <div class="row">
+                        <h6 class="fw-bold pt-3">TOTAL ROAD</h6>
+                        <div class="col-sm-4">
+                            <img class="fluid mt-4" src="/static/img/road.png" width="80px" alt="Road">
+                        </div>
+                        <div class="col-sm-8">
+                            <table class="table table-responsive table-hover text-left">
+                                <thead>
+                                    <tr>
+                                        <th class="fw-bold">Road Type</th>
+                                        <th colspan="2" class="fw-bold">Length (KM)</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <th scope="row">Highways</th>
+                                        <td>:</td>
+                                        <td id="highwayRoad_24hrs"></td>
+                                    </tr>
+                                    <tr>
+                                        <th scope="row">Primary</th>
+                                        <td>:</td>
+                                        <td id="primaryRoad_24hrs"></td>
+                                    </tr>
+                                    <tr>
+                                        <th scope="row">Secondary</th>
+                                        <td>:</td>
+                                        <td id="secondaryRoad_24hrs"></td>
+                                    </tr>
+                                    <tr>
+                                        <th scope="row">Tertiary</th>
+                                        <td>:</td>
+                                        <td id="tertiaryRoad_24hrs"></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="row mt-3">
+                        <h6 class="fw-bold">TOTAL HOSPITAL</h6>
+                        <div class="col-sm-4">
+                            <img class="fluid" src="/static/img/hospital.png" width="80px" alt="hospital">
+                        </div>
+                        <div class="col-sm-8">
+                            <p class="text-center mt-4">
+                                <span class="fw-bold" id="hospital_24hrs"></span>
+                                <br>
+                                <span>Hospital</span>
+                            </p>
+                        </div>
+                    </div>
+                    <div class="row mt-3">
+                        <h6 class="fw-bold pt-3">Economic Vulnerability</h6>
+                        <div class="col-sm-4">
+                            <img class="fluid" src="/static/img/gdp.jpg" width="80px" alt="gdp">
+                        </div>
+                        <div class="col-sm-8">
+                            <table class="table table-responsive table-hover text-left">
+                                <thead>
+                                    <tr>
+                                        <th colspan="3" class="fw-bold">Economic Losses (USD)</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <th scope="row">GDP</th>
+                                        <td>:</td>
+                                        <td id="gdp_24hrs"></td>
+                                    </tr>
+                                    <tr>
+                                        <th scope="row">Crop Lands</th>
+                                        <td>:</td>
+                                        <td id="cropLands_24hrs"></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                            <small class="text-muted">*GDP = Gross Domestic Product</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>        
+    </section>
+
+    <!-- ASM Map -->
+    <section id="map-section">
+        <div class="container-fluid m-0 p-0">
+            <div class="row">
+                <div>
+                    <div class="card card-body pb-0 mb-0">
+                        <ul class="horizontal-list">
+                            <li>ASM - 06 hr</li>
+                            <li class="datePlaceholder"></li>
+                            <li>REGIONAL</li>
+                        </ul>
+                    </div>
+                    <div class="card card-body p-0 m-0">
+                        <div class="pdf-map" id="asm6hr"></div>
+                    </div> 
+                    <div class="card card-body pb-0 mb-0">
+                        <h4 class="fs-6 text-center">Basin Saturation Level (ASM)</h4>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="map-section">
+        <div class="container-fluid m-0 p-0">
+            <div class="row">
+                <div>
+                    <div class="card card-body pb-0 mb-0">
+                        <ul class="horizontal-list">
+                            <li>MAP - 24 hr</li>
+                            <li class="datePlaceholder"></li>
+                            <li>REGIONAL</li>
+                        </ul>
+                    </div>
+                    <div class="card card-body p-0 m-0">
+                        <div class="pdf-map" id="map24hr"></div>
+                    </div> 
+                    <div class="card card-body pb-0 mb-0">
+                        <h4 class="fs-6 text-center">Rainfall estimation (MAP)</h4>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="map-section">
+        <div class="container-fluid m-0 p-0">
+            <div class="row">
+                <div>
+                    <div class="card card-body pb-0 mb-0">
+                        <ul class="horizontal-list">
+                            <li>FMAP - 06 hr</li>
+                            <li class="datePlaceholder"></li>
+                            <li>REGIONAL</li>
+                        </ul>
+                    </div>
+                    <div class="card card-body p-0 m-0">
+                        <div class="pdf-map" id="fmap6hr"></div>
+                    </div> 
+                    <div class="card card-body pb-0 mb-0">
+                        <h4 class="fs-6 text-center">Rainfall forecast (FMAP)</h4>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="map-section">
+        <div class="container-fluid m-0 p-0">
+            <div class="row">
+                <div>
+                    <div class="card card-body pb-0 mb-0">
+                        <ul class="horizontal-list">
+                            <li>FFG - 06 hr</li>
+                            <li class="datePlaceholder"></li>
+                            <li>REGIONAL</li>
+                        </ul>
+                    </div>
+                    <div class="card card-body p-0 m-0">
+                        <div class="pdf-map" id="ffg6hr"></div>
+                    </div> 
+                    <div class="card card-body pb-0 mb-0">
+                        <h4 class="fs-6 text-center">Rainfall which can cause flooding (FFG)</h4>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="map-section">
+        <div class="container-fluid m-0 p-0">
+            <div class="row">
+                <div>
+                    <div class="card card-body pb-0 mb-0">
+                        <ul class="horizontal-list">
+                            <li>FFFT - 06 hr</li>
+                            <li class="datePlaceholder"></li>
+                            <li>REGIONAL</li>
+                        </ul>
+                    </div>
+                    <div class="card card-body p-0 m-0">
+                        <div class="pdf-map" id="ffft6hr"></div>
+                    </div> 
+                    <div class="card card-body pb-0 mb-0">
+                        <h4 class="fs-6 text-center">Forecast of basin with a surplus of rainfall (FFFT)</h4>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="map-section">
+        <div class="container-fluid m-0 p-0">
+            <div class="row">
+                <div>
+                    <div class="card card-body pb-0 mb-0">
+                        <ul class="horizontal-list">
+                            <li>FFR - 12 hr</li>
+                            <li class="datePlaceholder"></li>
+                            <li>REGIONAL</li>
+                        </ul>
+                    </div>
+                    <div class="card card-body p-0 m-0">
+                        <div class="pdf-map" id="ffr12hr"></div>
+                    </div> 
+                    <div class="card card-body pb-0 mb-0">
+                        <h4 class="fs-6 text-center">Flood risk up to 12.00 UTC (FFR+12)</h4>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="map-section">
+        <div class="container-fluid m-0 p-0">
+            <div class="row">
+                <div>
+                    <div class="card card-body pb-0 mb-0">
+                        <ul class="horizontal-list">
+                            <li>FFR - 24 hr</li>
+                            <li class="datePlaceholder"></li>
+                            <li>REGIONAL</li>
+                        </ul>
+                    </div>
+                    <div class="card card-body p-0 m-0">
+                        <div class="pdf-map" id="ffr24hr"></div>
+                    </div> 
+                    <div class="card card-body pb-0 mb-0">
+                        <h4 class="fs-6 text-center">Flood risk up to 24.00 UTC (FFR+24)</h4>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="default-section">
+        <div class="container-fluid m-0 p-0">
+            <div class="card card-body remarks ps-4 pe-4 pt-5 pb-4">
+                <h6 class="fs-5 fw-bold text-decoration-underline fst-italic">REMARKS</h6>
+                <p class="pt-3"><span class="fw-bold fs-5">FFG - Flash Flood Guidance: </span>The amount of rainfall over a given duration (1, 3, 6
+                    hours) which is just enough to cause bank-full flow in the draining stream outlet.</p>
+                <p><span class="fw-bold pt-2 fs-5">MAP - Mean Areal Precipitation: </span>Derived mean areal precipitation estimates from
+                    bias-adjusted Micro-Wave Global Hydro Estimator (MWGHE) and GHE.</p>
+                <p><span class="fw-bold pt-2 fs-5">ASM - Average Soil Moisture: </span>Soil water saturation fraction (dimensionless ratio of
+                    contents over capacity) for the upper zone (approximately 20-30 cm depth).</p>
+                <p><span class="fw-bold pt-2 fs-5">FMAP - Forecast Mean Areal Precipitation: </span>Accumulations of forecasted mean areal
+                    precipitation produced by numerical forecasts from the Weather Research and
+                    Forecasting (WRF) model. Each data product reflects basin-average precipitation
+                    accumulations from the navigation hour over the corresponding interval.</p>
+                <p><span class="fw-bold pt-2 fs-5">FFFT - Forecast Flash Flood Threat: </span>The difference between the predicted rainfall
+                    (FMAP) and the amount needed to reach the bank full stage (FFG). Basin/sub-basin
+                    with a positive FFFT value is assumed to be an area with the potential for flash floods
+                    in the given time range.</p>
+                <p><span class="fw-bold pt-2 fs-5">FFR - Flash Flood Risk: </span>Products for forecast periods of 12, 24 and 36 hours (forecast
+                    periods 12 and 24 hours are shown in this bulletin). These products are computed
+                    every six hours and measure the occurrence of positive forecast flash flood threat
+                    (FMAP > FFG) over a given forecast period using forecast precipitation to drive the Soil
+                    and FFG models.</p>
+            </div>
+        </div>
+    </section>
+
+    <section id="table-section">
+        {% include 'country-bulletin-pdf/cambodia.html' %}      
+    </section>
+
+    <section id="table-section">
+        {% include 'country-bulletin-pdf/laos.html' %}      
+    </section>
+
+    <section id="table-section">
+        {% include 'country-bulletin-pdf/thailand.html' %}      
+    </section>
+
+    <section id="table-section">
+        {% include 'country-bulletin-pdf/vietnam.html' %}      
+    </section>
+
+    <script src="https://code.highcharts.com/highcharts.js"></script>
+	<script src="{% static 'vendor/bootstrap/dist/js/bootstrap.bundle.min.js'  %}"></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <!-- Define data attributes on a script tag or any HTML element -->
+    <script id="script-data" 
+        data-date="{{ selectedDate }}" 
+        data-hour="{{ selectedHr }}" 
+        data-country="{{ selectedCountry }}">
+
+        // const param1 = "{{ param1|escapejs }}";
+        // const param2 = "{{ param2|escapejs }}";
+        // const param3 = "{{ param3|escapejs }}";
+    </script>
+    
+    <script src="{% static 'js/generate-pdf.js'  %}"></script>
+</body>
+</html>

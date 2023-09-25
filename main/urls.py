@@ -14,4 +14,6 @@ urlpatterns = [
     path('get-storms/', views.get_storms),
     path('get-storms-number-by-country/', views.get_storms_number_by_country),
     path('get-basin-chart-data/', views.get_basin_chart),
+    path('pdf-view/', views.pdf_view, name='pdf-view'),
+    path('pdf-template/', views.pdf_template_view, name='pdf-template')
 ]

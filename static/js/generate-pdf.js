@@ -1,77 +1,38 @@
 document.addEventListener("DOMContentLoaded", function() {
-    const dateInput = document.getElementById("dateInput");
-    const hourInput = document.getElementById("hrSelection");
-    const countryInput = document.getElementById("countryBulletin");
-    const updateBulletinBtn = document.getElementById("updateBulletin");
+    const scriptTag = document.getElementById("script-data");
+    const selectedDate = scriptTag.getAttribute("data-date");
+    const selctedHour = scriptTag.getAttribute("data-hour");
+    const selectedCountry = scriptTag.getAttribute("data-country");
 
-    let paramCache = {
-        date: null,
-        hour: null,
-        country: null
-    };
-
-    function showBootstrapAlert(message) {
-        const alertPlaceholder = document.getElementById('alert-placeholder');
-        const alertHTML = `
-            <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                <i class="fas fa-exclamation-triangle mr-2"></i> ${message}
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-            </div>
-        `;
-        alertPlaceholder.innerHTML = alertHTML;
+    // Function to fromat the date
+    function formatDate(inputDate) {
+        const options = { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' };
+        const date = new Date(inputDate);
+        return date.toLocaleDateString('en-US', options);
     }
-
-    function clearBootstrapAlert() {
-        const alertPlaceholder = document.getElementById('alert-placeholder');
-        alertPlaceholder.innerHTML = '';
-    }
-
-    const storms_url = '/get-storms/';
-    const storms_by_country_url = '/get-storms-number-by-country/'
     
-    async function getStorms() {
+    const formattedDate = formatDate(selectedDate);
+    document.querySelector("#displayDate").innerHTML = formattedDate;
+
+    const storms_data_path = {
+        storms: '/get-storms/',
+        stormsByCountry: '/get-storms-number-by-country/'
+    };
+    
+    async function fetchStormsData(url) {
         try {
-            const response = await fetch(storms_url);
-            if (!response.ok) {
-                if (response.status === 404) {
-                    showBootstrapAlert("Oops! Data is not found.");
-                    throw new Error("Data is not found");
-                }
-                throw new Error("Network response was not ok");
-            } else {
-                clearBootstrapAlert();
-            }
-            const data = await response.json();
-            return data;
+            const response = await fetch(url);
+            return await response.json();
         } catch (error) {
             console.error('Error:', error);
         }
     }
-
-    async function getStormsByCountry() {
-        try {
-            const response = await fetch(storms_by_country_url);
-            if (!response.ok) {
-                if (response.status === 404) {
-                    showBootstrapAlert("Oops! Data is not found.");
-                    throw new Error("Data is not found");
-                }
-                throw new Error("Network response was not ok");
-            } else {
-                clearBootstrapAlert();
-            }
-            const data = await response.json();
-            return data;
-        } catch (error) {
-            console.error('Error:', error);
-        }
-    }
-
+    
     async function generateGraph() {
-        const data = await getStorms();
+        const data = await fetchStormsData(storms_data_path.storms);
         const stormsData = JSON.parse(data);
 
-        const data_by_country = await getStormsByCountry();
+        const data_by_country = await fetchStormsData(storms_data_path.stormsByCountry);
         const stormsCountryData = JSON.parse(data_by_country);
 
         let findEventsByCountry = (country) => {
@@ -91,7 +52,6 @@ document.addEventListener("DOMContentLoaded", function() {
         document.querySelector("#thailandStorms").innerHTML = thailandEvent;
         document.querySelector("#vietnamStorms").innerHTML = vietnamEvent;
         
-        // console.log(totalEvents)
         // Count the number of occurrences for each category
         let categories = {};
         stormsData.forEach(function(item) {
@@ -123,8 +83,8 @@ document.addEventListener("DOMContentLoaded", function() {
                 pie: {
                     innerSize: '50%',
                     dataLabels: {
-                        enabled: false,
-                        format: '<b>{point.name}</b>: {point.percentage:.1f} %',
+                        enabled: true,
+                        format: '{point.percentage:.1f} %',
                         style: {
                             color: (Highcharts.theme && Highcharts.theme.contrastTextColor) || 'black'
                         }
@@ -192,7 +152,6 @@ document.addEventListener("DOMContentLoaded", function() {
             }
             // Check if data is already in the cache for the specified param, date and hours
             if (selectedDate && statCache[param][selectedDate] && statCache[param][selectedDate][selectedHrs]) {
-                clearBootstrapAlert();
                 return statCache[param][selectedDate][selectedHrs];
             }
 
@@ -203,15 +162,6 @@ document.addEventListener("DOMContentLoaded", function() {
             }
 
             const response = await fetch(url);
-            if (!response.ok) {
-                if (response.status === 404) {
-                    showBootstrapAlert("Data is not found for the selected date and hours. Please try changing the date and hours again.");
-                    throw new Error("Data is not found for the selected date and hours");
-                }
-                throw new Error("Network response was not ok");
-            } else {
-                clearBootstrapAlert();
-            }
             const data = await response.json();
 
             // Cache the data based on both param, date and hrs
@@ -232,25 +182,28 @@ document.addEventListener("DOMContentLoaded", function() {
         }
     }
 
-    async function updateTable(dataToProcess) {
-        const total_pop = document.querySelector("#total_pop");
-        const total_female_pop = document.querySelector("#total_female_pop");
-        const female_pop_f1 = document.querySelector("#female_pop_f1");
-        const female_pop_f2 = document.querySelector("#female_pop_f2");
-        const female_pop_f3 = document.querySelector("#female_pop_f3");
-        const total_male_pop = document.querySelector("#total_male_pop");
-        const male_pop_m1 = document.querySelector("#male_pop_m1");
-        const male_pop_m2 = document.querySelector("#male_pop_m2");
-        const male_pop_m3 = document.querySelector("#male_pop_m3");
+    async function updateTable(dataToProcess, timeInterval) {
         
-        const highway_road =  document.querySelector("#highwayRoad");
-        const primary_road =  document.querySelector("#primaryRoad");
-        const secondary_road =  document.querySelector("#secondaryRoad");
-        const tertiary_road =  document.querySelector("#tertiaryRoad");
-        const hospital =  document.querySelector("#hospital");
-        const gdp =  document.querySelector("#gdp");
-        const croplands =  document.querySelector("#cropLands");
-        
+        const tablePrefix = `_${timeInterval}`; // Create a prefix based on the time interval
+
+        const total_pop = document.querySelector(`#total_pop${tablePrefix}`);
+        const total_female_pop = document.querySelector(`#total_female_pop${tablePrefix}`);
+        const female_pop_f1 = document.querySelector(`#female_pop_f1${tablePrefix}`);
+        const female_pop_f2 = document.querySelector(`#female_pop_f2${tablePrefix}`);
+        const female_pop_f3 = document.querySelector(`#female_pop_f3${tablePrefix}`);
+        const total_male_pop = document.querySelector(`#total_male_pop${tablePrefix}`);
+        const male_pop_m1 = document.querySelector(`#male_pop_m1${tablePrefix}`);
+        const male_pop_m2 = document.querySelector(`#male_pop_m2${tablePrefix}`);
+        const male_pop_m3 = document.querySelector(`#male_pop_m3${tablePrefix}`);
+
+        const highway_road = document.querySelector(`#highwayRoad${tablePrefix}`);
+        const primary_road = document.querySelector(`#primaryRoad${tablePrefix}`);
+        const secondary_road = document.querySelector(`#secondaryRoad${tablePrefix}`);
+        const tertiary_road = document.querySelector(`#tertiaryRoad${tablePrefix}`);
+        const hospital = document.querySelector(`#hospital${tablePrefix}`);
+        const gdp = document.querySelector(`#gdp${tablePrefix}`);
+        const croplands = document.querySelector(`#cropLands${tablePrefix}`);
+
         // Initialize all elements to '---' as default
         [total_pop, total_female_pop, female_pop_f1, female_pop_f2, female_pop_f3, 
         total_male_pop, male_pop_m1, male_pop_m2, male_pop_m3, highway_road, primary_road,
@@ -324,55 +277,9 @@ document.addEventListener("DOMContentLoaded", function() {
         croplands.innerHTML = totalCroplands > 0 ? totalCroplands.toFixed(0) : "---";
     }
 
-    document.getElementById("tab6hrs").addEventListener("click", async function() {
-        let selected_date = paramCache.date;
-        let selected_hrs = paramCache.hour;
-        let selected_country = paramCache.country;
-        // console.log(selected_country)
-        const data = await getStatsBulletin('6hrs', selected_date, selected_hrs);
-        const parsedData = JSON.parse(data);
-        if (selected_country === "All") {
-            updateTable(parsedData);
-        } else {
-            const filteredData = parsedData.filter(item => item.ISO === selected_country); 
-            updateTable(filteredData);
-        }
-        // updateTable(data);
-    });
-
-    document.getElementById("tab12hrs").addEventListener("click", async function() {
-        let selected_date = paramCache.date;
-        let selected_hrs = paramCache.hour;
-        let selected_country = paramCache.country;
-        const data = await getStatsBulletin('12hrs', selected_date, selected_hrs);
-        const parsedData = JSON.parse(data);
-        if (selected_country === "All") {
-            updateTable(parsedData);
-        } else {
-            const filteredData = parsedData.filter(item => item.ISO === selected_country); 
-            updateTable(filteredData);
-        }
-        // updateTable(data);
-    });
-
-    document.getElementById("tab24hrs").addEventListener("click", async function() {
-        let selected_date = paramCache.date;
-        let selected_hrs = paramCache.hour;
-        let selected_country = paramCache.country;
-        const data = await getStatsBulletin('24hrs', selected_date, selected_hrs);
-        const parsedData = JSON.parse(data);
-        if (selected_country === "All") {
-            updateTable(parsedData);
-        } else {
-            const filteredData = parsedData.filter(item => item.ISO === selected_country); 
-            updateTable(filteredData);
-        }
-        // updateTable(data);
-    });
-
     const MapOptions = {
         center: [15.9162, 102.9560],
-        zoom: 5,
+        zoom: 6,
         zoomControl: false,
         scrollWheelZoom: false,
         minZoom: 5,
@@ -405,20 +312,6 @@ document.addEventListener("DOMContentLoaded", function() {
         return await fetchData(basin_url);
     }
 
-    async function getDate() {
-        const date_url = '/get-datelist/';
-        try {
-            const response = await fetch(date_url);
-            if (!response.ok) {
-                throw new Error(`HTTP error! Status: ${response.status}`);
-            }
-            const data = await response.json();
-            return data;
-        } catch (error) {
-            console.error('Error:', error);
-        }
-    }
-
     const bulletin_map_data = {};
     const bulletin_map_data_url = '/get-mrcffg-bulletin-map-data/';
 
@@ -429,15 +322,6 @@ document.addEventListener("DOMContentLoaded", function() {
                 return bulletin_map_data[fullUrl];
             }
             const response = await fetch(fullUrl);
-            if (!response.ok) {
-                if (response.status === 404) {
-                    showBootstrapAlert("Oops! No data found for the selected date and hours. Please select a different date and try again.");
-                    throw new Error("Data not found for the selected date and hours");
-                }
-                throw new Error("Network response was not ok");
-            } else {
-                clearBootstrapAlert();
-            }
             const data = await response.json();
             bulletin_map_data[fullUrl] = data;
             return data;
@@ -649,112 +533,6 @@ document.addEventListener("DOMContentLoaded", function() {
     // Define ISO codes for countries
     const countryISOs = ['KHM', 'LAO', 'THA', 'VNM'];
 
-    const loader = document.getElementById('loader');
-
-    updateBulletinBtn.addEventListener('click', async function () {
-        try {
-            loader.style.display = 'block';
-            await new Promise(resolve => setTimeout(resolve, 0));
-            var selected_date = dateInput.value; 
-            const formattedDate = formatDate(selected_date);
-            const selectedHrs = hourInput.value;
-            displayDate.innerHTML = formattedDate;
-
-            dateElements.forEach(function (element) {
-                element.textContent = selected_date + " " + selectedHrs +":00 UTC";
-            });
-
-            const selectedCountry = document.getElementById("countryBulletin").value;
-
-            paramCache.date = selected_date;
-            paramCache.hour = selectedHrs;
-            paramCache.country = selectedCountry;
-
-            const insTab = document.getElementById('insTab'); // Critical infrastructure tab
-            const activeButton = insTab.querySelector('.nav-link.active');
-
-            // Get the 'id' attribute of the active button
-            const activeButtonId = activeButton.getAttribute('id');
-            const selectedTabParam = tabMapping[activeButtonId];
-
-            const data = await getStatsBulletin(selectedTabParam, selected_date, selectedHrs);
-            const parsedData = JSON.parse(data);
-
-            const tableContainers = {
-                "KHM": document.getElementById("KHMTableContainer"),
-                "LAO": document.getElementById("LAOTableContainer"),
-                "THA": document.getElementById("THATableContainer"),
-                "VNM": document.getElementById("VNMTableContainer")
-            };
-            
-            function hideAllExcept(exceptISO) {
-                for (let countryISO of countryISOs) {
-                    if (tableContainers[countryISO]) { 
-                        if (countryISO === exceptISO) {
-                            tableContainers[countryISO].style.display = "block";
-                        } else {
-                            tableContainers[countryISO].style.display = "none";
-                        }
-                    } else {
-                        console.error(`Container for ${countryISO} is not defined in tableContainers.`);
-                    }
-                }
-            }
-            
-            if (selectedCountry === "All") {
-                for (let countryISO in tableContainers) {
-                    tableContainers[countryISO].style.display = "block";
-                }
-                updateTable(parsedData);
-            } else {
-                hideAllExcept(selectedCountry); 
-                const filteredData = parsedData.filter(item => item.ISO === selectedCountry); 
-                updateTable(filteredData);
-            }
-
-            // Clear all ffgsLayer layers for all parameters
-            for (const param in mapInstances) {
-                const ffgsLayer = ffgsLayers[param];
-                ffgsLayer.clearLayers();
-            }
-            for (const param in mapInstances) {
-                await createMap(param, selected_date, selectedHrs, selectedCountry);
-            } 
-
-            let countriesToProcess = [];
-
-            if (selectedCountry === "All") {
-                countriesToProcess = countryISOs;
-            } else if (countryISOs.includes(selectedCountry)) {
-                countriesToProcess = [selectedCountry];
-            } else {
-                console.error(`Invalid selectedCountry value: ${selectedCountry}`);
-                return; // Exit the function or handle this case differently
-            }
-
-            // Loop through countries and intervals
-            for (const iso of countriesToProcess) {
-                for (const interval of ['6hrs', '12hrs', '24hrs']) {
-                    const tableElement = document.getElementById(`${iso}Table${interval}`);
-                    await populateTableForInterval(tableElement, iso, interval, selected_date, selectedHrs);
-                }
-            }
-
-            // // Loop through countries and intervals
-            // for (const iso of countryISOs) {
-            //     for (const interval of ['6hrs', '12hrs', '24hrs']) {
-            //         const tableElement = document.getElementById(`${iso}Table${interval}`);
-            //         await populateTableForInterval(tableElement, iso, interval, selected_date);
-            //     }
-            // }
-            loader.style.display = 'none';
-        } catch (error) {
-            console.error("Failed to update data:", error);
-        } finally {
-            loader.style.display = 'none';
-        }
-    });
-
     async function populateTableForInterval(tableElement, iso, interval, selected_date, selected_hrs) {
         const data = await getStatsBulletin(interval, selected_date, selected_hrs);
         const parsedData = JSON.parse(data);
@@ -762,225 +540,47 @@ document.addEventListener("DOMContentLoaded", function() {
         populateTable(tableElement, filteredData, interval);
     }
 
-    // ============== Date Panel ==================>
-
-    const dateCard = document.querySelector(".dateCard");
-
-    // Initially hide the calendar
-    dateCard.style.display = 'none';
-
-    dateInput.addEventListener("click", function() {
-        if (dateCard.style.display === 'none' || dateCard.style.display === '') {
-            dateCard.style.display = 'block';  // Show calendar
-        } else {
-            dateCard.style.display = 'none';   // Hide calendar
-        }
-    });
-
-    // Add a click event listener to the year selector dropdown
-    document.getElementById("monthSelector").addEventListener("click", function (event) {
-        // Prevent event propagation to the body
-        event.stopPropagation();
-    });
-
-    // Add a click event listener to the year selector dropdown
-    document.getElementById("yearSelector").addEventListener("click", function (event) {
-        // Prevent event propagation to the body
-        event.stopPropagation();
-    });
-
-    // Add a click event listener to the document body
-    document.body.addEventListener('click', (event) => {
-        // Check if the click target is not the input field or the date panel
-        if (event.target !== dateInput && event.target !== dateCard) {
-        // Close the date panel (hide it)
-            dateCard.style.display = 'none';
-        }
-    });
-  
-    function handleDateItemClick(dateItem, currentDate) {
-        dateItem.addEventListener('click', function() {
-            const prevActive = document.querySelector('.date-item.active');
-            if (prevActive) {
-                prevActive.classList.remove('active');
-            }
-    
-            // Set the current date as active and update the input
-            this.classList.add('active');
-            dateInput.value = currentDate;
-            dateCard.style.display = 'none';
-        });
-    }
-
-    function createCustomCalender(clickableDates){
-        //let clickableDates = ["2023-01-01", "2023-01-20", "2023-09-10", "2023-09-11"];
-        const yearSelector = document.getElementById("yearSelector");
-        const monthSelector = document.getElementById("monthSelector");
-        const calendar = document.getElementById("calendar");
-
-        const currentYear = new Date().getFullYear();
-        const currentMonth = new Date().getMonth() + 1;  // JavaScript months are 0-indexed
-
-        function isDateClickable(date) {
-            return clickableDates.includes(date);
-        }
-
-        function daysInMonth(month, year) {
-            return new Date(year, month, 0).getDate();
-        }
-
-        function getLatestClickableDate() {
-            if (!clickableDates.length) return null;  // Check if the array is empty
-            return clickableDates.sort((a, b) => new Date(b) - new Date(a))[0];
-        }
-
-        const latestEventDate = getLatestClickableDate();
-        dateInput.value = latestEventDate;
-
-        function generateCalendar(month, year) {
-            calendar.innerHTML = ''; // Clear previous dates
-
-            let activeDate = dateInput.value || getLatestClickableDate(); // Use the value in the input or get the latest clickable date
-
-            for (let day = 1; day <= daysInMonth(month, year); day++) {
-                const dateItem = document.createElement('div');
-                dateItem.classList.add('date-item');
-                dateItem.textContent = day;
-
-                const currentDate = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-
-                if (isDateClickable(currentDate)) {
-                    dateItem.classList.add('clickable');
-                    if (currentDate === activeDate) {
-                        dateItem.classList.add('active');
-                    }
-                    handleDateItemClick(dateItem, currentDate); // use the separate function here
-                }
-                calendar.appendChild(dateItem);
-            }
-        }
-
-        // Populate the year selector
-        for (let i = currentYear - 3; i <= currentYear + 3; i++) {
-            let option = new Option(i, i);
-            yearSelector.appendChild(option);
-        }
-
-        // Set the default value of year selector to current year
-        yearSelector.value = currentYear;
-
-        // Populate the month selector
-        for (let i = 1; i <= 12; i++) {
-            let monthName = new Date(currentYear, i - 1, 1).toLocaleString('default', { month: 'long' });
-            let option = new Option(monthName, i);
-            monthSelector.appendChild(option);
-        }
-
-        // Set the default value of month selector to current month
-        monthSelector.value = currentMonth;
-
-        yearSelector.addEventListener("change", () => {
-            generateCalendar(Number(monthSelector.value), Number(yearSelector.value));
-        });
-
-        monthSelector.addEventListener("change", () => {
-            generateCalendar(Number(monthSelector.value), Number(yearSelector.value));
-        });
-
-        // Initial load with the current year and month
-        generateCalendar(currentMonth, currentYear);
-    }
-    // ============== End Date Panel ==================!
-
     async function init() {
         try {
-            loader.style.display = 'block';
-            let dateList = await getDate();
-            dateList = JSON.parse(dateList);
-            clickableDates = dateList.map(innerArray => innerArray[0]);
-            createCustomCalender(clickableDates);
+            const data_6hrs = await getStatsBulletin('6hrs', selectedDate, selctedHour);
+            const parsed_data_6hrs = JSON.parse(data_6hrs);
+            updateTable(parsed_data_6hrs, '06hrs');
 
-            var selected_date = dateInput.value; 
-            var selected_hrs = hourInput.value;
-            var selected_country = countryInput.value;
+            const data_12hrs = await getStatsBulletin('12hrs', selectedDate, selctedHour);
+            const parsed_data_12hrs = JSON.parse(data_12hrs);
+            updateTable(parsed_data_12hrs, '12hrs');
 
-            paramCache.date = selected_date;
-            paramCache.hour = selected_hrs;
-            paramCache.country = selected_country;
+            const data_24hrs = await getStatsBulletin('24hrs', selectedDate, selctedHour);
+            const parsed_data_24hrs = JSON.parse(data_24hrs);
+            updateTable(parsed_data_24hrs, '24hrs');
 
-            // console.log(paramCache)
-
-            const data_6hrs = await getStatsBulletin('6hrs', selected_date, selected_hrs);
-            const parsed_data = JSON.parse(data_6hrs);
-            updateTable(parsed_data);
-
-            const formattedDisplayDate = formatDate(selected_date);
+            const formattedDisplayDate = formatDate(selectedDate);
             displayDate.innerHTML = formattedDisplayDate;
 
             // 2023-07-01 06:00 UTC
             dateElements.forEach(function (element) {
-                element.textContent = selected_date + " " + selected_hrs + ":00 UTC";
+                element.textContent = selectedDate + " " + selctedHour + ":00 UTC";
             });
 
             // Call createMap sequentially for each parameter
             for (const param in mapInstances) {
-                await createMap(param, selected_date, selected_hrs, selected_country);
+                await createMap(param, selectedDate, selctedHour, selectedCountry);
             }
 
             // Loop through countries and intervals
             for (const iso of countryISOs) {
                 for (const interval of ['6hrs', '12hrs', '24hrs']) {
                     const tableElement = document.getElementById(`${iso}Table${interval}`);
-                    await populateTableForInterval(tableElement, iso, interval, selected_date, selected_hrs);
+                    await populateTableForInterval(tableElement, iso, interval, selectedDate, selctedHour);
                 }
             }
-            loader.style.display = 'none';
         } catch (error) {
             console.error('Error in init:', error);
-            loader.style.display = 'none';
         }
     }
 
     // Call the init function with await
     init();
 
-    const exportBtn = document.querySelector("#exportPdf");
-
-    // function generatePDF() {
-    //     html2canvas(document.querySelector("#exportContent", {
-    //         useCORS: true,
-    //         allowTaint: true,
-    //         logging: true
-    //     })).then(canvas => {
-    //         const imgData = canvas.toDataURL('image/png');
-    //         const doc = new jspdf.jsPDF('p', 'mm', [canvas.width * 0.75, canvas.height * 0.75]); 
-    //         doc.addImage(imgData, 'PNG', 10, 10);
-    //         doc.save('sample.pdf');
-    //     });
-    // }
-    
-    exportBtn.addEventListener('click', async function() {
-        loader.style.display = 'block';
-        const selected_date = dateInput.value;
-        const selected_hour = hourInput.value;
-        const selected_country = countryInput.value;
-
-        const response = await fetch(`/pdf-view/?selectedDate=${selected_date}&selectedHr=${selected_hour}&selectedCountry=${selected_country}`);
-        const data = await response.json();
-        const pdfPath = data.pdf_path;
-        loader.style.display = 'none';
-        window.open(pdfPath, '_blank');
-        // const blob = await response.blob();
-        
-        // const url = window.URL.createObjectURL(blob);
-        // const a = document.createElement('a');
-        // a.style.display = 'none';
-        // a.href = url;
-        // a.download = 'mypdf.pdf';
-        
-        // document.body.appendChild(a);
-        // a.click();
-        
-        // window.URL.revokeObjectURL(url);
-    });
+        // http://localhost:8000/pdf-template/?param1=2023-09-01&param2=06&param3=All
 });

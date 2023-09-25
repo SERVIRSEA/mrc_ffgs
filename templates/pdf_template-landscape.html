@@ -1,0 +1,184 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FFG PDF</title>
+    <!-- Favicon -->
+    <link rel="icon" href="{% static 'img/favicon.png' %}" type="image/png" sizes="16x16"> 
+    <link href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700&display=swap" rel="stylesheet">
+    <!-- Font-awesome -->
+    <link rel="stylesheet" href="{% static 'vendor/components-font-awesome/css/all.min.css' %}">
+    <!-- Bootstrap CSS-->
+    <link rel="stylesheet" href="{% static 'vendor/bootstrap/dist/css/bootstrap.min.css' %}">  
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+    
+    <!-- Custom CSS files -->
+    <link rel="stylesheet" href="{% static 'css/base.css' %}">
+    <link rel="stylesheet" href="{% static 'css/bulletin.css' %}">
+    <!-- <link rel="stylesheet" href="{% static 'css/pdf-template.css' %}"> -->
+    <style>
+        
+    </style>
+</head>
+
+<body>
+
+    <section id="table-section">
+        <table class="table table-bordered table-responsive" id="table-1">
+            <thead>
+                <tr>
+                    <th scope="col">#</th>
+                    <th scope="col">Name</th>
+                    <th scope="col">Email</th>
+                    <th scope="col">City</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Loop to generate 20 rows using Django template tags -->
+                {% for i in "0123456789"|make_list %}
+                <tr>
+                    <th scope="row">{{ forloop.counter }}</th>
+                    <td>John Doe {{ forloop.counter }}</td>
+                    <td>john.doe{{ forloop.counter }}@example.com</td>
+                    <td>City {{ forloop.counter }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <table class="table table-bordered table-responsive" id="table-1">
+            <thead>
+                <tr>
+                    <th scope="col">#</th>
+                    <th scope="col">Name</th>
+                    <th scope="col">Email</th>
+                    <th scope="col">City</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Loop to generate 20 rows using Django template tags -->
+                {% for i in "0123456789"|make_list %}
+                <tr>
+                    <th scope="row">{{ forloop.counter }}</th>
+                    <td>John Doe {{ forloop.counter }}</td>
+                    <td>john.doe{{ forloop.counter }}@example.com</td>
+                    <td>City {{ forloop.counter }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <table class="table table-bordered table-responsive" id="table-1">
+            <thead>
+                <tr>
+                    <th scope="col">#</th>
+                    <th scope="col">Name</th>
+                    <th scope="col">Email</th>
+                    <th scope="col">City</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Loop to generate 20 rows using Django template tags -->
+                {% for i in "0123456789"|make_list %}
+                <tr>
+                    <th scope="row">{{ forloop.counter }}</th>
+                    <td>John Doe {{ forloop.counter }}</td>
+                    <td>john.doe{{ forloop.counter }}@example.com</td>
+                    <td>City {{ forloop.counter }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>  
+    </section>
+
+    <div class="page-break"></div>
+
+    <section id="table-section">
+        <table class="table table-bordered table-responsive" id="table-1">
+            <thead>
+                <tr>
+                    <th scope="col">#</th>
+                    <th scope="col">Name</th>
+                    <th scope="col">Email</th>
+                    <th scope="col">City</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Loop to generate 20 rows using Django template tags -->
+                {% for i in "0123456789"|make_list %}
+                <tr>
+                    <th scope="row">{{ forloop.counter }}</th>
+                    <td>John Doe {{ forloop.counter }}</td>
+                    <td>john.doe{{ forloop.counter }}@example.com</td>
+                    <td>City {{ forloop.counter }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <table class="table table-bordered table-responsive" id="table-1">
+            <thead>
+                <tr>
+                    <th scope="col">#</th>
+                    <th scope="col">Name</th>
+                    <th scope="col">Email</th>
+                    <th scope="col">City</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Loop to generate 20 rows using Django template tags -->
+                {% for i in "0123456789"|make_list %}
+                <tr>
+                    <th scope="row">{{ forloop.counter }}</th>
+                    <td>John Doe {{ forloop.counter }}</td>
+                    <td>john.doe{{ forloop.counter }}@example.com</td>
+                    <td>City {{ forloop.counter }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <table class="table table-bordered table-responsive" id="table-1">
+            <thead>
+                <tr>
+                    <th scope="col">#</th>
+                    <th scope="col">Name</th>
+                    <th scope="col">Email</th>
+                    <th scope="col">City</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Loop to generate 20 rows using Django template tags -->
+                {% for i in "0123456789"|make_list %}
+                <tr>
+                    <th scope="row">{{ forloop.counter }}</th>
+                    <td>John Doe {{ forloop.counter }}</td>
+                    <td>john.doe{{ forloop.counter }}@example.com</td>
+                    <td>City {{ forloop.counter }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </section>
+    
+    <div class="page-break"></div>
+
+    <section id="table-section"></div>
+
+    <script src="https://code.highcharts.com/highcharts.js"></script>
+	<script src="{% static 'vendor/bootstrap/dist/js/bootstrap.bundle.min.js'  %}"></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <!-- Define data attributes on a script tag or any HTML element -->
+    <script id="script-data" 
+        data-param1="{{ param1 }}" 
+        data-param2="{{ param2 }}" 
+        data-param3="{{ param3 }}">
+
+        // const param1 = "{{ param1|escapejs }}";
+        // const param2 = "{{ param2|escapejs }}";
+        // const param3 = "{{ param3|escapejs }}";
+    </script>
+    
+    <script src="{% static 'js/generate-pdf.js'  %}"></script>
+</body>
+</html>
