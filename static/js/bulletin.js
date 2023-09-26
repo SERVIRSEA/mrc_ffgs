@@ -67,29 +67,59 @@ document.addEventListener("DOMContentLoaded", function() {
         }
     }
 
-    async function generateGraph() {
+    async function generateGraph(selectedCountry) {
         const data = await getStorms();
         const stormsData = JSON.parse(data);
+        // console.log(stormsData)
 
         const data_by_country = await getStormsByCountry();
         const stormsCountryData = JSON.parse(data_by_country);
 
-        let findEventsByCountry = (country) => {
-            let countryData = stormsCountryData.find(item => item.country === country);
-            return countryData ? countryData.events : 0;
+        let totalEvents = 0;
+
+        // Helper function to get the button for a specific country
+        function getButtonByCountry(country) {
+            const buttons = Array.from(document.querySelectorAll(".btn-group.stormsBtn button"));
+            return buttons.find(button => button.textContent.includes(country));
         }
 
-        let cambodiaEvent = findEventsByCountry("Cambodia");
-        let laosEvent = findEventsByCountry("Laos");
-        let thailandEvent = findEventsByCountry("Thailand");
-        let vietnamEvent = findEventsByCountry("Vietnam");
+        const findEventsByCountry = (country) => {
+            let countryData = stormsCountryData.find(item => item.country === country);
+            return countryData ? countryData.events : 0;
+        };
 
-        const totalEvents = cambodiaEvent + laosEvent + thailandEvent + vietnamEvent;
+        const updateDOMForCountry = (country, events) => {
+            const button = getButtonByCountry(country);
+            button.querySelector(`span`).innerHTML = events;
+        };
 
-        document.querySelector("#cambodiaStorms").innerHTML = cambodiaEvent;
-        document.querySelector("#laosStorms").innerHTML = laosEvent;
-        document.querySelector("#thailandStorms").innerHTML = thailandEvent;
-        document.querySelector("#vietnamStorms").innerHTML = vietnamEvent;
+        if (selectedCountry === "All") {
+            const countries = ["Cambodia", "Laos", "Thailand", "Vietnam"];
+            
+            countries.forEach(country => {
+                const events = findEventsByCountry(country);
+                totalEvents += events;
+                updateDOMForCountry(country, events);
+                const button = getButtonByCountry(country);
+                button.style.display = 'block'; // Ensure it's displayed
+            });
+
+        } else {
+            // Hide all country buttons first
+            const allCountries = ["Cambodia", "Laos", "Thailand", "Vietnam"];
+            allCountries.forEach(country => {
+                const button = getButtonByCountry(country);
+                button.style.display = 'none';
+            });
+
+            // Display only the selected country button
+            const countryEvent = findEventsByCountry(selectedCountry);
+            totalEvents += countryEvent;
+            updateDOMForCountry(selectedCountry, countryEvent);
+            const button = getButtonByCountry(selectedCountry);
+            button.style.display = 'block';
+        }
+        
         
         // console.log(totalEvents)
         // Count the number of occurrences for each category
@@ -167,7 +197,7 @@ document.addEventListener("DOMContentLoaded", function() {
             y: chart.chartHeight / 2 + textBBox.height / 2
         });
     }
-    generateGraph();
+    
 
     // Caches for data
     const statCache = {
@@ -670,6 +700,17 @@ document.addEventListener("DOMContentLoaded", function() {
             paramCache.hour = selectedHrs;
             paramCache.country = selectedCountry;
 
+            const countryMapping = {
+                "KHM": "Cambodia",
+                "LAO": "Laos",
+                "THA": "Thailand",
+                "VNM": "Vietnam"
+            };
+
+            const countryName = countryMapping[selectedCountry];
+
+            generateGraph(countryName);
+
             const insTab = document.getElementById('insTab'); // Critical infrastructure tab
             const activeButton = insTab.querySelector('.nav-link.active');
 
@@ -910,6 +951,8 @@ document.addEventListener("DOMContentLoaded", function() {
 
             // console.log(paramCache)
 
+            generateGraph("All");
+
             const data_6hrs = await getStatsBulletin('6hrs', selected_date, selected_hrs);
             const parsed_data = JSON.parse(data_6hrs);
             updateTable(parsed_data);
@@ -946,19 +989,6 @@ document.addEventListener("DOMContentLoaded", function() {
 
     const exportBtn = document.querySelector("#exportPdf");
 
-    // function generatePDF() {
-    //     html2canvas(document.querySelector("#exportContent", {
-    //         useCORS: true,
-    //         allowTaint: true,
-    //         logging: true
-    //     })).then(canvas => {
-    //         const imgData = canvas.toDataURL('image/png');
-    //         const doc = new jspdf.jsPDF('p', 'mm', [canvas.width * 0.75, canvas.height * 0.75]); 
-    //         doc.addImage(imgData, 'PNG', 10, 10);
-    //         doc.save('sample.pdf');
-    //     });
-    // }
-    
     exportBtn.addEventListener('click', async function() {
         loader.style.display = 'block';
         const selected_date = dateInput.value;
