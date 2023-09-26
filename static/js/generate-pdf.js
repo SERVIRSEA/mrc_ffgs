@@ -1,7 +1,7 @@
 document.addEventListener("DOMContentLoaded", function() {
     const scriptTag = document.getElementById("script-data");
     const selectedDate = scriptTag.getAttribute("data-date");
-    const selctedHour = scriptTag.getAttribute("data-hour");
+    const selectedHour = scriptTag.getAttribute("data-hour");
     const selectedCountry = scriptTag.getAttribute("data-country");
 
     // Function to fromat the date
@@ -28,30 +28,58 @@ document.addEventListener("DOMContentLoaded", function() {
         }
     }
     
-    async function generateGraph() {
+    async function generateGraph(selectedCountry) {
         const data = await fetchStormsData(storms_data_path.storms);
         const stormsData = JSON.parse(data);
 
         const data_by_country = await fetchStormsData(storms_data_path.stormsByCountry);
         const stormsCountryData = JSON.parse(data_by_country);
 
-        let findEventsByCountry = (country) => {
-            let countryData = stormsCountryData.find(item => item.country === country);
-            return countryData ? countryData.events : 0;
+        let totalEvents = 0;
+
+        // Helper function to get the button for a specific country
+        function getButtonByCountry(country) {
+            const buttons = Array.from(document.querySelectorAll(".btn-group.stormsBtn button"));
+            return buttons.find(button => button.textContent.includes(country));
         }
 
-        let cambodiaEvent = findEventsByCountry("Cambodia");
-        let laosEvent = findEventsByCountry("Laos");
-        let thailandEvent = findEventsByCountry("Thailand");
-        let vietnamEvent = findEventsByCountry("Vietnam");
+        const findEventsByCountry = (country) => {
+            let countryData = stormsCountryData.find(item => item.country === country);
+            return countryData ? countryData.events : 0;
+        };
 
-        const totalEvents = cambodiaEvent + laosEvent + thailandEvent + vietnamEvent;
+        const updateDOMForCountry = (country, events) => {
+            const button = getButtonByCountry(country);
+            button.querySelector(`span`).innerHTML = events;
+        };
 
-        document.querySelector("#cambodiaStorms").innerHTML = cambodiaEvent;
-        document.querySelector("#laosStorms").innerHTML = laosEvent;
-        document.querySelector("#thailandStorms").innerHTML = thailandEvent;
-        document.querySelector("#vietnamStorms").innerHTML = vietnamEvent;
-        
+        if (selectedCountry === "All") {
+            const countries = ["Cambodia", "Laos", "Thailand", "Vietnam"];
+            
+            countries.forEach(country => {
+                const events = findEventsByCountry(country);
+                totalEvents += events;
+                updateDOMForCountry(country, events);
+                const button = getButtonByCountry(country);
+                button.style.display = 'block'; // Ensure it's displayed
+            });
+
+        } else {
+            // Hide all country buttons first
+            const allCountries = ["Cambodia", "Laos", "Thailand", "Vietnam"];
+            allCountries.forEach(country => {
+                const button = getButtonByCountry(country);
+                button.style.display = 'none';
+            });
+
+            // Display only the selected country button
+            const countryEvent = findEventsByCountry(selectedCountry);
+            totalEvents += countryEvent;
+            updateDOMForCountry(selectedCountry, countryEvent);
+            const button = getButtonByCountry(selectedCountry);
+            button.style.display = 'block';
+        }
+
         // Count the number of occurrences for each category
         let categories = {};
         stormsData.forEach(function(item) {
@@ -127,7 +155,6 @@ document.addEventListener("DOMContentLoaded", function() {
             y: chart.chartHeight / 2 + textBBox.height / 2
         });
     }
-    generateGraph();
 
     // Caches for data
     const statCache = {
@@ -542,38 +569,128 @@ document.addEventListener("DOMContentLoaded", function() {
 
     async function init() {
         try {
-            const data_6hrs = await getStatsBulletin('6hrs', selectedDate, selctedHour);
+            const data_6hrs = await getStatsBulletin('6hrs', selectedDate, selectedHour);
             const parsed_data_6hrs = JSON.parse(data_6hrs);
-            updateTable(parsed_data_6hrs, '06hrs');
-
-            const data_12hrs = await getStatsBulletin('12hrs', selectedDate, selctedHour);
+            
+            if (selectedCountry == "All"){
+                updateTable(parsed_data_6hrs, '06hrs');
+            } else {
+                const filteredData6Hrs = parsed_data_6hrs.filter(item => item.ISO === selectedCountry); 
+                updateTable(filteredData6Hrs, '06hrs');
+            }
+            
+            const data_12hrs = await getStatsBulletin('12hrs', selectedDate, selectedHour);
             const parsed_data_12hrs = JSON.parse(data_12hrs);
-            updateTable(parsed_data_12hrs, '12hrs');
+            
+            if (selectedCountry == "All"){
+                updateTable(parsed_data_12hrs, '12hrs');
+            } else {
+                const filteredData12Hrs = parsed_data_12hrs.filter(item => item.ISO === selectedCountry); 
+                updateTable(filteredData12Hrs, '12hrs');
+            }
 
-            const data_24hrs = await getStatsBulletin('24hrs', selectedDate, selctedHour);
+            const data_24hrs = await getStatsBulletin('24hrs', selectedDate, selectedHour);
             const parsed_data_24hrs = JSON.parse(data_24hrs);
-            updateTable(parsed_data_24hrs, '24hrs');
+
+            if (selectedCountry == "All"){
+                updateTable(parsed_data_24hrs, '24hrs');
+            } else {
+                const filteredData24Hrs = parsed_data_24hrs.filter(item => item.ISO === selectedCountry); 
+                updateTable(filteredData24Hrs, '24hrs');
+            }
 
             const formattedDisplayDate = formatDate(selectedDate);
             displayDate.innerHTML = formattedDisplayDate;
 
             // 2023-07-01 06:00 UTC
             dateElements.forEach(function (element) {
-                element.textContent = selectedDate + " " + selctedHour + ":00 UTC";
+                element.textContent = selectedDate + " " + selectedHour + ":00 UTC";
             });
+
+            const countryMapping = {
+                "All": "All",
+                "KHM": "Cambodia",
+                "LAO": "Laos",
+                "THA": "Thailand",
+                "VNM": "Vietnam"
+            };
+
+            const countryName = countryMapping[selectedCountry];
+
+            generateGraph(countryName);
 
             // Call createMap sequentially for each parameter
             for (const param in mapInstances) {
-                await createMap(param, selectedDate, selctedHour, selectedCountry);
+                await createMap(param, selectedDate, selectedHour, selectedCountry);
             }
 
-            // Loop through countries and intervals
-            for (const iso of countryISOs) {
-                for (const interval of ['6hrs', '12hrs', '24hrs']) {
-                    const tableElement = document.getElementById(`${iso}Table${interval}`);
-                    await populateTableForInterval(tableElement, iso, interval, selectedDate, selctedHour);
+            const tableContainers = {
+                "KHM": document.getElementById("KHMTableSection"),
+                "LAO": document.getElementById("LAOTableSection"),
+                "THA": document.getElementById("THATableSection"),
+                "VNM": document.getElementById("VNMTableSection")
+            };
+            
+            let removedElements = [];
+            
+            function hideAllExcept(exceptISO) {
+                for (let countryISO in tableContainers) {
+                    const container = tableContainers[countryISO];
+                    if (container) {
+                        if (countryISO === exceptISO) {
+                            // If the container was previously removed, re-insert it back
+                            if (removedElements[countryISO]) {
+                                document.body.appendChild(removedElements[countryISO]);
+                                delete removedElements[countryISO];
+                            }
+                            container.style.display = "block";
+                        } else {
+                            if (container.parentNode) {
+                                container.parentNode.removeChild(container);
+                                removedElements[countryISO] = container;
+                            }
+                        }
+                    } else {
+                        console.error(`Container for ${countryISO} is not defined in tableContainers.`);
+                    }
                 }
             }
+            
+            function restoreAllContainers() {
+                for (let countryISO in removedElements) {
+                    if (removedElements[countryISO]) {
+                        document.body.appendChild(removedElements[countryISO]);
+                    }
+                }
+                removedElements = [];
+            }
+            
+            if (selectedCountry === "All") {
+                for (let countryISO in tableContainers) {
+                    tableContainers[countryISO].style.display = "block";
+                }
+                restoreAllContainers();
+            } else {
+                hideAllExcept(selectedCountry);
+            }
+
+            let countriesToProcess = [];
+
+            if (selectedCountry === "All") {
+                countriesToProcess = countryISOs;
+            } else if (countryISOs.includes(selectedCountry)) {
+                countriesToProcess = [selectedCountry];
+            } else {
+                console.error(`Invalid selectedCountry value: ${selectedCountry}`);
+                return; // Exit the function or handle this case differently
+            }
+            // Loop through countries and intervals
+            for (const iso of countriesToProcess) {
+                for (const interval of ['6hrs', '12hrs', '24hrs']) {
+                    const tableElement = document.getElementById(`${iso}Table${interval}`);
+                    await populateTableForInterval(tableElement, iso, interval, selectedDate, selectedHour);
+                }
+            }   
         } catch (error) {
             console.error('Error in init:', error);
         }
@@ -582,5 +699,5 @@ document.addEventListener("DOMContentLoaded", function() {
     // Call the init function with await
     init();
 
-        // http://localhost:8000/pdf-template/?param1=2023-09-01&param2=06&param3=All
+        // http://localhost:8000/pdf-template/?selectedDate=2023-09-01&selectedHr=06&selectedCountry=All
 });
