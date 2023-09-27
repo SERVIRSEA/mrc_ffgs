@@ -19,6 +19,7 @@ mekongxray = settings.MEKONGXRAY_PATH
 events_country = settings.EVENTS_COUNTRYWISE_PATH
 storms = settings.STORMS_DATA_PATH
 pdfScript = settings.JS_PATH
+node = settings.NODE_PATH
 
 class HomePage(TemplateView):
     template_name = 'index.html'
@@ -333,7 +334,7 @@ def pdf_view(request):
 
     # Run the Puppeteer/Node.js script
     try:
-        subprocess.run(['node', pdfScript, selectedDate, selectedHr, selectedCountry], check=True)
+        subprocess.run([node, pdfScript, selectedDate, selectedHr, selectedCountry], check=True)
     except subprocess.CalledProcessError:
         return JsonResponse({'error': 'Failed to generate PDF'}, status=500)
 
