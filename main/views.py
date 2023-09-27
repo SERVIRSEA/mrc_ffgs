@@ -9,6 +9,7 @@ from django.views.decorators.clickjacking import xframe_options_exempt
 from django.conf import settings
 from .models import Bulletin
 from datetime import datetime
+import os
 import subprocess
 from django.http import FileResponse
 
@@ -311,16 +312,41 @@ def get_basin_chart(request):
     return JsonResponse(json, safe=False)
 
 
+# def pdf_view(request):
+#     selectedDate = request.GET.get('selectedDate')
+#     selectedHr = request.GET.get('selectedHr')
+#     selectedCountry = request.GET.get('selectedCountry')
+#     # Run Puppeteer script (assuming it's named "generate_pdf.js")
+#     subprocess.run(['node', pdfScript, selectedDate, selectedHr, selectedCountry])
+    
+#     # Return the PDF
+#     pdf_path = '/static/data/pdf/Bulletin_'+selectedDate+"_"+selectedHr+"_"+selectedCountry+".pdf"
+#     return JsonResponse({'pdf_path': pdf_path})
+
 def pdf_view(request):
     selectedDate = request.GET.get('selectedDate')
     selectedHr = request.GET.get('selectedHr')
     selectedCountry = request.GET.get('selectedCountry')
-    # Run Puppeteer script (assuming it's named "generate_pdf.js")
-    subprocess.run(['node', pdfScript, selectedDate, selectedHr, selectedCountry])
-    
-    # Return the PDF
-    pdf_path = '/static/data/pdf/Bulletin_'+selectedDate+"_"+selectedHr+"_"+selectedCountry+".pdf"
-    return JsonResponse({'pdf_path': pdf_path})
+
+    # TODO: Validate selectedDate, selectedHr, and selectedCountry
+    # Ensure they are safe and conform to expected values/patterns
+
+    # Run the Puppeteer/Node.js script
+    try:
+        subprocess.run(['node', pdfScript, selectedDate, selectedHr, selectedCountry], check=True)
+    except subprocess.CalledProcessError:
+        return JsonResponse({'error': 'Failed to generate PDF'}, status=500)
+
+    # Build the path to the PDF
+    pdf_path = '/static/data/pdf/Bulletin_' + selectedDate + "_" + selectedHr + "_" + selectedCountry + ".pdf"
+
+    # Check if the file exists
+    if not os.path.exists(os.path.join(settings.BASE_DIR, pdf_path.lstrip('/'))):
+        return JsonResponse({'error': 'Generated PDF not found'}, status=404)
+
+    # Return the complete URL to the PDF
+    pdf_url = request.build_absolute_uri(pdf_path)
+    return JsonResponse({'pdf_path': pdf_url})
 
 def pdf_template_view(request):
     context = {
