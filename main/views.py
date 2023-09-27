@@ -17,6 +17,7 @@ mrcffgs = settings.MRCFFGS_PATH
 mekongxray = settings.MEKONGXRAY_PATH
 events_country = settings.EVENTS_COUNTRYWISE_PATH
 storms = settings.STORMS_DATA_PATH
+pdfScript = settings.JS_PATH
 
 class HomePage(TemplateView):
     template_name = 'index.html'
@@ -315,14 +316,10 @@ def pdf_view(request):
     selectedHr = request.GET.get('selectedHr')
     selectedCountry = request.GET.get('selectedCountry')
     # Run Puppeteer script (assuming it's named "generate_pdf.js")
-    subprocess.run(['node', '/home/asus/Desktop/servir/ffgs/pdf_genrator/generate_pdf.js', selectedDate, selectedHr, selectedCountry])
+    subprocess.run(['node', pdfScript, selectedDate, selectedHr, selectedCountry])
     
     # Return the PDF
-    pdf_path = '/static/data/pdf/mypdf.pdf'
-    # with open(pdf_path, 'rb') as pdf:
-    #     response = FileResponse(pdf, content_type='application/pdf')
-    #     response['Content-Disposition'] = 'attachment; filename="mypdf.pdf"'
-    #     return response
+    pdf_path = '/static/data/pdf/Bulletin_'+selectedDate+"_"+selectedHr+"_"+selectedCountry+".pdf"
     return JsonResponse({'pdf_path': pdf_path})
 
 def pdf_template_view(request):
@@ -331,4 +328,4 @@ def pdf_template_view(request):
         'selectedHr': request.GET.get('selectedHr'),
         'selectedCountry': request.GET.get('selectedCountry')
     }
-    return render(request, "/home/asus/Desktop/servir/ffgs/ffgs/templates/pdf_template.html", context)
+    return render(request, "pdf_template.html", context)
