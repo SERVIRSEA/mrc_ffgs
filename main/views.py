@@ -314,35 +314,21 @@ def pdf_view(request):
     selectedDate = request.GET.get('selectedDate')
     selectedHr = request.GET.get('selectedHr')
     selectedCountry = request.GET.get('selectedCountry')
-
-    # TODO: Add your validation for the selectedDate, selectedHr, and selectedCountry here
-
-    # Build the path to the PDF
-    pdf_path_relative = f'static/data/pdf/Bulletin_{selectedDate}_{selectedHr}_{selectedCountry}.pdf'
-    pdf_path_absolute = os.path.join(settings.BASE_DIR, pdf_path_relative)
-
-    # Check if the file exists
-    if not os.path.exists(pdf_path_absolute):
-        # If the PDF doesn't exist, run the Puppeteer/Node.js script to generate it
-        try:
-            node_path = settings.NODE_PATH  # Fetch the correct node executable from settings
-            pdf_script_path = settings.JS_PATH  # Fetch the JS script path from settings
-            environment = os.environ.copy()  # Copy the current environment variables
-            result = subprocess.run([node_path, pdf_script_path, selectedDate, selectedHr, selectedCountry], 
-                                    check=True, capture_output=True, text=True, env=environment)
-            
-            if result.stderr:
-                return JsonResponse({'error': f"Node script error: {result.stderr}"}, status=500)
-        except subprocess.CalledProcessError as e:
-            return JsonResponse({'error': f"Command '{e.cmd}' returned non-zero exit status {e.returncode}. Output: {e.output}. Error: {e.stderr}"}, status=500)
-
-        # Re-check if the file exists after attempting to generate
-        if not os.path.exists(pdf_path_absolute):
-            return JsonResponse({'error': 'Generated PDF not found'}, status=404)
-
-    # Return the complete URL to the PDF
-    pdf_url = request.build_absolute_uri(f'/{pdf_path_relative}')
-    return JsonResponse({'pdf_path': pdf_url})
+    
+    try:
+        node_path = settings.NODE_PATH  # Fetch the correct node executable from settings
+        pdf_script_path = settings.JS_PATH  # Fetch the JS script path from settings  
+        result = subprocess.run([node_path, pdf_script_path, selectedDate, selectedHr, selectedCountry], 
+                                check=True, capture_output=True, text=True)
+        
+        if result.stderr:
+            return JsonResponse({'error': f"Node script error: {result.stderr}"}, status=500)
+    except subprocess.CalledProcessError as e:
+        return JsonResponse({'error': f"Command '{e.cmd}' returned non-zero exit status {e.returncode}. Output: {e.output}. Error: {e.stderr}"}, status=500)
+    
+    file_name = f"Bulletin_{selectedDate}_{selectedHr}_{selectedCountry}.pdf"
+    pdf_path = f'/static/data/pdf/{file_name}'
+    return JsonResponse({'pdf_path': pdf_path})
 
 def pdf_template_view(request):
     context = {
