@@ -332,21 +332,25 @@ def pdf_view(request):
     # TODO: Validate selectedDate, selectedHr, and selectedCountry
     # Ensure they are safe and conform to expected values/patterns
 
-    # Run the Puppeteer/Node.js script
-    try:
-        subprocess.run([node, pdfScript, selectedDate, selectedHr, selectedCountry], check=True)
-    except subprocess.CalledProcessError:
-        return JsonResponse({'error': 'Failed to generate PDF'}, status=500)
-
     # Build the path to the PDF
-    pdf_path = '/static/data/pdf/Bulletin_' + selectedDate + "_" + selectedHr + "_" + selectedCountry + ".pdf"
+    pdf_path_relative = f'static/data/pdf/Bulletin_{selectedDate}_{selectedHr}_{selectedCountry}.pdf'
+    pdf_path_absolute = os.path.join(settings.BASE_DIR, pdf_path_relative)
 
     # Check if the file exists
-    if not os.path.exists(os.path.join(settings.BASE_DIR, pdf_path.lstrip('/'))):
-        return JsonResponse({'error': 'Generated PDF not found'}, status=404)
+    if not os.path.exists(pdf_path_absolute):
+        # If the PDF doesn't exist, run the Puppeteer/Node.js script to generate it
+        try:
+            node_path = 'node'  # Ensure this points to the correct node executable
+            subprocess.run([node_path, pdfScript, selectedDate, selectedHr, selectedCountry], check=True)
+        except subprocess.CalledProcessError:
+            return JsonResponse({'error': 'Failed to generate PDF'}, status=500)
+
+        # Re-check if the file exists after attempting to generate
+        if not os.path.exists(pdf_path_absolute):
+            return JsonResponse({'error': 'Generated PDF not found'}, status=404)
 
     # Return the complete URL to the PDF
-    pdf_url = request.build_absolute_uri(pdf_path)
+    pdf_url = request.build_absolute_uri(f'/{pdf_path_relative}')
     return JsonResponse({'pdf_path': pdf_url})
 
 def pdf_template_view(request):
