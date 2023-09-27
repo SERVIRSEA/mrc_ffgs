@@ -18,8 +18,6 @@ mrcffgs = settings.MRCFFGS_PATH
 mekongxray = settings.MEKONGXRAY_PATH
 events_country = settings.EVENTS_COUNTRYWISE_PATH
 storms = settings.STORMS_DATA_PATH
-pdfScript = settings.JS_PATH
-nodePath  = settings.NODE_PATH
 
 class HomePage(TemplateView):
     template_name = 'index.html'
@@ -312,25 +310,12 @@ def get_basin_chart(request):
     json = selected_basin.to_json(orient='records')
     return JsonResponse(json, safe=False)
 
-
-# def pdf_view(request):
-#     selectedDate = request.GET.get('selectedDate')
-#     selectedHr = request.GET.get('selectedHr')
-#     selectedCountry = request.GET.get('selectedCountry')
-#     # Run Puppeteer script (assuming it's named "generate_pdf.js")
-#     subprocess.run(['node', pdfScript, selectedDate, selectedHr, selectedCountry])
-    
-#     # Return the PDF
-#     pdf_path = '/static/data/pdf/Bulletin_'+selectedDate+"_"+selectedHr+"_"+selectedCountry+".pdf"
-#     return JsonResponse({'pdf_path': pdf_path})
-
 def pdf_view(request):
     selectedDate = request.GET.get('selectedDate')
     selectedHr = request.GET.get('selectedHr')
     selectedCountry = request.GET.get('selectedCountry')
 
-    # TODO: Validate selectedDate, selectedHr, and selectedCountry
-    # Ensure they are safe and conform to expected values/patterns
+    # TODO: Add your validation for the selectedDate, selectedHr, and selectedCountry here
 
     # Build the path to the PDF
     pdf_path_relative = f'static/data/pdf/Bulletin_{selectedDate}_{selectedHr}_{selectedCountry}.pdf'
@@ -340,10 +325,16 @@ def pdf_view(request):
     if not os.path.exists(pdf_path_absolute):
         # If the PDF doesn't exist, run the Puppeteer/Node.js script to generate it
         try:
-            node_path = nodePath  # Ensure this points to the correct node executable
-            subprocess.run([node_path, pdfScript, selectedDate, selectedHr, selectedCountry], check=True)
-        except subprocess.CalledProcessError:
-            return JsonResponse({'error': 'Failed to generate PDF'}, status=500)
+            node_path = settings.NODE_PATH  # Fetch the correct node executable from settings
+            pdf_script_path = settings.JS_PATH  # Fetch the JS script path from settings
+            environment = os.environ.copy()  # Copy the current environment variables
+            result = subprocess.run([node_path, pdf_script_path, selectedDate, selectedHr, selectedCountry], 
+                                    check=True, capture_output=True, text=True, env=environment)
+            
+            if result.stderr:
+                return JsonResponse({'error': f"Node script error: {result.stderr}"}, status=500)
+        except subprocess.CalledProcessError as e:
+            return JsonResponse({'error': f"Command '{e.cmd}' returned non-zero exit status {e.returncode}. Output: {e.output}. Error: {e.stderr}"}, status=500)
 
         # Re-check if the file exists after attempting to generate
         if not os.path.exists(pdf_path_absolute):
