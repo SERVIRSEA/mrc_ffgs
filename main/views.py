@@ -316,10 +316,9 @@ def pdf_view(request):
     selectedCountry = request.GET.get('selectedCountry')
     
     try:
-        node_path = settings.NODE_PATH  # Fetch the correct node executable from settings
-        pdf_script_path = settings.JS_PATH  # Fetch the JS script path from settings  
-        result = subprocess.run([node_path, pdf_script_path, selectedDate, selectedHr, selectedCountry], 
-                                check=True, capture_output=True, text=True)
+        node_path = settings.NODE_PATH  
+        pdf_script_path = settings.JS_PATH  
+        result = subprocess.run([node_path, pdf_script_path, selectedDate, selectedHr, selectedCountry])
         
         if result.stderr:
             return JsonResponse({'error': f"Node script error: {result.stderr}"}, status=500)
