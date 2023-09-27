@@ -1,6 +1,38 @@
 import pandas as pd
 import numpy as np
 from datetime import datetime
+from django.conf import settings
+import os, subprocess 
+from django.http import JsonResponse, HttpResponse
+pdfScript = settings.JS_PATH
+
+def pdf_view():
+    selectedDate = "2023-09-01"
+    selectedHr = "06"
+    selectedCountry = "THA"
+
+    # TODO: Validate selectedDate, selectedHr, and selectedCountry
+    # Ensure they are safe and conform to expected values/patterns
+
+    # Run the Puppeteer/Node.js script
+    try:
+        subprocess.run(['node', pdfScript, selectedDate, selectedHr, selectedCountry], check=True)
+    except subprocess.CalledProcessError:
+        return JsonResponse({'error': 'Failed to generate PDF'}, status=500)
+
+    # Build the path to the PDF
+    pdf_path = '/static/data/pdf/Bulletin_' + selectedDate + "_" + selectedHr + "_" + selectedCountry + ".pdf"
+
+    # Check if the file exists
+    if not os.path.exists(os.path.join(settings.BASE_DIR, pdf_path.lstrip('/'))):
+        return JsonResponse({'error': 'Generated PDF not found'}, status=404)
+
+    # Return the complete URL to the PDF
+    print(pdf_path)
+
+pdf_view()
+
+# python manage.py shell < ./main/demo.py
 
 def get_mrcffgs_data_path(date):
     base_path = "static/data"
@@ -10,7 +42,7 @@ def get_mrcffgs_data_path(date):
     data_path = f"{base_path}/{year}/csv/"
     print(data_path)
 
-get_mrcffgs_data_path("2023-01-10")
+# get_mrcffgs_data_path("2023-01-10")
 
 # Function to assign alert
 def assign_alert(row):
