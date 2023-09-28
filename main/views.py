@@ -19,6 +19,32 @@ mekongxray = settings.MEKONGXRAY_PATH
 events_country = settings.EVENTS_COUNTRYWISE_PATH
 storms = settings.STORMS_DATA_PATH
 
+def run_puppeteer(request):
+    try:
+        bashScript = settings.BASH_PATH
+        # Start the Puppeteer subprocess
+        process = subprocess.Popen(['bash', bashScript], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        
+        # Check if the process is still running
+        while process.poll() is None:
+            pass  # You can perform other tasks here while waiting
+            
+        # Process has finished, capture the stdout and stderr
+        stdout, stderr = process.communicate()
+        
+        if process.returncode == 0:
+            response_data = {'status': 'success', 'message': 'Puppeteer script executed successfully'}
+        else:
+            error_message = f"Error running Puppeteer script: {stderr.decode()}"
+            response_data = {'status': 'error', 'message': error_message}
+        
+        return JsonResponse(response_data)
+    except Exception as e:
+        error_message = f"An error occurred: {str(e)}"
+        response_data = {'status': 'error', 'message': error_message}
+        return JsonResponse(response_data, status=500) 
+
+
 class HomePage(TemplateView):
     template_name = 'index.html'
 
