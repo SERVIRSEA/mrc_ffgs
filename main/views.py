@@ -314,29 +314,23 @@ def pdf_view(request):
     selectedDate = request.GET.get('selectedDate')
     selectedHr = request.GET.get('selectedHr')
     selectedCountry = request.GET.get('selectedCountry')
-    
-    try:
-        node_path = settings.NODE_PATH  
-        pdf_script_path = settings.JS_PATH  
 
-        # Capture both stdout and stderr
-        result = subprocess.run(
-            [node_path, pdf_script_path, selectedDate, selectedHr, selectedCountry],
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            text=True
-        )
+    node_path = settings.NODE_PATH  
+    pdf_script_path = settings.JS_PATH  
 
-        # Check if there was an error (non-zero exit code)
-        if result.returncode != 0:
-            error_message = result.stderr if result.stderr else result.stdout
-            return JsonResponse({'error': f"Node script error: {error_message}"}, status=500)
-    except subprocess.CalledProcessError as e:
-        return JsonResponse({'error': f"Command '{e.cmd}' returned non-zero exit status {e.returncode}. Output: {e.output}. Error: {e.stderr}"}, status=500)
-    
+    # Run the Node.js script
+    subprocess.run(
+        [node_path, pdf_script_path, selectedDate, selectedHr, selectedCountry]
+    )
+
+    # Check if the PDF file was created
     file_name = f"Bulletin_{selectedDate}_{selectedHr}_{selectedCountry}.pdf"
     pdf_path = f'/static/data/pdf/{file_name}'
-    return JsonResponse({'pdf_path': pdf_path})
+
+    if os.path.exists(os.path.join(settings.BASE_DIR, pdf_path[1:])):
+        return JsonResponse({'pdf_path': pdf_path})
+    else:
+        return JsonResponse({'error': 'PDF not found'}, status=404)
 
 def pdf_template_view(request):
     context = {
