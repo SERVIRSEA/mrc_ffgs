@@ -16,5 +16,4 @@ urlpatterns = [
     path('get-basin-chart-data/', views.get_basin_chart),
     path('pdf-view/', views.pdf_view, name='pdf-view'),
     path('pdf-template/', views.pdf_template_view, name='pdf-template'),
-    path('pdf/', views.run_puppeteer, name='pdf'),
 ]

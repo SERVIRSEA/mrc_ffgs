@@ -5,10 +5,141 @@
 
 {% include 'navigation.html' %}
 
+<div class="loader-wrapper" id="loader">
+    <div class="loader"></div>
+</div>
+
 <div class="banner">
-    <img src="/static/img/banner-home.jpg" width="100%" alt="banner">
+    <img class="img-fluid" src="/static/img/flashflood.jpg" alt="banner">
     <div class="overlay-text">
-        <h2 class="fw-bold">MEKONG FLASH FLOOD GUIDANCE SYSTEM</h2>
+        <div class="container-fluid m-5">
+            <div class="row ps-3 pt-5 pe-5">
+                <div class="col-md-6">
+                    <h2 class="h1 fw-bolder">MEKONG FFGS</h2>
+                    <h3 class="pt-5 fw-bold lh-base">MEKONG FFGS provide Automatic Flash Flood Guidance and Bulletins for the Lower Mekong Basin, aimed at improving flash flood warnings.</h3>
+                    <p class="pt-3 fs-3">Please note, this isn't the primary early warning platform.</p>
+                </div>
+                <div class="col-md-6"></div>
+            </div>
+            <div class="row ps-3 pe-5">
+                <div class="col-md-6">
+                    <p class="pt-3 fs-3">For official early warning products, kindly refer to the Meterology Agency of each respective country.</p>
+                    <h3 class="pt-5 fw-bold lh-base">Stay Safe!</h3>
+                </div>
+                <div class="col-md-6">
+                    <div class="text-end m-5 pt-5">
+                        <p class="fs-5 pt-5">Torrential rains and flash floods cause <br> severe consequences in Dien Bien Province.</p>
+                        <p class="fs-6 fst-italic pt-3">Photo: National Steering Committee for Natural Disasters Prevention and Control.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container-fluid m-5">
+    <div id="alert-placeholder"></div>
+    <h4 class="fw-bold text-center pt-5">FLASH FLOOD RISK OUTLOOK</h4>
+    <h5 class="fw-bold text-center pb-5" id="ffgsDate"></h5>
+    <div class="row pt-5">
+        <div class="col-md-5">
+            <div class="card card-body pb-0 mb-0">
+                <ul class="horizontal-list">
+                    <li>FFR - 24 hr</li>
+                    <li class="datePlaceholder"></li>
+                    <li>REGIONAL</li>
+                </ul>
+            </div>
+            <div class="card card-body p-0 m-0">
+                <div class="bmap" id="homemap"></div>
+            </div> 
+            <div class="card card-body pb-0 mb-0">
+                <h4 class="fs-6 text-center">Flood risk up to 24.00 UTC (FFR+24)</h4>
+            </div>
+        </div>
+        <div class="col-md-7">
+            <div class="row">
+                <div class="col-sm-6">
+                    <div id="stormsChartHome"></div>
+                </div>
+                <div class="col-sm-6">
+                    <div class="mt-5 pt-4 stormsList fs-4">
+                        <p>
+                            <ul class="list-group list-group-horizontal text-center d-flex justify-content-around">
+                                <li class="list-group-item list-group-item-info"><span id="cambodiaStorms">0</span><br>Cambodia</li>
+                                <li class="list-group-item list-group-item-info"><span id="laosStorms">0</span><br>Laos</li>
+                            </ul>
+                        </p>
+                        <p class="pt-2">
+                            <ul class="list-group list-group-horizontal-sm text-center d-flex justify-content-around">
+                                <li class="list-group-item list-group-item-info"><span id="thailandStorms">0</span><br>Thailand</li>
+                                <li class="list-group-item list-group-item-info"><span id="vietnamStorms">0</span><br>Vietnam</li>
+                            </ul>
+                        </p>                                      -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row ps-3 pe-5 pt-5">
+        <div class="col-md-6">
+            <h4 class="fw-bold pt-5">BACKGROUND</h4>
+            <p class="pt-3 fs-5" style="text-align: justify;">
+                Flash floods are as destructive in the Lower Mekong Basin (LMB) countries as they are in 
+many parts of the world. In response to regional and national needs and to address flash flood 
+issues in each member state of the Mekong River Commission (MRC), the United States Agency 
+for International Development (USAID) and the Office of U.S. Foreign Disaster Assistance (OFDA) 
+have collaborated. With technical support from the Hydrologic Research Center (HRC) through 
+a program with the U.S. National Weather Service (U.S. NWS), they have jointly implemented 
+the Mekong River Commission Flash Flood Guidance System (MRCFFGS) in Cambodia, Lao PDR, 
+Thailand, and Viet Nam.
+            </p>
+            <p class="fs-5 pt-3" style="text-align: justify;">
+                The Web Portal is an extension of this effort, designed to showcase the products from MRCFFGS. 
+It integrates the flash flood guidance in the LMB with results from Rainstorm Tracker and 
+Mekong Xray, evaluating the severity of storm events over the Lower Mekong Basin in near-real 
+and real-time. This integration provides a vulnerability assessment to improve flash flood early 
+warnings and support flood risk management. This initiative is an output of the collaboration 
+under SERVIR SEA, a joint initiative of USAID and the National Aeronautics and Space Administration 
+(NASA), implemented by the Asian Disaster Preparedness Center (ADPC).
+            </p>
+            <p class="text-center">
+                <img class="img-fluid" src="/static/img/method.png" width="50%" alt="method">
+            </p>
+        </div>
+        <div class="col-md-6">
+            <div class="m-5 pt-5" style="text-align: justify;">
+                <h4 class="fw-bold pt-2">THE PRODUCT DESCRIPTIONS OF MRCFFGS:</h4>
+                <h6 class="h5 fw-bold pt-4">Merged Mean Areal Precipitation (Merged MAP)</h6>
+                <p class="fs-5">
+                    This product is derived for each basin based on the best available mean areal precipitation estimates from bias-adjusted Microwave-adjusted Global Hydro Estimator Satellite (MWGHE) or bias-adjusted Global Hydro Estimator Satellite (GHE) or the gauge-interpolations. 
+                </p>
+                <h6 class="h5 fw-bold pt-3">
+                    Average Soil Moisture (ASM)
+                </h6>
+                <p class="fs-5">
+                    Soil water saturation fraction (dimensionless ratio of contents over capacity) for the upper zone (approximately 20-30 cm depth) of the Sacramento Soil Moisture Accounting Model for each of the sub-basins. The products are updated every hour.
+                </p>
+                <h6 class="h5 fw-bold pt-3">
+                    Model Precipitation Forecast (FMAP)
+                </h6>
+                <p class="fs-5">
+                    he products are updated every hour and reflect basin-average precipitation accumulation forecasts from the navigation hour over the corresponding interval.
+                </p>
+                <h6 class="h5 fw-bold pt-3">
+                    Flash Flood Guidance (FFG)
+                </h6>
+                <p class="fs-5">
+                    The product value indicates the total volume of rainfall over the given duration which is just enough to cause bank full flow at the outlet of the draining stream. Consequently, rainfall volumes of the same duration that are greater than the FFG value indicate a likelihood of overbank flows at the draining stream outlet. 
+                </p>
+                <h6 class="h5 fw-bold pt-3">
+                    Flash Flood Risk (FFR)
+                </h6>
+                <p class="fs-5">
+                    Flash Flood Risk products provide frequency of positive flash flood threat for the entire forecast lead time interval that is due to forecast rainfall from model forecast. This is a measure of the forecast flash flood occurrence frequency. Note that the quality of this product depends critically on the reliability of the rainfall forecast throughout the lead time interval.
+                </p>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -19,3 +150,7 @@
 </div>
 
 {% endblock container %}
+
+{% block extra_script %}
+    <script src="{% static 'js/home.js'  %}"></script>
+{% endblock %}
