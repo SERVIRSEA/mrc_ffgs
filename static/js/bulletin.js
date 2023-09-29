@@ -88,9 +88,18 @@ document.addEventListener("DOMContentLoaded", function() {
             return countryData ? countryData.events : 0;
         };
 
-        const updateDOMForCountry = (country, events) => {
-            const button = getButtonByCountry(country);
-            button.querySelector(`span`).innerHTML = events;
+        const updateDOMForCountry = (countryName, events) => {
+            const id = countryName.charAt(0).toLowerCase() + countryName.slice(1) + "Storms";
+    
+            // Fetch the span using the constructed ID
+            const spanElement = document.getElementById(id);
+            
+            if (spanElement) {
+                // Update the innerHTML of the span with the provided events
+                spanElement.innerHTML = events;
+            } else {
+                console.error(`Element with ID ${id} not found.`);
+            }
         };
 
         if (selectedCountry === "All") {
@@ -694,7 +703,7 @@ document.addEventListener("DOMContentLoaded", function() {
                 element.textContent = selected_date + " " + selectedHrs +":00 UTC";
             });
 
-            const selectedCountry = document.getElementById("countryBulletin").value;
+            const selectedCountry = countryInput.value;
 
             paramCache.date = selected_date;
             paramCache.hour = selectedHrs;
@@ -706,10 +715,12 @@ document.addEventListener("DOMContentLoaded", function() {
                 "THA": "Thailand",
                 "VNM": "Vietnam"
             };
-
-            const countryName = countryMapping[selectedCountry];
-
-            generateGraph(countryName);
+            if (selectedCountry == "All"){
+                generateGraph(selectedCountry);
+            } else {
+                const countryName = countryMapping[selectedCountry];
+                generateGraph(countryName);
+            }
 
             const insTab = document.getElementById('insTab'); // Critical infrastructure tab
             const activeButton = insTab.querySelector('.nav-link.active');
@@ -991,26 +1002,26 @@ document.addEventListener("DOMContentLoaded", function() {
 
     exportBtn.addEventListener('click', async function() {
         loader.style.display = 'block';
-        const selected_date = dateInput.value;
-        const selected_hour = hourInput.value;
-        const selected_country = countryInput.value;
-
-        const response = await fetch(`/pdf-view/?selectedDate=${selected_date}&selectedHr=${selected_hour}&selectedCountry=${selected_country}`);
-        const data = await response.json();
-        const pdfPath = data.pdf_path;
-        loader.style.display = 'none';
-        window.open(pdfPath, '_blank');
-        // const blob = await response.blob();
-        
-        // const url = window.URL.createObjectURL(blob);
-        // const a = document.createElement('a');
-        // a.style.display = 'none';
-        // a.href = url;
-        // a.download = 'mypdf.pdf';
-        
-        // document.body.appendChild(a);
-        // a.click();
-        
-        // window.URL.revokeObjectURL(url);
+    
+        try {
+            const selected_date = dateInput.value;
+            const selected_hour = hourInput.value;
+            const selected_country = countryInput.value;
+    
+            const response = await fetch(`http://203.146.112.243/generate-pdf/?selectedDate=${selected_date}&selectedHr=${selected_hour}&selectedCountry=${selected_country}`);
+            
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+    
+            const data = await response.json();
+            const pdfPath = data.pdf_path;
+            window.open(pdfPath, '_blank');
+        } catch (error) {
+            console.error('There was a problem with the fetch operation:', error);
+        } finally {
+            loader.style.display = 'none';  // Hide the loader irrespective of success or failure
+        }
     });
+    
 });

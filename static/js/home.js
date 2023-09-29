@@ -1,12 +1,4 @@
 document.addEventListener("DOMContentLoaded", function() {
-    // const dateInput = document.getElementById("dateInput");
-    // const hourInput = document.getElementById("hrSelection");
-    
-    // let paramCache = {
-    //     date: null,
-    //     hour: null,
-    // };
-
     function showBootstrapAlert(message) {
         const alertPlaceholder = document.getElementById('alert-placeholder');
         const alertHTML = `
@@ -117,8 +109,6 @@ document.addEventListener("DOMContentLoaded", function() {
             button.style.display = 'block';
         }
         
-        
-        // console.log(totalEvents)
         // Count the number of occurrences for each category
         let categories = {};
         stormsData.forEach(function(item) {
@@ -197,8 +187,17 @@ document.addEventListener("DOMContentLoaded", function() {
         });
     }
 
+    // Caches for data
+    const statCache = {
+        '6hrs': {},
+        '12hrs': {},
+        '24hrs': {}
+    };
+
     // Fetch URLs
     const urls = {
+        '6hrs': '/get-alert-stat-6hrs/',
+        '12hrs': '/get-risk-stat-12hrs/',
         '24hrs': '/get-risk-stat-24hrs/',
     };
 
@@ -420,6 +419,59 @@ document.addEventListener("DOMContentLoaded", function() {
         return date.toLocaleDateString('en-US', options);
     }
 
+    const countRecordsPerISO = (dataArray, hrs) => {
+        const counts = {};
+      
+        dataArray.forEach(item => {
+            if (!counts[item.ISO]) {
+                counts[item.ISO] = 0;
+            }
+            counts[item.ISO]++;
+        });
+      
+        // Convert the counts object to the desired array format
+        const results = [];
+        for (let iso in counts) {
+            results.push({
+                iso: iso,
+                hours: hrs,
+                total_events: counts[iso]
+            });
+        }
+        return results;
+    }
+
+    const combineData = (data6hrs, data12hrs, data24hrs) => {
+        const combined = {};
+    
+        // Helper function to insert or update the combined data
+        const insertOrUpdate = (data, hours) => {
+            data.forEach(item => {
+                if (!combined[item.iso]) {
+                    combined[item.iso] = {};
+                }
+                combined[item.iso][hours] = item.total_events;
+            });
+        };
+    
+        insertOrUpdate(data6hrs, '6hrs');
+        insertOrUpdate(data12hrs, '12hrs');
+        insertOrUpdate(data24hrs, '24hrs');
+    
+        return combined;
+    };
+
+    function isoToFlagEmoji(iso) {
+        const codePoints = iso
+            .toUpperCase()
+            .split('')
+            .map(char => 127397 + char.charCodeAt())
+            .join('-');
+    
+        return String.fromCodePoint(...codePoints.split('-'));
+    }
+    
+      
     async function init() {
         try {
             // loader.style.display = 'block';
@@ -440,30 +492,45 @@ document.addEventListener("DOMContentLoaded", function() {
 
             generateGraph("All");
             
-            // const data_6hrs = await getStatsBulletin('6hrs', selected_date, selected_hrs);
-            // const parsed_data = JSON.parse(data_6hrs);
-            // updateTable(parsed_data);
+            const data_6hrs = await getStatsBulletin('6hrs', selected_date, selected_hrs);
+            const parsed_data_6hrs = JSON.parse(data_6hrs);
+            const events6hrs = countRecordsPerISO(parsed_data_6hrs, '6hrs');
 
-            // const formattedDisplayDate = formatDate(selected_date);
-            // displayDate.innerHTML = formattedDisplayDate;
+            const data_12hrs = await getStatsBulletin('12hrs', selected_date, selected_hrs);
+            const parsed_data_12hrs = JSON.parse(data_12hrs);
+            const events12hrs = countRecordsPerISO(parsed_data_12hrs, '12hrs');
 
-            // // 2023-07-01 06:00 UTC
-            // dateElements.forEach(function (element) {
-            //     element.textContent = selected_date + " " + selected_hrs + ":00 UTC";
-            // });
+            const data_24hrs = await getStatsBulletin('24hrs', selected_date, selected_hrs);
+            const parsed_data_24hrs = JSON.parse(data_24hrs);
+            const events24hrs = countRecordsPerISO(parsed_data_24hrs, '24hrs');
+            
+            const organizedData = combineData(events6hrs, events12hrs, events24hrs);
 
-            // // Call createMap sequentially for each parameter
-            // for (const param in mapInstances) {
-            //     await createMap(param, selected_date, selected_hrs, selected_country);
-            // }
+            // Populate the table
+            const tableBody = document.querySelector('.eventsTable tbody');
+            const isos = ['KHM', 'LAO', 'THA', 'VNM'];
 
-            // // Loop through countries and intervals
-            // for (const iso of countryISOs) {
-            //     for (const interval of ['6hrs', '12hrs', '24hrs']) {
-            //         const tableElement = document.getElementById(`${iso}Table${interval}`);
-            //         await populateTableForInterval(tableElement, iso, interval, selected_date, selected_hrs);
-            //     }
-            // }
+            const iso3ToIso2 = {
+                'VNM': 'VN',
+                'KHM': 'KH',
+                'THA': 'TH',
+                'LAO': 'LA'
+            };
+
+            isos.forEach(iso => {
+                const row = tableBody.insertRow();
+                const iso2 = iso3ToIso2[iso]
+            
+                const isoCell = row.insertCell(0);
+                isoCell.classList.add('fs-3');
+                isoCell.textContent = isoToFlagEmoji(iso2);
+            
+                const hoursList = ['6hrs', '12hrs', '24hrs'];
+                hoursList.forEach(hour => {
+                    const cell = row.insertCell();
+                    cell.textContent = organizedData[iso] && organizedData[iso][hour] ? organizedData[iso][hour] : 0;
+                });
+            });
             // loader.style.display = 'none';
         } catch (error) {
             console.error('Error in init:', error);

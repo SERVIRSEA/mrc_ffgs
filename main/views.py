@@ -310,28 +310,6 @@ def get_basin_chart(request):
     json = selected_basin.to_json(orient='records')
     return JsonResponse(json, safe=False)
 
-def pdf_view(request):
-    selectedDate = request.GET.get('selectedDate')
-    selectedHr = request.GET.get('selectedHr')
-    selectedCountry = request.GET.get('selectedCountry')
-
-    node_path = settings.NODE_PATH  
-    pdf_script_path = settings.JS_PATH  
-
-    # Run the Node.js script
-    subprocess.run(
-        [node_path, pdf_script_path, selectedDate, selectedHr, selectedCountry]
-    )
-
-    # Check if the PDF file was created
-    file_name = f"Bulletin_{selectedDate}_{selectedHr}_{selectedCountry}.pdf"
-    pdf_path = f'/static/data/pdf/{file_name}'
-
-    if os.path.exists(os.path.join(settings.BASE_DIR, pdf_path[1:])):
-        return JsonResponse({'pdf_path': pdf_path})
-    else:
-        return JsonResponse({'error': 'PDF not found'}, status=404)
-
 def pdf_template_view(request):
     context = {
         'selectedDate': request.GET.get('selectedDate'),
