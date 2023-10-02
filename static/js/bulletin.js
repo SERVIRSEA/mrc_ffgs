@@ -1015,7 +1015,8 @@ document.addEventListener("DOMContentLoaded", function() {
             }
     
             const data = await response.json();
-            const pdfPath = data.pdf_path;
+            // console.log(data)
+            const pdfPath = data.pdfURL;
             window.open(pdfPath, '_blank');
         } catch (error) {
             console.error('There was a problem with the fetch operation:', error);
@@ -1023,5 +1024,4 @@ document.addEventListener("DOMContentLoaded", function() {
             loader.style.display = 'none';  // Hide the loader irrespective of success or failure
         }
     });
-    
 });
