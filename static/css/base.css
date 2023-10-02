@@ -131,3 +131,29 @@ ul.horizontal-list li {
     border-radius: 0 !important;
     color: #fff;
 }
+#hlegend {
+    position: absolute;
+    background-color: #fff;
+    bottom: 0;
+    z-index: 999;
+    left: 0;
+    margin: 10px;
+    max-width: 650px;
+}
+#hlegend .row {
+    flex-wrap: nowrap; /* Prevent columns from wrapping */
+}
+.hlegend-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 5px;
+}
+.hlegend-color {
+    width: 20px;
+    height: 20px;
+    margin-right: 8px;
+    display: inline-block;
+}
+#hlegend .ffwLegend {
+    display: block;
+}

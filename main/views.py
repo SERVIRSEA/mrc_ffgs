@@ -270,9 +270,9 @@ def get_risk_stat_24hrs(request):
 def get_storms(request):
     data = storms
     df = pd.read_csv(data)
-    scols = df[["Date", "Return_Period"]].copy()
+    scols = df[["Date", "Return_Period", "countries"]].copy()
     bins = [0, 10, 50, 500, 1000]
-    labels = ['Low', 'Moderate', 'Sever', 'Extreme']
+    labels = ['Low', 'Moderate', 'Severe', 'Extreme']
     scols['Category'] = pd.cut(scols["Return_Period"], bins=bins, labels=labels, right=True, ordered=False)
     json = scols.to_json(orient='records')
     return JsonResponse(json, safe=False)
@@ -292,7 +292,6 @@ def get_datelist(request):
     data = datelist
     df = pd.read_csv(data, header=None, encoding='utf-8-sig')
     json = df.to_json(orient='values')
-    # print(json)
     return JsonResponse(json, safe=False)
 
 @csrf_exempt
@@ -311,9 +310,16 @@ def get_basin_chart(request):
     return JsonResponse(json, safe=False)
 
 def pdf_template_view(request):
+    # Create an instance of the BulletinPage view to access the get_context_data method
+    bulletin_page = BulletinPage()
+
+    # Call get_context_data to get the 'bulletin_summary' value
+    bulletin_summary = bulletin_page.get_context_data().get('bulletin_summary')
+
     context = {
         'selectedDate': request.GET.get('selectedDate'),
         'selectedHr': request.GET.get('selectedHr'),
-        'selectedCountry': request.GET.get('selectedCountry')
+        'selectedCountry': request.GET.get('selectedCountry'),
+        'bulletin_summary': bulletin_summary
     }
     return render(request, "pdf_template.html", context)

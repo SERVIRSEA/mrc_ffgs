@@ -30,7 +30,7 @@ document.addEventListener("DOMContentLoaded", function() {
     
     async function generateGraph(selectedCountry) {
         const data = await fetchStormsData(storms_data_path.storms);
-        const stormsData = JSON.parse(data);
+        const parsedData = JSON.parse(data);
 
         const data_by_country = await fetchStormsData(storms_data_path.stormsByCountry);
         const stormsCountryData = JSON.parse(data_by_country);
@@ -53,6 +53,8 @@ document.addEventListener("DOMContentLoaded", function() {
             button.querySelector(`span`).innerHTML = events;
         };
 
+        let stormsData;
+
         if (selectedCountry === "All") {
             const countries = ["Cambodia", "Laos", "Thailand", "Vietnam"];
             
@@ -63,6 +65,8 @@ document.addEventListener("DOMContentLoaded", function() {
                 const button = getButtonByCountry(country);
                 button.style.display = 'block'; // Ensure it's displayed
             });
+
+            stormsData = parsedData;
 
         } else {
             // Hide all country buttons first
@@ -78,6 +82,8 @@ document.addEventListener("DOMContentLoaded", function() {
             updateDOMForCountry(selectedCountry, countryEvent);
             const button = getButtonByCountry(selectedCountry);
             button.style.display = 'block';
+
+            stormsData = parsedData.filter(obj => obj.countries === selectedCountry )
         }
 
         // Count the number of occurrences for each category

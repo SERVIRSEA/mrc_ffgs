@@ -845,27 +845,8 @@ document.addEventListener("DOMContentLoaded", function() {
         function onEachFeature(feature, layer) {
             layer.on({
                 click: onFFGSClick,
-                // mouseover: highlightFeature,
-                // mouseout: resetHighlight
             });
         }
-
-        // function highlightFeature(e) {
-        //     var layer = e.target;
-        
-        //     // Highlight style, modify as needed
-        //     layer.setStyle({
-        //         weight: 1,  
-        //         color: 'red',
-        //         fillColor: "red",
-        //         fillOpacity: 0.2 
-        //     });
-        // }
-        
-        // function resetHighlight(e) {
-        //     var layer = e.target;
-        //     ffgsLayer.resetStyle(layer);
-        // }
 
         async function onFFGSClick(e) {
             const clickedFeature = e.target.feature;
@@ -883,15 +864,6 @@ document.addEventListener("DOMContentLoaded", function() {
             }
             generateChart(selectedDate, chart_data);
         }
-
-        // function defaultStyle(feature) {
-        //     return getStyle(param, feature, parsed_data);
-        // }
-
-        // ffgsLayer = L.geoJSON(null, {
-        //     style: defaultStyle,
-        //     onEachFeature: onEachFeature
-        // });
 
         ffgsLayer.clearLayers();
         ffgsLayer.addData(basinData);
@@ -1245,14 +1217,12 @@ document.addEventListener("DOMContentLoaded", function() {
     });
 
     let adm0;
-    let storm_boundingbox;
     let subprovince_map;
     let mainlakes;
     let river;
     let mekong_basin;
-    let mekong_bb;
 
-    const staticCache = {}; // Cache object for static data
+    const staticCache = {};
 
     async function fetchData(url) {
         try {
@@ -1286,19 +1256,6 @@ document.addEventListener("DOMContentLoaded", function() {
                     fillOpacity: 0.0,
                 },
             }).addTo(map);
-
-            // Load storm bounding box data
-            const stormBoundingBoxData = await fetchData('/static/data/storm_boundingbox.geojson');
-            storm_boundingbox = L.geoJSON(stormBoundingBoxData, {
-                style: {
-                    fillColor: '#9999ff',
-                    weight: 2,
-                    opacity: 1,
-                    color: 'white',
-                    dashArray: '3',
-                    fillOpacity: 0.1,
-                },
-            });
 
             // Load subprovince map data
             const subprovinceData = await getsubProvinceData();
@@ -1349,23 +1306,6 @@ document.addEventListener("DOMContentLoaded", function() {
                     fillOpacity: 0.0,
                 },
             }).addTo(map);
-
-            // Load mekong BBox area data
-            const mekongBBoxData = await fetchData('/static/data/mekong_bb.geojson');
-            mekong_bb = L.geoJSON(mekongBBoxData, {
-                style: {
-                    fillColor: '#9999ff',
-                    weight: 1,
-                    opacity: 1,
-                    color: 'white',
-                    dashArray: '3',
-                    fillOpacity: 0.1,
-                },
-            });
-
-            // Now you can add event listeners or handle checkboxes as needed.
-            // For example, you can add checkboxes to toggle layers on and off.
-
         } catch (error) {
             console.error('Layer loading error:', error);
         }
@@ -1379,8 +1319,6 @@ document.addEventListener("DOMContentLoaded", function() {
     var river_cb = document.querySelector('#riverCB');
     var mba_cb = document.querySelector('#mbaCB');
     var subprov_cb = document.querySelector('#subprovinceCB');
-    var gc_cb = document.querySelector('#gcCB');
-    var lmbb_cb = document.querySelector('#lmbbCB');
     var country_cb = document.querySelector('#countryCB');
 
     var rainacc = document.querySelector('#rainacc-control-panel')
@@ -1523,20 +1461,6 @@ document.addEventListener("DOMContentLoaded", function() {
             map.addLayer(subprovince_map);
         } else {
             map.removeLayer(subprovince_map);
-        }
-    }
-    gc_cb.onclick = function() {
-        if(this.checked) {
-            map.addLayer(storm_boundingbox);
-        } else {
-            map.removeLayer(storm_boundingbox);
-        }
-    }
-    lmbb_cb.onclick = function() {
-        if(this.checked) {
-            map.addLayer(mekong_bb);
-        } else {
-            map.removeLayer(mekong_bb);
         }
     }
     country_cb.onclick = function() {

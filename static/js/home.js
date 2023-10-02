@@ -253,7 +253,7 @@ document.addEventListener("DOMContentLoaded", function() {
     const MapOptions = {
         center: [15.9162, 102.9560],
         zoom: 5,
-        zoomControl: false,
+        zoomControl: true,
         scrollWheelZoom: false,
         minZoom: 5,
     }
@@ -280,9 +280,99 @@ document.addEventListener("DOMContentLoaded", function() {
         }
     }
 
-    async function getMRCBasin() {
-        const basin_url = '/static/data/mekong_mrcffg_basins.geojson';
-        return await fetchData(basin_url);
+    // Subprovince map
+    const hmap = L.map('homemap', MapOptions);
+    L.tileLayer(basemapUrl, { tileSize: 256, attribution: attribution }).addTo(hmap);
+    
+    var subProvinceLayer = L.geoJSON().addTo(hmap);
+    const subProvinceCache = {};
+    const subprovince_url  = '/static/data/subprovincesFFGS_MK.geojson';
+
+    async function getsubProvinceData() {
+        try {
+            if (subProvinceCache[subprovince_url]) {
+                return subProvinceCache[subprovince_url];
+            }
+            const response = await fetch(subprovince_url);
+            const data = await response.json();
+            subProvinceCache[subprovince_url] = data;
+            return data;
+        } catch (error) {
+            console.error('Error:', error);
+        }
+    }
+ 
+    function determineStatsParam(param) {
+        switch (param) {
+            case "FFG06":
+                return '6hrs';
+            case "FFR12":
+                return '12hrs';
+            case "FFR24":
+                return '24hrs';
+            default:
+                return null;  
+        }
+    }
+
+    async function updateSubProvinceMap(param, parsedData){
+        const subProvinceData = await getsubProvinceData();
+    
+        function getAlertValueById(param, fid) {
+            const filtered = parsedData.find(item => item.ID_2 === fid);
+            switch (param) {
+                case "FFG06":
+                    return filtered ? filtered.Alert_6Hrs : null;
+                case "FFR12":
+                    return filtered ? filtered.Risk_12Hrs : null;
+                case "FFR24":
+                    return filtered ? filtered.Risk_24Hrs : null;
+                default:
+                    return null;  
+            }
+        }
+    
+        function getColorbyCategory(cat) {
+            switch(cat) {
+                case 'Low':
+                    return 'yellow';
+                case 'Moderate':
+                    return 'orange';
+                case 'High':
+                    return 'red';
+                default:
+                    return 'none';
+            }
+        }
+    
+        function defineStyle(param, feature){
+            const fid = feature.properties.ID_2;
+            const cat = getAlertValueById(param, fid);
+            const color = getColorbyCategory(cat);
+            let defaultStyle = { color: "#000", weight: 1, opacity: 1, fillOpacity: 1 };
+
+            if (color === 'none') {
+                defaultStyle = { ...defaultStyle, fillOpacity: 0, opacity: 0 }; // this will make the feature invisible
+            }
+
+            // const defaultStyle = { color: colors.white, weight: 1, opacity: 1, fillOpacity: 0.5 };
+            return color ? {...defaultStyle, color} : defaultStyle; 
+        }  
+
+        // Add this in your updateSubProvinceMap function
+        subProvinceLayer.on('layeradd', function (e) {
+            onEachFeature(e.layer.feature, e.layer);
+        });
+
+        function onEachFeature(feature, layer) {
+            layer.bindTooltip('<h6 class="fw-bold p-2">'+feature.properties.NAME_2+', '+feature.properties.NAME_1+',<br>'+feature.properties.NAME_0+'</h6>');
+        }
+    
+        subProvinceLayer.clearLayers(); 
+        subProvinceLayer.addData(subProvinceData, {
+            onEachFeature: onEachFeature
+        });
+        subProvinceLayer.setStyle(feature => defineStyle(param, feature)); 
     }
 
     async function getDate() {
@@ -297,120 +387,6 @@ document.addEventListener("DOMContentLoaded", function() {
         } catch (error) {
             console.error('Error:', error);
         }
-    }
-
-    const bulletin_map_data = {};
-    const bulletin_map_data_url = '/get-mrcffg-bulletin-map-data/';
-
-    async function getBulletinMapData(date, hrs) {
-        try {
-            const fullUrl = `${bulletin_map_data_url}?date=${date}&hrs=${hrs}`;
-            if (bulletin_map_data[fullUrl]) {
-                return bulletin_map_data[fullUrl];
-            }
-            const response = await fetch(fullUrl);
-            if (!response.ok) {
-                if (response.status === 404) {
-                    showBootstrapAlert("Oops! No data found for the selected date and hours. Please select a different date and try again.");
-                    throw new Error("Data not found for the selected date and hours");
-                }
-                throw new Error("Network response was not ok");
-            } else {
-                clearBootstrapAlert();
-            }
-            const data = await response.json();
-            bulletin_map_data[fullUrl] = data;
-            return data;
-        } catch (error) {
-            console.error('Error:', error);
-        }
-    }
-
-    const colors = {
-        yellow: '#FFFF00',
-        lightGreen: '#90EE90',
-        lightBlue: '#ADD8E6',
-        blue: '#0000FF',
-        orange: '#FFA500',
-        red: '#FF0000',
-        deepSkyBlue: '#00BFFF',
-        green: '#008000',
-        violet: '#EE82EE',
-        white: '#FFFFFF'
-    };
-
-    const styles = {
-        FFR24: [
-            {min: 0.01, max: 0.2, color: colors.red},
-            {min: 0.2, max: 0.4, color: colors.orange},
-            {min: 0.4, max: 1, color: colors.yellow},
-        ]
-    }
-
-    function getStyle(param, feature, data) {
-        const ffgVal = data.find(x => x && x.BASIN === feature.properties.value)?.[param];
-        const defaultStyle = { color: colors.white, weight: 1, opacity: 1, fillOpacity: 0.8 };
-        const paramStyles = styles[param];
-        if (!paramStyles) return defaultStyle;
-    
-        for (let style of paramStyles) {
-            if (ffgVal > style.min && ffgVal <= style.max) {
-                return { ...defaultStyle, ...style };
-            }
-        }
-        return defaultStyle;
-    }
-
-    // Define a function to create map instances
-    function createMapInstance(id) {
-        const map = L.map(id, MapOptions);
-        L.tileLayer(basemapUrl, { tileSize: 256, attribution: attribution }).addTo(map);
-        return map;
-    }
-
-    // Create map instances for different parameters
-    const ffr24hrMap = createMapInstance('homemap');
-
-    // Define a mapping of parameters to map instances
-    const mapInstances = {
-        FFR24: ffr24hrMap
-    };
-
-    // Define an object to store ffgsLayer variables for each parameter
-    const ffgsLayers = {};
-
-    // Initialize and add ffgsLayer variables for each parameter
-    for (const param in mapInstances) {
-        ffgsLayers[param] = L.geoJSON().addTo(mapInstances[param]);
-    }
-
-    async function createMap(param, selected_date, selected_hrs, selectedCountry) {
-        const ffgData = await getBulletinMapData(selected_date, selected_hrs);
-        let dataArray = JSON.parse(ffgData);
-        let basinData = await getMRCBasin();
-
-        // Get the corresponding ffgsLayer variable based on the parameter
-        const ffgsLayer = ffgsLayers[param];
-
-        if (selectedCountry === "All") {
-            basinData = basinData; // This line is redundant, as basinData remains unchanged. You can remove it.
-        } else if (["KHM", "VNM", "THA", "LAO"].includes(selectedCountry)) {
-            basinData = {
-                ...basinData,
-                features: basinData.features.filter(feature => feature.properties.iso === selectedCountry)
-            };
-        }
-        
-        // Clear the layer before adding new data
-        ffgsLayer.clearLayers();
-        ffgsLayer.addData(basinData);
-        ffgsLayer.setStyle(feature => getStyle(param, feature, dataArray)); 
-        
-        // Add the layer to the corresponding map instance
-        mapInstances[param].addLayer(ffgsLayer);
-
-        const bounds = ffgsLayer.getBounds();
-        mapInstances[param].fitBounds(bounds);
     }
 
     function formatDate(inputDate) {
@@ -485,16 +461,14 @@ document.addEventListener("DOMContentLoaded", function() {
 
             document.querySelector('#ffgsDate').innerHTML = formattedDate;
             document.querySelector('.datePlaceholder').innerHTML = selected_date + " 06:00 UTC"
-            // Call createMap sequentially for each parameter
-            for (const param in mapInstances) {
-                await createMap(param, selected_date, selected_hrs, selected_country);
-            }
-
+            
             generateGraph("All");
             
             const data_6hrs = await getStatsBulletin('6hrs', selected_date, selected_hrs);
             const parsed_data_6hrs = JSON.parse(data_6hrs);
             const events6hrs = countRecordsPerISO(parsed_data_6hrs, '6hrs');
+
+            updateSubProvinceMap("FFG06", parsed_data_6hrs)
 
             const data_12hrs = await getStatsBulletin('12hrs', selected_date, selected_hrs);
             const parsed_data_12hrs = JSON.parse(data_12hrs);
@@ -540,4 +514,88 @@ document.addEventListener("DOMContentLoaded", function() {
 
     // Call the init function with await
     init();
+
+    let adm0;
+    let mainlakes;
+    let river;
+    let mekong_basin;
+
+    const staticCache = {};
+
+    async function fetchData(url) {
+        try {
+            if (staticCache[url]) {
+                return staticCache[url]; 
+            }
+
+            const response = await fetch(url);
+            if (!response.ok) {
+                throw new Error(`HTTP error! Status: ${response.status}`);
+            }
+            const data = await response.json();
+            staticCache[url] = data; 
+            return data;
+        } catch (error) {
+            console.error('Fetch error:', error);
+            throw error;
+        }
+    }
+
+    async function loadLayers() {
+        try {
+            // Load adm0 data
+            const adm0Data = await fetchData('/static/data/adm0.geojson');
+            adm0 = L.geoJSON(adm0Data, {
+                style: {
+                    fillColor: '#9999ff',
+                    weight: 1,
+                    opacity: 0.5,
+                    color: 'gray',
+                    fillOpacity: 0.0,
+                },
+            }).addTo(hmap);
+
+            // Load main lakes data
+            const mainLakesData = await fetchData('/static/data/mainlakes_FFGS.geojson');
+            mainlakes = L.geoJSON(mainLakesData, {
+                style: {
+                    fillColor: 'darkgray',
+                    weight: 0,
+                    opacity: 0.1,
+                    color: 'white',
+                    dashArray: '3',
+                    fillOpacity: 1,
+                },
+            }).addTo(hmap);
+
+            // Load river data
+            const riverData = await fetchData('/static/data/riverMK_FFGS.geojson');
+            river = L.geoJSON(riverData, {
+                style: {
+                    fillColor: '#9999ff',
+                    weight: 2,
+                    opacity: 1,
+                    color: 'blue',
+                    fillOpacity: 0.8,
+                },
+            }).addTo(hmap);
+
+            // Load mekong basin data
+            const mekongBasinData = await fetchData('/static/data/mekong_basin_area.geojson');
+            mekong_basin = L.geoJSON(mekongBasinData, {
+                style: {
+                    fillColor: '#2E86C1',
+                    weight: 3,
+                    opacity: 0.5,
+                    color: '#000',
+                    fillOpacity: 0.0,
+                },
+            }).addTo(hmap);
+        } catch (error) {
+            console.error('Layer loading error:', error);
+        }
+    }
+
+    // Call the loadLayers function to load the layers asynchronously.
+    loadLayers();
 });

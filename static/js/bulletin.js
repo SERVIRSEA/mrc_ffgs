@@ -69,8 +69,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
     async function generateGraph(selectedCountry) {
         const data = await getStorms();
-        const stormsData = JSON.parse(data);
-        // console.log(stormsData)
+        const parsedData = JSON.parse(data);
 
         const data_by_country = await getStormsByCountry();
         const stormsCountryData = JSON.parse(data_by_country);
@@ -102,6 +101,8 @@ document.addEventListener("DOMContentLoaded", function() {
             }
         };
 
+        let stormsData;
+
         if (selectedCountry === "All") {
             const countries = ["Cambodia", "Laos", "Thailand", "Vietnam"];
             
@@ -112,6 +113,8 @@ document.addEventListener("DOMContentLoaded", function() {
                 const button = getButtonByCountry(country);
                 button.style.display = 'block'; // Ensure it's displayed
             });
+
+            stormsData = parsedData;
 
         } else {
             // Hide all country buttons first
@@ -127,6 +130,8 @@ document.addEventListener("DOMContentLoaded", function() {
             updateDOMForCountry(selectedCountry, countryEvent);
             const button = getButtonByCountry(selectedCountry);
             button.style.display = 'block';
+
+            stormsData = parsedData.filter(obj => obj.countries === selectedCountry )
         }
         
         
