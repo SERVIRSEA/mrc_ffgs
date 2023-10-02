@@ -1003,30 +1003,67 @@ document.addEventListener("DOMContentLoaded", function() {
     // Call the init function with await
     init();
 
+    // Reference to the loader and finished content elements
+    var loadingContent = document.getElementById('loadingContent');
+    var finishedContent = document.getElementById('finishedContent');
+
+    // Reference to the export button
     const exportBtn = document.querySelector("#exportPdf");
 
+    // Function to create a new Bootstrap modal instance
+    function createNewModal() {
+        return new bootstrap.Modal(document.getElementById('pdfModal'), {
+            backdrop: 'static', // Prevent closing by clicking outside
+            keyboard: false // Prevent closing by pressing ESC key
+        });
+    }
+
     exportBtn.addEventListener('click', async function() {
-        loader.style.display = 'block';
-    
+        // Create a new modal instance
+        var pdfModal = createNewModal();
+
+        // Function to reset the modal content and loading icon
+        function resetModal() {
+            loadingContent.classList.remove('d-none');
+            finishedContent.classList.add('d-none');
+        }
+
+        // Reset the modal content when it is hidden
+        pdfModal._element.addEventListener('hidden.bs.modal', resetModal, { once: true });
+
+        // Show the modal with the loading content
+        pdfModal.show();
+
         try {
             const selected_date = dateInput.value;
             const selected_hour = hourInput.value;
             const selected_country = countryInput.value;
-    
+
             const response = await fetch(`http://203.146.112.243/generate-pdf/?selectedDate=${selected_date}&selectedHr=${selected_hour}&selectedCountry=${selected_country}`);
-            
+
             if (!response.ok) {
                 throw new Error('Network response was not ok');
             }
-    
+
             const data = await response.json();
-            // console.log(data)
             const pdfPath = data.pdfURL;
-            window.open(pdfPath, '_blank');
+            const dwnldPath = data.pdfDwnld;
+
+            // Hide loading content and show finished content
+            loadingContent.classList.add('d-none');
+            finishedContent.classList.remove('d-none');
+
+            // Open PDF in a new tab when "View PDF" button is clicked
+            finishedContent.querySelector('.btn-primary').addEventListener('click', function() {
+                window.open(pdfPath, '_blank');
+            });
+
+            // Set the download link for "Download PDF" button
+            var downloadButton = finishedContent.querySelector('.btn-success');
+            downloadButton.href = dwnldPath;
+
         } catch (error) {
             console.error('There was a problem with the fetch operation:', error);
-        } finally {
-            loader.style.display = 'none';  // Hide the loader irrespective of success or failure
         }
     });
 });

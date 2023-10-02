@@ -472,6 +472,34 @@
         &copy; 2023 MRC | SERVIR SEA | ADPC. All Rights Reserved.
     </div>
 </div>
+
+<!-- Loader Modal -->
+<div class="modal" id="pdfModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <!-- Modal Header with Title -->
+            <div class="modal-header">
+                <h5 class="modal-title fw-bold text-center">Mekong Flash Flood Guidance for Selected Country and Date</h5>
+                <!-- Close button (X) to close the modal -->
+                <!-- <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button> -->
+            </div>
+            <!-- Initial content with loading icon -->
+            <div class="modal-body text-center p-5" id="loadingContent">
+            <i class="fas fa-spinner fa-spin fa-4x"></i>
+            </div>
+            <!-- Content to show after loading -->
+            <div class="modal-body text-center d-none mb-5 mt-5" id="finishedContent">
+                <!-- Two buttons to show after loading -->
+                <button type="button" class="btn btn-primary">View PDF</button>
+                <a href="#" class="btn btn-success" download>Download PDF</a>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+      </div>
+    </div>
+</div>
+
 {% endblock container %}
 
 {% block extra_css %}
