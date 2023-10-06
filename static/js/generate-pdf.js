@@ -138,9 +138,9 @@ document.addEventListener("DOMContentLoaded", function() {
                 layout: 'vertical',
                 align: 'bottom',
                 verticalAlign: 'middle',
-                itemMarginTop: 10,
-                itemMarginBottom: 10
-            }
+                itemMarginTop: 3,
+                itemMarginBottom: 0   
+            },
         });
 
         var textElement = chart.renderer.text('' + totalEvents, chart.chartWidth / 2, chart.chartHeight / 2)
@@ -149,7 +149,7 @@ document.addEventListener("DOMContentLoaded", function() {
             })
             .css({
                 color: '#000',
-                fontSize: '50px',
+                fontSize: '15px',
                 fontWeight: 'bold'
             })
             .add();
