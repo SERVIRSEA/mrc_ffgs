@@ -237,11 +237,20 @@ document.addEventListener("DOMContentLoaded", function() {
         const gdp = document.querySelector(`#gdp${tablePrefix}`);
         const croplands = document.querySelector(`#cropLands${tablePrefix}`);
 
-        // Initialize all elements to '---' as default
-        [total_pop, total_female_pop, female_pop_f1, female_pop_f2, female_pop_f3, 
-        total_male_pop, male_pop_m1, male_pop_m2, male_pop_m3, highway_road, primary_road,
-        secondary_road, tertiary_road, hospital, gdp, croplands].forEach(el => el.innerHTML = '---');
-    
+        // // Initialize all elements to '---' as default
+        // [total_pop, total_female_pop, female_pop_f1, female_pop_f2, female_pop_f3, 
+        // total_male_pop, male_pop_m1, male_pop_m2, male_pop_m3, highway_road, primary_road,
+        // secondary_road, tertiary_road, hospital, gdp, croplands].forEach(el => el.innerHTML = '---');
+        const elements = [total_pop, total_female_pop, female_pop_f1, female_pop_f2, female_pop_f3, 
+            total_male_pop, male_pop_m1, male_pop_m2, male_pop_m3, highway_road, primary_road,
+            secondary_road, tertiary_road, hospital, gdp, croplands];
+
+        elements.forEach(el => {
+            if (el) {
+                el.innerHTML = '---';
+            }
+        });
+        
         if (!dataToProcess || Object.keys(dataToProcess).length === 0) {
             return;
         }
@@ -392,7 +401,7 @@ document.addEventListener("DOMContentLoaded", function() {
             {min: 0, max: 7.5, color: colors.lightBlue},
             {min: 7.5, max: 35, color: colors.blue},
             {min: 35, max: 70, color: colors.deepSkyBlue},
-            {min: 70, color: colors.lightGreen},
+            {min: 70, max: 100, color: colors.lightGreen},
         ],
         FFG06: [
             {min: 0, max: 15, color: colors.violet},
@@ -493,7 +502,43 @@ document.addEventListener("DOMContentLoaded", function() {
 
         const bounds = ffgsLayer.getBounds();
         mapInstances[param].fitBounds(bounds);
+
+        // Add legend dynamically
+        const legendContent = createLegend(param);
+        addLegendToMap(mapInstances[param], legendContent);
     }
+
+    // Function to create the legend content based on parameter styles
+// Function to create the legend content based on parameter styles
+function createLegend(param) {
+    const paramStyles = styles[param];
+    let legendHTML = '<div class="legend" style="background-color: white; padding: 10px;">';
+    
+    for (const style of paramStyles) {
+        const { color, min, max } = style;
+        const label = `${min} - ${max}`;
+        legendHTML += `<div><span class="legend-color p-2" style="background-color: ${color}; display: inline-block; margin-right: 5px;"></span>${label}</div>`;
+    }
+    
+    legendHTML += '</div>';
+    
+    return legendHTML;
+}
+
+
+// Function to add a legend to the map
+function addLegendToMap(map, legendContent) {
+    const legend = L.control({ position: 'bottomright' });
+
+    legend.onAdd = function () {
+        const div = L.DomUtil.create('div', 'info legend');
+        div.innerHTML = legendContent;
+        return div;
+    };
+
+    legend.addTo(map);
+}
+
 
     async function populateTable(tableElement, data, interval) {
         const existingTbody = tableElement.querySelector('tbody');
