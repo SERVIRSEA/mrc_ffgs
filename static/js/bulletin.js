@@ -620,6 +620,39 @@ document.addEventListener("DOMContentLoaded", function() {
 
         const bounds = ffgsLayer.getBounds();
         mapInstances[param].fitBounds(bounds);
+        // Add legend dynamically
+        const legendContent = createLegend(param);
+        addLegendToMap(mapInstances[param], legendContent);
+    }
+
+    // Function to create the legend content based on parameter styles
+    function createLegend(param) {
+        const paramStyles = styles[param];
+        let legendHTML = '<div class="legend" style="background-color: white; padding: 10px;">';
+        
+        for (const style of paramStyles) {
+            const { color, min, max } = style;
+            const label = `${min} - ${max}`;
+            legendHTML += `<div><span class="legend-color p-2" style="background-color: ${color}; display: inline-block; margin-right: 5px;"></span>${label}</div>`;
+        }
+        
+        legendHTML += '</div>';
+        
+        return legendHTML;
+    }
+
+
+    // Function to add a legend to the map
+    function addLegendToMap(map, legendContent) {
+        const legend = L.control({ position: 'bottomright' });
+
+        legend.onAdd = function () {
+            const div = L.DomUtil.create('div', 'info legend');
+            div.innerHTML = legendContent;
+            return div;
+        };
+
+        legend.addTo(map);
     }
 
     async function populateTable(tableElement, data, interval) {
@@ -636,11 +669,31 @@ document.addEventListener("DOMContentLoaded", function() {
         const highColor = 'red';
     
         if (data.length === 0) {
+            // const row = tbody.insertRow();
+            // for (let i = 0; i < 9; i++) {
+            //     const cell = row.insertCell(i);
+            //     cell.innerHTML = '---';
+            // }
             const row = tbody.insertRow();
-            for (let i = 0; i < 9; i++) {
-                const cell = row.insertCell(i);
-                cell.innerHTML = '---';
-            }
+            const cellProvinces = row.insertCell(0);
+            const cellDistricts = row.insertCell(1);
+            const cellLevel = row.insertCell(2);
+            const cellFemalePopulation = row.insertCell(3);
+            const cellMalePopulation = row.insertCell(4);
+            const cellRoad = row.insertCell(5);
+            const cellHospital = row.insertCell(6);
+            const cellGDP = row.insertCell(7);
+            const cellCropLands = row.insertCell(8);
+
+            cellProvinces.innerHTML = 'NO SUSPECT AREA';
+            cellDistricts.innerHTML = '';
+            cellLevel.innerHTML = '';
+            cellFemalePopulation.innerHTML = '';
+            cellMalePopulation.innerHTML = '';
+            cellRoad.innerHTML = '';
+            cellHospital.innerHTML = '';
+            cellGDP.innerHTML = '';
+            cellCropLands.innerHTML = '';
         } else {
             data.forEach(item => {
                 const row = tbody.insertRow();
