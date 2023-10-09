@@ -461,6 +461,128 @@
                 </div>
             </div>
         </div>
+        <div class="row ms-5 me-5 mt-5">
+            <h3 class="fw-bold fs-4">Note: Please be aware of the different color bar codes of each product.</h3>
+            <div class="row pt-3">
+                <div class="col-md-6">
+                    <table class="table table-responsive">
+                        <thead>
+                            <tr>
+                                <th class="h6 fw-bold">ASM (Average Soil Moisture)</th>
+                                <th class="h6 fw-bold">Classification</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="h6" style="background: yellow;">0,01 < ASM < 0,65</td>
+                                <td class="h6" style="background: yellow;">Normal state</td>
+                            </tr>
+                            <tr>
+                                <td class="h6" style="background: palegreen;">0,65 < ASM < 0,9</td>
+                                <td class="h6" style="background: palegreen;">Nearly saturation state</td>
+                            </tr>
+                            <tr>
+                                <td class="h6 text-white" style="background: darkblue;">0,9 < ASM ≤ 1</td>
+                                <td class="h6 text-white" style="background: darkblue;">Saturation state</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="col-md-6">
+                    <table class="table table-responsive">
+                        <thead>
+                            <tr>
+                                <th class="h6 fw-bold">FFFT (Forecast Flash Flood Threat)</th>
+                                <th class="h6 fw-bold">(FFR) Flash Flood Risk </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="h6" style="background: yellow;">Low (Be Updated)</td>
+                                <td class="h6" style="background: yellow;">Low (Be Updated)</td>
+                            </tr>
+                            <tr>
+                                <td class="h6" style="background: orange;">Moderate (Be Prepared)</td>
+                                <td class="h6" style="background: orange;">Moderate (Be Prepared)</td>
+                            </tr>
+                            <tr>
+                                <td class="h6 text-white" style="background: red;">High (Take Action)</td>
+                                <td class="h6 text-white" style="background: red;">High (Take Action)</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="row pt-3">
+                <div class="col-md-6">
+                    <table class="table table-responsive">
+                        <thead>
+                            <tr>
+                                <th colspan="2" class="h6 fw-bold">MAP; FMAP (Precipitation)</th>
+                                <th rowspan="2" class="h6 fw-bold">Classification</th>
+                            </tr>
+                            <tr>
+                                <th class="h6 fw-bold">(mm/6hr)</th>
+                                <th class="h6 fw-bold">(mm/24hr)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="h6 text-white" style="background: rgb(6, 145, 232);">Rainfall < 7,5</td>
+                                <td class="h6 text-white" style="background: rgb(6, 145, 232);">< 10</td>
+                                <td class="h6 text-white" style="background: rgb(6, 145, 232);">Light rain</td>
+                            </tr>
+                            <tr>
+                                <td class="h6 text-white" style="background: rgb(29, 29, 128);">7,5 < Rainfall ≤ 35</td>
+                                <td class="h6 text-white" style="background: rgb(29, 29, 128);">10 < Rainfall ≤ 50</td>
+                                <td class="h6 text-white" style="background: rgb(29, 29, 128);">Moderate rain</td>
+                            </tr>
+                            <tr>
+                                <td class="h6 text-white" style="background: green;">35 < Rainfall ≤ 70</td>
+                                <td class="h6 text-white" style="background: green;">50 < Rainfall ≤ 100</td>
+                                <td class="h6 text-white" style="background: green;">Heavy rain</td>
+                            </tr>
+                            <tr>
+                                <td class="h6" style="background: yellow;">Rainfall > 70</td>
+                                <td class="h6" style="background: yellow;">Rainfall > 100</td>
+                                <td class="h6" style="background: yellow;">Very heavy rain</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="col-md-6">
+                    <table class="table table-responsive">
+                        <thead>
+                            <tr>
+                                <th class="h6 fw-bold">FFG (Flash Flood Guidance)</th>
+                                <th rowspan="2" class="h6 fw-bold">Classification </th>
+                            </tr>
+                            <tr>
+                                <th class="h6 fw-bold">(mm/6hr)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="h6 text-white" style="background: rgb(232, 92, 192);">FFG ≤ 15</td>
+                                <td class="h6 text-white" style="background: rgb(232, 92, 192);">Extreme - risk</td>
+                            </tr>
+                            <tr>
+                                <td class="h6text-white" style="background: red;">15 < FFG ≤ 30</td>
+                                <td class="h6 text-white" style="background: red;">High risk</td>
+                            </tr>
+                            <tr>
+                                <td class="h6" style="background: yellow;">30 < FFG ≤ 60</td>
+                                <td class="h6" style="background: yellow;">Moderate - risk</td>
+                            </tr>
+                            <tr>
+                                <td class="h6" style="background: palegreen;">60 < FFG ≤ 100</td>
+                                <td class="h" style="background: palegreen;">Low - risk </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
     </div> 
     {% include 'country-bulletin/cambodia.html' %}
     {% include 'country-bulletin/laos.html' %}
