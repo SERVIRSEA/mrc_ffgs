@@ -553,13 +553,13 @@ document.addEventListener("DOMContentLoaded", function() {
 
     function getStyle(param, feature, data) {
         const ffgVal = data.find(x => x && x.BASIN === feature.properties.value)?.[param];
-        const defaultStyle = { color: colors.white, weight: 1, opacity: 1, fillOpacity: 0.8 };
+        const defaultStyle = { color: colors.white, weight: 1, opacity: 0, fillOpacity: 0 };
         const paramStyles = styles[param];
         if (!paramStyles) return defaultStyle;
     
         for (let style of paramStyles) {
             if (ffgVal > style.min && ffgVal <= style.max) {
-                return { ...defaultStyle, ...style };
+                return { ...defaultStyle, ...style, opacity: 1, fillOpacity: 0.8 };
             }
         }
         return defaultStyle;
@@ -1094,10 +1094,28 @@ document.addEventListener("DOMContentLoaded", function() {
         // Show the modal with the loading content
         pdfModal.show();
 
+        const modalHeader = document.querySelector("#modalHeader");
+
         try {
             const selected_date = dateInput.value;
             const selected_hour = hourInput.value;
             const selected_country = countryInput.value;
+
+            const countryMapping = {
+                "KHM": "Cambodia",
+                "LAO": "Laos",
+                "THA": "Thailand",
+                "VNM": "Vietnam"
+            };
+
+            const sc = "<span class='fw-bold'>"+countryMapping[selected_country]+"</span>"
+            const sd = "<span class='fw-bold'>"+selected_date+"</span>"
+            
+            if (selected_country == 'All') {
+                modalHeader.innerHTML = " All Countries, with the date set to " + sd;
+            } else {
+                modalHeader.innerHTML = " " + sc +" , with the date set to " + sd;
+            }
 
             const response = await fetch(`http://203.146.112.243/generate-pdf/?selectedDate=${selected_date}&selectedHr=${selected_hour}&selectedCountry=${selected_country}`);
 

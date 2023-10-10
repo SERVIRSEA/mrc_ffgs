@@ -724,13 +724,13 @@ document.addEventListener("DOMContentLoaded", function() {
     
     function getStyle(param, feature, data) {
         const ffgVal = data.find(x => x && x.BASIN === feature.properties.value)?.[param];
-        const defaultStyle = { color: colors.white, weight: 1, opacity: 1, fillOpacity: 0.8 };
+        const defaultStyle = { color: colors.white, weight: 1, opacity: 0, fillOpacity: 0 };
         const paramStyles = styles[param];
         if (!paramStyles) return defaultStyle;
     
         for (let style of paramStyles) {
             if (ffgVal > style.min && ffgVal <= style.max) {
-                return { ...defaultStyle, ...style };
+                return { ...defaultStyle, ...style, opacity: 1, fillOpacity: 0.8 };
             }
         }
         return defaultStyle;
@@ -1268,6 +1268,9 @@ document.addEventListener("DOMContentLoaded", function() {
                     dashArray: '3',
                     fillOpacity: 0.5,
                 },
+                onEachFeature: function(feature, layer){
+                    layer.bindTooltip('<h6 class="fw-bold p-2">'+feature.properties.NAME_2+', '+feature.properties.NAME_1+',<br>'+feature.properties.NAME_0+'</h6>');
+                }
             });
 
             // Load main lakes data

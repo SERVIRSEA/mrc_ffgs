@@ -166,25 +166,50 @@ document.addEventListener("DOMContentLoaded", function() {
             }
         });
 
-        var pieCenter = chart.series[0].center;
+        var titleText = '<h6 class="h6 fw-bold text-start">TOTAL STORM EVENTS</h6>';
+        var totalEventsText = '<tspan x="3.7em" dy="1.2em">' + totalEvents + '</tspan>';
 
-        var textElement = chart.renderer.text('' + totalEvents, pieCenter[0], pieCenter[1])
+        var chartCenterX = chart.plotWidth / 2.2;
+        var chartCenterY = chart.plotHeight / 1.9;
+
+        var textElement = chart.renderer.text(titleText + totalEventsText, chartCenterX, chartCenterY)
             .attr({
                 zIndex: 999
             })
             .css({
                 color: '#000',
                 fontSize: '50px',
-                fontWeight: 'bold'
+                fontWeight: 'bold',
+                textAlign: 'center'
             })
             .add();
 
         // Now, reposition the text based on its bounding box
         var textBBox = textElement.getBBox();
         textElement.attr({
-            x: pieCenter[0] - textBBox.width / 2,
-            y: pieCenter[1] + textBBox.height / 2 
+            x: chartCenterX - textBBox.width / 3,
+            y: chartCenterY - textBBox.height / 6
         });
+
+        // var pieCenter = chart.series[0].center;
+
+        // var textElement = chart.renderer.text('' + totalEvents, pieCenter[0], pieCenter[1])
+        //     .attr({
+        //         zIndex: 999
+        //     })
+        //     .css({
+        //         color: '#000',
+        //         fontSize: '50px',
+        //         fontWeight: 'bold'
+        //     })
+        //     .add();
+
+        // // Now, reposition the text based on its bounding box
+        // var textBBox = textElement.getBBox();
+        // textElement.attr({
+        //     x: pieCenter[0] - textBBox.width / 2,
+        //     y: pieCenter[1] + textBBox.height / 2 
+        // });
     }
 
     // Caches for data
