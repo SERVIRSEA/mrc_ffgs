@@ -147,7 +147,7 @@ document.addEventListener("DOMContentLoaded", function() {
         var totalEventsText = '<tspan x="16.5em" dy="1.2em">' + totalEvents + '</tspan>';
 
         var chartCenterX = chart.plotWidth / 2;
-        var chartCenterY = chart.plotHeight / 1.8;
+        var chartCenterY = chart.plotHeight / 2;
 
         var textElement = chart.renderer.text(titleText + totalEventsText, chartCenterX, chartCenterY)
             .attr({

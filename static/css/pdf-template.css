@@ -17,13 +17,13 @@ h3, h4, h5, h6 {
     position: relative;
     overflow: hidden;
     /* padding: 25.4mm !important; */
-    box-sizing: border-box;
-    page-break-inside: avoid;
+    /* box-sizing: border-box; */
+    /* page-break-inside: avoid; */
 }
 
-.page-break {
+/* .page-break {
     page-break-after: always;
-}
+} */
 
 /* #map-section {
     width: 210mm;
@@ -57,8 +57,8 @@ h3, h4, h5, h6 {
     padding-bottom: 25.4mm !important;
     padding-left: 20mm !important;
     padding-right: 20mm !important;
-    box-sizing: border-box;
-    page-break-inside: avoid;
+    /* box-sizing: border-box;
+    page-break-inside: avoid; */
 }
 
 #legend {
