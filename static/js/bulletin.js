@@ -193,22 +193,29 @@ document.addEventListener("DOMContentLoaded", function() {
             }
         });
 
-        var textElement = chart.renderer.text('' + totalEvents, chart.chartWidth / 2, chart.chartHeight / 2)
+        var titleText = '<h6 class="h6 fw-bold text-start">TOTAL STORM EVENTS</h6>';
+        var totalEventsText = '<tspan x="5.7em" dy="1.2em">' + totalEvents + '</tspan>';
+
+        var chartCenterX = chart.plotWidth / 2.1;
+        var chartCenterY = chart.plotHeight / 1.9;
+
+        var textElement = chart.renderer.text(titleText + totalEventsText, chartCenterX, chartCenterY)
             .attr({
                 zIndex: 999
             })
             .css({
                 color: '#000',
                 fontSize: '50px',
-                fontWeight: 'bold'
+                fontWeight: 'bold',
+                textAlign: 'center'
             })
             .add();
 
         // Now, reposition the text based on its bounding box
         var textBBox = textElement.getBBox();
         textElement.attr({
-            x: chart.chartWidth / 2 - textBBox.width / 2,
-            y: chart.chartHeight / 2 + textBBox.height / 2
+            x: chartCenterX - textBBox.width / 3,
+            y: chartCenterY - textBBox.height / 6
         });
     }
     
