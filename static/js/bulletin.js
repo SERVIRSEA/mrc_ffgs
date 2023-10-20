@@ -357,22 +357,22 @@ document.addEventListener("DOMContentLoaded", function() {
             totalCroplands += parseFloat(item.crop_sqm);
         });
      
-        total_pop.innerHTML = totalPopulation > 0 ? totalPopulation : "---";
-        total_female_pop.innerHTML = totalFemalePopulation > 0 ? totalFemalePopulation : "---";
-        female_pop_f1.innerHTML = femalePopulationF1 > 0 ? femalePopulationF1 : "---";
-        female_pop_f2.innerHTML = femalePopulationF2 > 0 ? femalePopulationF2 : "---";
-        female_pop_f3.innerHTML = femalePopulationF3 > 0 ? femalePopulationF3 : "---";
-        total_male_pop.innerHTML = totalMalePopulation > 0 ? totalMalePopulation : "---";
-        male_pop_m1.innerHTML = malePopulationM1 > 0 ? malePopulationM1 : "---";
-        male_pop_m2.innerHTML = malePopulationM2 > 0 ? malePopulationM2 : "---";
-        male_pop_m3.innerHTML = malePopulationM3 > 0 ? malePopulationM3 : "---";
-        highway_road.innerHTML = highwayRoad > 0 ? highwayRoad.toFixed(2) : "---";
-        primary_road.innerHTML = primaryRoad > 0 ? primaryRoad.toFixed(2) : "---";
-        secondary_road.innerHTML = secondaryRoad > 0 ? secondaryRoad.toFixed(2) : "---";
-        tertiary_road.innerHTML = tertiaryRoad > 0 ? tertiaryRoad.toFixed(2) : "---";
-        hospital.innerHTML = hospitalNumber > 0 ? hospitalNumber.toFixed(0) : "---";
-        gdp.innerHTML = totalGDP > 0 ? totalGDP.toFixed(0) : "---";
-        croplands.innerHTML = totalCroplands > 0 ? totalCroplands.toFixed(0) : "---";
+        total_pop.innerHTML = totalPopulation > 0 ? totalPopulation.toLocaleString() : "---";
+        total_female_pop.innerHTML = totalFemalePopulation > 0 ? totalFemalePopulation.toLocaleString() : "---";
+        female_pop_f1.innerHTML = femalePopulationF1 > 0 ? femalePopulationF1.toLocaleString() : "---";
+        female_pop_f2.innerHTML = femalePopulationF2 > 0 ? femalePopulationF2.toLocaleString() : "---";
+        female_pop_f3.innerHTML = femalePopulationF3 > 0 ? femalePopulationF3.toLocaleString() : "---";
+        total_male_pop.innerHTML = totalMalePopulation > 0 ? totalMalePopulation.toLocaleString() : "---";
+        male_pop_m1.innerHTML = malePopulationM1 > 0 ? malePopulationM1.toLocaleString() : "---";
+        male_pop_m2.innerHTML = malePopulationM2 > 0 ? malePopulationM2.toLocaleString() : "---";
+        male_pop_m3.innerHTML = malePopulationM3 > 0 ? malePopulationM3.toLocaleString() : "---";
+        highway_road.innerHTML = highwayRoad > 0 ? Math.floor(highwayRoad).toLocaleString() : "---";
+        primary_road.innerHTML = primaryRoad > 0 ? Math.floor(primaryRoad).toLocaleString() : "---";
+        secondary_road.innerHTML = secondaryRoad > 0 ? Math.floor(secondaryRoad).toLocaleString() : "---";
+        tertiary_road.innerHTML = tertiaryRoad > 0 ? Math.floor(tertiaryRoad).toLocaleString() : "---";
+        hospital.innerHTML = hospitalNumber > 0 ? Math.floor(hospitalNumber).toLocaleString() : "---";
+        gdp.innerHTML = totalGDP > 0 ? Math.floor(totalGDP).toLocaleString() : "---";
+        croplands.innerHTML = totalCroplands > 0 ? Math.floor(totalCroplands).toLocaleString() : "---";
     }
 
     document.getElementById("tab6hrs").addEventListener("click", async function() {
@@ -692,7 +692,7 @@ document.addEventListener("DOMContentLoaded", function() {
             const cellGDP = row.insertCell(7);
             const cellCropLands = row.insertCell(8);
 
-            cellProvinces.innerHTML = 'NO SUSPECT AREA';
+            cellProvinces.innerHTML = 'NO RISK AREA';
             cellDistricts.innerHTML = '';
             cellLevel.innerHTML = '';
             cellFemalePopulation.innerHTML = '';
@@ -717,12 +717,12 @@ document.addEventListener("DOMContentLoaded", function() {
                 cellProvinces.innerHTML = item.NAME_1 || '---';
                 cellDistricts.innerHTML = item.NAME_2 || '---';
                 cellLevel.innerHTML = interval === '6hrs' ? item.Alert_6Hrs : interval === '12hrs' ? item.Risk_12Hrs : item.Risk_24Hrs;
-                cellFemalePopulation.innerHTML = parseFloat(item.F1) + parseFloat(item.F2) + parseFloat(item.F3) || '---';
-                cellMalePopulation.innerHTML = parseFloat(item.M1) + parseFloat(item.M2) + parseFloat(item.M3) || '---';
-                cellRoad.innerHTML = (parseFloat(item.RTP1) + parseFloat(item.RTP2) + parseFloat(item.RTP3) + parseFloat(item.RTP4)).toFixed(2) || '---';
-                cellHospital.innerHTML = parseFloat(item.Hospital) || '---';
-                cellGDP.innerHTML = parseFloat(item.GDP) || '---';
-                cellCropLands.innerHTML = parseFloat(item.crop_sqm) || '---';
+                cellFemalePopulation.innerHTML = (parseFloat(item.F1) + parseFloat(item.F2) + parseFloat(item.F3)).toLocaleString() || '---';
+                cellMalePopulation.innerHTML = (parseFloat(item.M1) + parseFloat(item.M2) + parseFloat(item.M3)).toLocaleString() || '---';
+                cellRoad.innerHTML = (parseFloat(item.RTP1) + parseFloat(item.RTP2) + parseFloat(item.RTP3) + parseFloat(item.RTP4)).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) || '---';
+                cellHospital.innerHTML = (parseFloat(item.Hospital)).toLocaleString() || '---';
+                cellGDP.innerHTML = Math.floor((parseFloat(item.GDP))).toLocaleString() || '---';
+                cellCropLands.innerHTML = (parseFloat(item.crop_sqm)).toLocaleString() || '---';
 
                 if (cellLevel.innerHTML === 'Low') {
                     cellLevel.style.backgroundColor = lowColor;

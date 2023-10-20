@@ -405,35 +405,157 @@
                         <h4 class="fs-6 text-center">Flood risk up to 24.00 UTC (FFR+24)</h4>
                     </div>
                 </div>
-                <div class="col-md-8">
-                    <div class="card card-body remarks ps-4 pe-4 pt-5 pb-4">
+                <div class="col-md-8 me-0 pe-0">
+                    <div class="card card-body remarks ps-4 pe-4 pt-2 pb-2">
                         <h6 class="fs-6 fw-bold text-decoration-underline fst-italic">REMARKS</h6>
-                        <p class="pt-3"><span class="fw-bold fs-6">FFG - Flash Flood Guidance: </span>The amount of rainfall over a given duration (1, 3, 6
+                        <p class="pt-1 pb-1 m-0"><span class="fw-bold">FFG - Flash Flood Guidance: </span>The amount of rainfall over a given duration (1, 3, 6
                             hours) which is just enough to cause bank-full flow in the draining stream outlet.</p>
-                        <p><span class="fw-bold pt-2 fs-6">MAP - Mean Areal Precipitation: </span>Derived mean areal precipitation estimates from
+                        <p class="pt-1 pb-1 m-0"><span class="fw-bold" style="font-size: 10px;">MAP - Mean Areal Precipitation: </span>Derived mean areal precipitation estimates from
                             bias-adjusted Micro-Wave Global Hydro Estimator (MWGHE) and GHE.</p>
-                        <p><span class="fw-bold pt-2 fs-6">ASM - Average Soil Moisture: </span>Soil water saturation fraction (dimensionless ratio of
+                        <p class="pt-1 pb-1 m-0"><span class="fw-bold" style="font-size: 10px;">ASM - Average Soil Moisture: </span>Soil water saturation fraction (dimensionless ratio of
                             contents over capacity) for the upper zone (approximately 20-30 cm depth).</p>
-                        <p><span class="fw-bold pt-2 fs-6">FMAP - Forecast Mean Areal Precipitation: </span>Accumulations of forecasted mean areal
+                        <p class="pt-1 pb-1 m-0"><span class="fw-bold" style="font-size: 10px;">FMAP - Forecast Mean Areal Precipitation: </span>Accumulations of forecasted mean areal
                             precipitation produced by numerical forecasts from the Weather Research and
                             Forecasting (WRF) model. Each data product reflects basin-average precipitation
                             accumulations from the navigation hour over the corresponding interval.</p>
-                        <p><span class="fw-bold pt-2 fs-6">FFFT - Forecast Flash Flood Threat: </span>The difference between the predicted rainfall
+                        <p class="pt-1 pb-1 m-0"><span class="fw-bold" style="font-size: 10px;">FFFT - Forecast Flash Flood Threat: </span>The difference between the predicted rainfall
                             (FMAP) and the amount needed to reach the bank full stage (FFG). Basin/sub-basin
                             with a positive FFFT value is assumed to be an area with the potential for flash floods
                             in the given time range.</p>
-                        <p><span class="fw-bold pt-2 fs-6">FFR - Flash Flood Risk: </span>Products for forecast periods of 12, 24 and 36 hours (forecast
+                        <p class="pt-1 pb-1 m-0"><span class="fw-bold" style="font-size: 10px;">FFR - Flash Flood Risk: </span>Products for forecast periods of 12, 24 and 36 hours (forecast
                             periods 12 and 24 hours are shown in this bulletin). These products are computed
                             every six hours and measure the occurrence of positive forecast flash flood threat
                             (FMAP > FFG) over a given forecast period using forecast precipitation to drive the Soil
                             and FFG models.</p>
+                    </div>
+                    <div>
+                        <h3 class="fw-bold fs-6 pt-1">Note: Please be aware of the different color bar codes of each product.</h3>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <table class="table table-responsive" style="font-size: 10px;">
+                                    <thead>
+                                        <tr>
+                                            <th class="fw-bold">ASM (Average Soil Moisture)</th>
+                                            <th class="fw-bold">Classification</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td style="background: yellow;">0,01 < ASM < 0,65</td>
+                                            <td style="background: yellow;">Normal state</td>
+                                        </tr>
+                                        <tr>
+                                            <td style="background: palegreen;">0,65 < ASM < 0,9</td>
+                                            <td style="background: palegreen;">Nearly saturation state</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="text-white" style="background: darkblue;">0,9 < ASM ≤ 1</td>
+                                            <td class="text-white" style="background: darkblue;">Saturation state</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div class="col-md-6">
+                                <table class="table table-responsive" style="font-size: 10px;">
+                                    <thead>
+                                        <tr>
+                                            <th class="fw-bold">FFFT (Forecast Flash Flood Threat)</th>
+                                            <th class="fw-bold">(FFR) Flash Flood Risk </th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td style="background: yellow;">Low (Be Updated)</td>
+                                            <td style="background: yellow;">Low (Be Updated)</td>
+                                        </tr>
+                                        <tr>
+                                            <td style="background: orange;">Moderate (Be Prepared)</td>
+                                            <td style="background: orange;">Moderate (Be Prepared)</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="text-white" style="background: red;">High (Take Action)</td>
+                                            <td class="text-white" style="background: red;">High (Take Action)</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <table class="table table-responsive" style="font-size: 10px;">
+                                    <thead>
+                                        <tr>
+                                            <th colspan="2" class="fw-bold">MAP; FMAP (Precipitation)</th>
+                                            <th rowspan="2" class="fw-bold">Classification</th>
+                                        </tr>
+                                        <tr>
+                                            <th class="fw-bold">(mm/6hr)</th>
+                                            <th class="fw-bold">(mm/24hr)</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td class="text-white" style="background: rgb(6, 145, 232);">Rainfall < 7,5</td>
+                                            <td class="text-white" style="background: rgb(6, 145, 232);">< 10</td>
+                                            <td class="text-white" style="background: rgb(6, 145, 232);">Light rain</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="text-white" style="background: rgb(29, 29, 128);">7,5 < Rainfall ≤ 35</td>
+                                            <td class="text-white" style="background: rgb(29, 29, 128);">10 < Rainfall ≤ 50</td>
+                                            <td class="text-white" style="background: rgb(29, 29, 128);">Moderate rain</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="text-white" style="background: green;">35 < Rainfall ≤ 70</td>
+                                            <td class="text-white" style="background: green;">50 < Rainfall ≤ 100</td>
+                                            <td class="text-white" style="background: green;">Heavy rain</td>
+                                        </tr>
+                                        <tr>
+                                            <td style="background: yellow;">Rainfall > 70</td>
+                                            <td style="background: yellow;">Rainfall > 100</td>
+                                            <td style="background: yellow;">Very heavy rain</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div class="col-md-6">
+                                <table class="table table-responsive" style="font-size: 10px;">
+                                    <thead>
+                                        <tr>
+                                            <th class="fw-bold">FFG (Flash Flood Guidance)</th>
+                                            <th rowspan="2" class="fw-bold">Classification </th>
+                                        </tr>
+                                        <tr>
+                                            <th class="fw-bold">(mm/6hr)</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td class="text-white" style="background: rgb(232, 92, 192);">FFG ≤ 15</td>
+                                            <td class="text-white" style="background: rgb(232, 92, 192);">Extreme - risk</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="text-white" style="background: red;">15 < FFG ≤ 30</td>
+                                            <td class="text-white" style="background: red;">High risk</td>
+                                        </tr>
+                                        <tr>
+                                            <td style="background: yellow;">30 < FFG ≤ 60</td>
+                                            <td style="background: yellow;">Moderate - risk</td>
+                                        </tr>
+                                        <tr>
+                                            <td style="background: palegreen;">60 < FFG ≤ 100</td>
+                                            <td style="background: palegreen;">Low - risk </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
     </section>
 
-    <section id="default-section">
+    <!-- <section id="default-section">
         <div class="container-fluid pt-5">
             <div class="row ms-2 me-2">
                 <h3 class="fw-bold fs-4">Note: Please be aware of the different color bar codes of each product.</h3>
@@ -558,7 +680,7 @@
                 </div>
             </div>
         </div>
-    </section>
+    </section> -->
     
     <section class="table-section" id="KHMTableSection">
         {% include 'country-bulletin-pdf/cambodia.html' %}      
