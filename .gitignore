@@ -8,6 +8,7 @@ static/data/*
 
 #ignore settings
 ffgs/settings.py
+ffgs/key.py
 credentials/*
 
 #ignore db
