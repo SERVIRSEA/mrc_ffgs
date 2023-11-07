@@ -179,8 +179,9 @@ def get_risk_stat_12hrs(request):
     df2 = pd.read_csv(mrcffgs_data_path)
     df2 = df2[["BASIN", "FFR12"]]
     join_df = df1.merge(df2, on='BASIN', how='inner')
-    scols = join_df[['ISO', 'NAME_1', 'NAME_2', 'M1', 'M2', 'M3', 'F1', 'F2', 'F3', 'RTP1', 'RTP2', 'RTP3', 'RTP4', 'Hospital', 'GDP', 'crop_sqm', 'FFR12']]
+    scols = join_df[['ISO', 'ID_2', 'NAME_1', 'NAME_2', 'M1', 'M2', 'M3', 'F1', 'F2', 'F3', 'RTP1', 'RTP2', 'RTP3', 'RTP4', 'Hospital', 'GDP', 'crop_sqm', 'FFR12']]
     grouped_max = scols.groupby(['NAME_2']).agg({
+        'ID_2': 'first',
         'ISO': 'first',
         'NAME_1': 'first',
         'M1': 'sum',
@@ -238,9 +239,10 @@ def get_risk_stat_24hrs(request):
     df2 = pd.read_csv(mrcffgs_data_path)
     df2 = df2[["BASIN", "FFR24"]]
     join_df = df1.merge(df2, on='BASIN', how='inner')
-    scols = join_df[['ISO', 'NAME_1', 'NAME_2', 'M1', 'M2', 'M3', 'F1', 'F2', 'F3', 'RTP1', 'RTP2', 'RTP3', 'RTP4', 'Hospital', 'GDP', 'crop_sqm', 'FFR24']]
+    scols = join_df[['ISO', 'ID_2', 'NAME_1', 'NAME_2', 'M1', 'M2', 'M3', 'F1', 'F2', 'F3', 'RTP1', 'RTP2', 'RTP3', 'RTP4', 'Hospital', 'GDP', 'crop_sqm', 'FFR24']]
     grouped_max = scols.groupby(['NAME_2']).agg({
         'ISO': 'first',
+        'ID_2': 'first',
         'NAME_1': 'first',
         'M1': 'sum',
         'M2': 'sum',
@@ -262,8 +264,9 @@ def get_risk_stat_24hrs(request):
     grouped_max['Risk_24Hrs'] = pd.cut(grouped_max["FFR24"], bins=bins, labels=labels, right=True, ordered=False)
     grouped_max = grouped_max.replace('Invalid', np.nan)
     final_df = grouped_max.dropna(subset=['Risk_24Hrs'], how='all')
-    json = final_df.to_json(orient='records')
-    return JsonResponse(json, safe=False)
+    jsonData = final_df.to_json(orient='records')
+    print(jsonData)
+    return JsonResponse(jsonData, safe=False)
 
 @csrf_exempt
 @xframe_options_exempt

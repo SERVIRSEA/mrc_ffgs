@@ -133,6 +133,19 @@ document.addEventListener("DOMContentLoaded", function() {
     };
 
     function displayDetail(entry){
+        const riskLavel = document.querySelector("#risk_level");
+        if (entry.length==0){
+            return;
+        } else {
+            if (entry.Alert_6Hrs) {
+                riskLavel.innerHTML = entry.Alert_6Hrs;
+            } else if (entry.Risk_12Hrs) {
+                riskLavel.innerHTML = entry.Risk_12Hrs;
+            } else if (entry.Risk_24Hrs) {
+                riskLavel.innerHTML = entry.Risk_24Hrs;
+            }
+        }
+
         const dataKeyToElementIdMap = {
             "NAME_1": "province_name",
             "NAME_2": "subprovince_name",
@@ -171,6 +184,7 @@ document.addEventListener("DOMContentLoaded", function() {
         document.querySelector('#total_female_pop_subprvnc').innerHTML = totalFemale === 0 ? '---' : totalFemale;
         document.querySelector('#total_pop_subprvnc').innerHTML = totalPop === 0 ? '---' : totalPop;
 
+        
         elements.forEach(el => {
             // Find corresponding data key from the mapping using the element's ID
             const dataKey = Object.keys(dataKeyToElementIdMap).find(key => dataKeyToElementIdMap[key] === el.id);
@@ -303,6 +317,7 @@ document.addEventListener("DOMContentLoaded", function() {
             const sortedData = parsed_data.sort((a, b) => {
                 let propToSortBy;
 
+                
                 if (param === "6hrs") {
                     propToSortBy = "Alert_6Hrs";
                 } else if (param === "12hrs") {
@@ -327,6 +342,16 @@ document.addEventListener("DOMContentLoaded", function() {
             });
 
             sortedData.forEach(entry => {
+                let riskType;
+                
+                if (param === "6hrs") {
+                    riskType = entry.Alert_6Hrs;
+                } else if (param === "12hrs") {
+                    riskType = entry.Risk_12Hrs;
+                } else if (param === "24hrs") {
+                    riskType = entry.Risk_24Hrs;
+                }
+
                 const rowDiv = document.createElement('div');
                 rowDiv.className = "row mb-2";
             
@@ -334,14 +359,14 @@ document.addEventListener("DOMContentLoaded", function() {
                 circleDiv.className = "col-sm-3";
                 const circle = document.createElement('p');
                 circle.className = 'circle';
-                circle.style.backgroundColor = alertColors[entry.Alert_6Hrs];
+                circle.style.backgroundColor = alertColors[riskType];
                 circleDiv.appendChild(circle);
                 
                 const detailsDiv = document.createElement('div');
                 detailsDiv.className = "col-sm-9";
                 const riskHeader = document.createElement('h5');
                 riskHeader.className = 'card-title fw-bold';
-                riskHeader.textContent = `${entry.Alert_6Hrs} Risk`;
+                riskHeader.textContent = `${riskType} Risk`;
                 detailsDiv.appendChild(riskHeader);
                 const countryDetail = document.createElement('p');
                 countryDetail.innerHTML = `Country: <span>${entry.ISO}</span><br>Subprovince: <span>${entry.NAME_2}</span>`;
@@ -393,6 +418,8 @@ document.addEventListener("DOMContentLoaded", function() {
     async function updateSubProvinceMap(param, parsedData){
         // const parsedData = JSON.parse(dataToProcess);
         const subProvinceData = await getsubProvinceData();
+
+        // console.log(subProvinceData);
     
         function getAlertValueById(param, fid) {
             const filtered = parsedData.find(item => item.ID_2 === fid);
@@ -409,6 +436,7 @@ document.addEventListener("DOMContentLoaded", function() {
         }
     
         function getColorbyCategory(cat) {
+            // console.log(cat)
             switch(cat) {
                 case 'Low':
                     return 'yellow';
@@ -507,6 +535,7 @@ document.addEventListener("DOMContentLoaded", function() {
         } else {
             parsedData =  parsedData.filter(item => item.ISO === selectedCountry); 
         }
+        // console.log(parsedData);
         updateTable(param, parsedData);
         updateSubProvinceMap("FFR24", parsedData);
     });
