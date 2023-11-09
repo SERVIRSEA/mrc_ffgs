@@ -126,8 +126,9 @@ def mrcffgs_api(request):
                 df2 = pd.read_csv(mrcffgs_data_path)
                 df2 = df2[["BASIN", "FFR12"]]
                 join_df = df1.merge(df2, on='BASIN', how='inner')
-                scols = join_df[['ISO', 'NAME_1', 'NAME_2', 'M1', 'M2', 'M3', 'F1', 'F2', 'F3', 'RTP1', 'RTP2', 'RTP3', 'RTP4', 'Hospital', 'GDP', 'crop_sqm', 'FFR12']]
+                scols = join_df[['ID_2', 'ISO', 'NAME_1', 'NAME_2', 'M1', 'M2', 'M3', 'F1', 'F2', 'F3', 'RTP1', 'RTP2', 'RTP3', 'RTP4', 'Hospital', 'GDP', 'crop_sqm', 'FFR12']]
                 grouped_max = scols.groupby(['NAME_2']).agg({
+                    'ID_2': 'first',
                     'ISO': 'first',
                     'NAME_1': 'first',
                     'M1': 'sum',
@@ -165,8 +166,9 @@ def mrcffgs_api(request):
                 df2 = pd.read_csv(mrcffgs_data_path)
                 df2 = df2[["BASIN", "FFR24"]]
                 join_df = df1.merge(df2, on='BASIN', how='inner')
-                scols = join_df[['ISO', 'NAME_1', 'NAME_2', 'M1', 'M2', 'M3', 'F1', 'F2', 'F3', 'RTP1', 'RTP2', 'RTP3', 'RTP4', 'Hospital', 'GDP', 'crop_sqm', 'FFR24']]
+                scols = join_df[['ID_2', 'ISO', 'NAME_1', 'NAME_2', 'M1', 'M2', 'M3', 'F1', 'F2', 'F3', 'RTP1', 'RTP2', 'RTP3', 'RTP4', 'Hospital', 'GDP', 'crop_sqm', 'FFR24']]
                 grouped_max = scols.groupby(['NAME_2']).agg({
+                    'ID_2': 'first',
                     'ISO': 'first',
                     'NAME_1': 'first',
                     'M1': 'sum',
