@@ -54,6 +54,7 @@ def mrcffgs_api(request):
 
     if action:
         request_methods = [
+            'get-date-list',
             'get-bulletin-summary',
             'get-stat-6hrs',
             'get-stat-12hrs',
@@ -65,8 +66,14 @@ def mrcffgs_api(request):
             date_str = request.query_params.get('date', '')
             hrs = request.query_params.get('hrs', '')
             formatted_date = date_str.replace('-', '')
+
+            if action == 'get-date-list':
+                data = datelist
+                df = pd.read_csv(data, header=None, encoding='utf-8-sig')
+                json = df.to_json(orient='values')
+                return Response(json)
    
-            if action == 'get-bulletin-summary':
+            elif action == 'get-bulletin-summary':
                 bulletin = Bulletin.objects.order_by('-created_at').first()
                 serializer = BulletinSerializer(bulletin)
                 return Response(serializer.data)
@@ -195,37 +202,37 @@ def mrcffgs_api(request):
                 return Response(json)
     return Response({"error": "Invalid or no action provided."}, status=400)
 
-def get_mrcffgs_data_path(date_string):
-    base_path = mrcffgs
-    date_object = datetime.strptime(date_string, '%Y-%m-%d')
-    year = date_object.year
-    data_path = f"{base_path}/{year}/csv/"
-    return data_path
+# def get_mrcffgs_data_path(date_string):
+#     base_path = mrcffgs
+#     date_object = datetime.strptime(date_string, '%Y-%m-%d')
+#     year = date_object.year
+#     data_path = f"{base_path}/{year}/csv/"
+#     return data_path
 
-def get_mrcffg_value(request):
-    param = request.GET.get('param')
-    date_str = request.GET.get("date")
-    formatted_date = date_str.replace("-", "")
-    hrs = request.GET.get("hrs")
-    get_data_path = get_mrcffgs_data_path(date_str)
-    data = get_data_path+"mrcffg_"+formatted_date+hrs+".csv"
-    df = pd.read_csv(data)
-    selected_col = df[["BASIN", param]]
-    data = selected_col.to_json(orient='records')
-    return Response(data)
-
-
-def get_mrcffg_bulletin_data(request):
-    # Your logic from get_mrcffg_bulletin_data
-    date_str = request.GET.get("date")
-    # ... and so on, till the end
-    data = selected_col.to_json(orient='records')
-    return Response(data)
+# def get_mrcffg_value(request):
+#     param = request.GET.get('param')
+#     date_str = request.GET.get("date")
+#     formatted_date = date_str.replace("-", "")
+#     hrs = request.GET.get("hrs")
+#     get_data_path = get_mrcffgs_data_path(date_str)
+#     data = get_data_path+"mrcffg_"+formatted_date+hrs+".csv"
+#     df = pd.read_csv(data)
+#     selected_col = df[["BASIN", param]]
+#     data = selected_col.to_json(orient='records')
+#     return Response(data)
 
 
-def get_alert_stat_6hrs(request):
-    # Your logic from get_alert_stat_6hrs
-    static_data_path = mekongxray
-    # ... and so on, till the end
-    json = final_df.to_json(orient='records')
-    return Response(json)
+# def get_mrcffg_bulletin_data(request):
+#     # Your logic from get_mrcffg_bulletin_data
+#     date_str = request.GET.get("date")
+#     # ... and so on, till the end
+#     data = selected_col.to_json(orient='records')
+#     return Response(data)
+
+
+# def get_alert_stat_6hrs(request):
+#     # Your logic from get_alert_stat_6hrs
+#     static_data_path = mekongxray
+#     # ... and so on, till the end
+#     json = final_df.to_json(orient='records')
+#     return Response(json)
