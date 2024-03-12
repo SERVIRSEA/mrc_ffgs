@@ -381,7 +381,7 @@ document.addEventListener("DOMContentLoaded", function() {
     }
 
     const bulletin_map_data = {};
-    const bulletin_map_data_url = '/get-mrcffg-bulletin-map-data/';
+    const bulletin_map_data_url = '/get-seaffgs-bulletin-map-data/';
 
     async function getBulletinMapData(date, hrs) {
         try {

@@ -11,10 +11,10 @@ from .models import Bulletin
 from datetime import datetime
 import os
 import subprocess
-from django.http import FileResponse
+from django.http import FileResponse, HttpResponse
 
 datelist = settings.DATELIST_PATH
-mrcffgs = settings.MRCFFGS_PATH
+seaffgs = settings.SEAFFGS_DATA_PATH
 mekongxray = settings.MEKONGXRAY_PATH
 events_country = settings.EVENTS_COUNTRYWISE_PATH
 storms = settings.STORMS_DATA_PATH
@@ -33,37 +33,66 @@ class BulletinPage(TemplateView):
         context['bulletin_summary'] = Bulletin.objects.order_by('-created_at')[0]
         return context
 
-def get_mrcffgs_data_path(date_string):
-    base_path = mrcffgs
+def get_seaffgs_data_path(date_string):
+    base_path = seaffgs
     date_object = datetime.strptime(date_string, '%Y-%m-%d')
     year = date_object.year
-    data_path = f"{base_path}/{year}/csv/"
+    month = date_object.strftime('%m')  # Format month with leading zero
+    day = date_object.strftime('%d')    # Format day with leading zero
+    data_path = f"{base_path}/{year}/{month}/{day}"
     return data_path
+
+selected_columns = ["BASIN","MAP06","MAP24", "ASMU01", "FFG01","FFG03","FFG06", "F2MAP01","F2MAP03","F2MAP06","F2MAP24", "F2FFT01","F2FFT03","F2FFT06", "F2FFR12","F2FFR24"]
+
+rename_mapping = {
+    "ASMU01": "ASMT",
+    "F2MAP01": "FMAP01",
+    "F2MAP03": "FMAP03",
+    "F2MAP06": "FMAP06",
+    "F2MAP24": "FMAP24",
+    "F2FFT01": "FFFT01",
+    "F2FFT03": "FFFT03",
+    "F2FFT06": "FFFT06",
+    "F2FFR12": "FFR12",
+    "F2FFR24": "FFR24"
+}
 
 @csrf_exempt
 @xframe_options_exempt
-def get_mrcffg_value(request):
+def get_datelist(request):
+    data = datelist
+    df = pd.read_csv(data, header=None, encoding='utf-8-sig')
+    json = df.to_json(orient='values')
+    return JsonResponse(json, safe=False)
+
+@csrf_exempt
+@xframe_options_exempt
+def get_seaffgs_value(request):
     param = request.GET.get('param')
     date_str = request.GET.get("date")
     formatted_date = date_str.replace("-", "")
     hrs = request.GET.get("hrs")
-    get_data_path = get_mrcffgs_data_path(date_str)
-    data = get_data_path+"mrcffg_"+formatted_date+hrs+".csv"
-    df = pd.read_csv(data)
-    selected_col = df[["BASIN", param]]
+    get_data_path = get_seaffgs_data_path(date_str)
+    data_path = f'{get_data_path}/{formatted_date}{hrs}.csv.gz'
+    df = pd.read_csv(data_path)
+    filtered_df = df[selected_columns] 
+    renamed_cols = filtered_df.rename(columns=rename_mapping)
+    selected_col = renamed_cols[["BASIN", param]]
     data = selected_col.to_json(orient='records')
     return JsonResponse(data, safe=False)
 
 @csrf_exempt
 @xframe_options_exempt
-def get_mrcffg_bulletin_data(request):
+def get_seaffgs_bulletin_data(request):
     date_str = request.GET.get("date")
     formatted_date = date_str.replace("-", "")
     hrs = request.GET.get("hrs")
-    get_data_path = get_mrcffgs_data_path(date_str)
-    data = get_data_path+"mrcffg_"+formatted_date+hrs+".csv"
-    df = pd.read_csv(data)
-    selected_col = df[["BASIN", "ASMT", "MAP24", "FMAP06", "FFG06", "FFFT06", "FFR12", "FFR24"]]
+    get_data_path = get_seaffgs_data_path(date_str)
+    data_path = f'{get_data_path}/{formatted_date}{hrs}.csv.gz'
+    df = pd.read_csv(data_path)
+    filtered_df = df[selected_columns] 
+    renamed_cols = filtered_df.rename(columns=rename_mapping)
+    selected_col = renamed_cols[["BASIN", "ASMT", "MAP24", "FMAP06", "FFG06", "FFFT06", "FFR12", "FFR24"]]
     data = selected_col.to_json(orient='records')
     return JsonResponse(data, safe=False)
 
@@ -105,17 +134,19 @@ def get_alert_stat_6hrs(request):
         date_str = request.GET.get("date")
         formatted_date = date_str.replace("-", "")
         hrs = request.GET.get("hrs")
-        get_data_path = get_mrcffgs_data_path(date_str)
-        mrcffgs_data_path = get_data_path+"mrcffg_"+formatted_date+hrs+".csv"
+        get_data_path = get_seaffgs_data_path(date_str)
+        seaffgs_data_path = f'{get_data_path}/{formatted_date}{hrs}.csv.gz'
         df1 = pd.read_csv(static_data_path)
         df1[int_columns] = df1[int_columns].astype(int)
         df1[float_columns] = df1[float_columns].astype(float)
         df1[float_round_0_cols] = df1[float_round_0_cols].round(0)
         df1[float_round_2_cols] = df1[float_round_2_cols].round(2)
         df1.rename(columns={'value': 'BASIN'}, inplace=True)
-        df2 = pd.read_csv(mrcffgs_data_path)
-        df2 = df2[["BASIN", "FFG06", "FFFT06"]]
-        join_df = df1.merge(df2, on='BASIN', how='inner')
+        df2 = pd.read_csv(seaffgs_data_path)
+        filtered_df2 = df2[selected_columns] 
+        renamed_cols2 = filtered_df2.rename(columns=rename_mapping)
+        s_df2 = renamed_cols2[["BASIN", "FFG06", "FFFT06"]]
+        join_df = df1.merge(s_df2, on='BASIN', how='inner')
         scols_ffg = join_df[['ID_2', 'ISO', 'NAME_1', 'NAME_2', 'M1', 'M2', 'M3', 'F1', 'F2', 'F3', 'RTP1', 'RTP2', 'RTP3', 'RTP4', 'Hospital', 'GDP', 'crop_sqm', 'FFG06']]
         scols_ffft = join_df[['NAME_2', 'FFFT06']]
         grouped_max_FFG = scols_ffg.groupby(['NAME_2']).agg({
@@ -168,17 +199,19 @@ def get_risk_stat_12hrs(request):
     date_str = request.GET.get("date")
     formatted_date = date_str.replace("-", "")
     hrs = request.GET.get("hrs")
-    get_data_path = get_mrcffgs_data_path(date_str)
-    mrcffgs_data_path = get_data_path+"mrcffg_"+formatted_date+hrs+".csv"
+    get_data_path = get_seaffgs_data_path(date_str)
+    seaffgs_data_path = f'{get_data_path}/{formatted_date}{hrs}.csv.gz'
     df1 = pd.read_csv(static_data_path)
     df1[int_columns] = df1[int_columns].astype(int)
     df1[float_columns] = df1[float_columns].astype(float)
     df1[float_round_0_cols] = df1[float_round_0_cols].round(0)
     df1[float_round_2_cols] = df1[float_round_2_cols].round(2)
     df1.rename(columns={'value': 'BASIN'}, inplace=True)
-    df2 = pd.read_csv(mrcffgs_data_path)
-    df2 = df2[["BASIN", "FFR12"]]
-    join_df = df1.merge(df2, on='BASIN', how='inner')
+    df2 = pd.read_csv(seaffgs_data_path)
+    filtered_df2 = df2[selected_columns] 
+    renamed_cols2 = filtered_df2.rename(columns=rename_mapping)
+    s_df2 = renamed_cols2[["BASIN", "FFR12"]]
+    join_df = df1.merge(s_df2, on='BASIN', how='inner')
     scols = join_df[['ISO', 'ID_2', 'NAME_1', 'NAME_2', 'M1', 'M2', 'M3', 'F1', 'F2', 'F3', 'RTP1', 'RTP2', 'RTP3', 'RTP4', 'Hospital', 'GDP', 'crop_sqm', 'FFR12']]
     grouped_max = scols.groupby(['NAME_2']).agg({
         'ID_2': 'first',
@@ -228,17 +261,19 @@ def get_risk_stat_24hrs(request):
     date_str = request.GET.get("date")
     formatted_date = date_str.replace("-", "")
     hrs = request.GET.get("hrs")
-    get_data_path = get_mrcffgs_data_path(date_str)
-    mrcffgs_data_path = get_data_path+"mrcffg_"+formatted_date+hrs+".csv"
+    get_data_path = get_seaffgs_data_path(date_str)
+    seaffgs_data_path = f'{get_data_path}/{formatted_date}{hrs}.csv.gz'
     df1 = pd.read_csv(static_data_path)
     df1[int_columns] = df1[int_columns].astype(int)
     df1[float_columns] = df1[float_columns].astype(float)
     df1[float_round_0_cols] = df1[float_round_0_cols].round(0)
     df1[float_round_2_cols] = df1[float_round_2_cols].round(2)
     df1.rename(columns={'value': 'BASIN'}, inplace=True)
-    df2 = pd.read_csv(mrcffgs_data_path)
-    df2 = df2[["BASIN", "FFR24"]]
-    join_df = df1.merge(df2, on='BASIN', how='inner')
+    df2 = pd.read_csv(seaffgs_data_path)
+    filtered_df2 = df2[selected_columns] 
+    renamed_cols2 = filtered_df2.rename(columns=rename_mapping)
+    s_df2 = renamed_cols2[["BASIN", "FFR24"]]
+    join_df = df1.merge(s_df2, on='BASIN', how='inner')
     scols = join_df[['ISO', 'ID_2', 'NAME_1', 'NAME_2', 'M1', 'M2', 'M3', 'F1', 'F2', 'F3', 'RTP1', 'RTP2', 'RTP3', 'RTP4', 'Hospital', 'GDP', 'crop_sqm', 'FFR24']]
     grouped_max = scols.groupby(['NAME_2']).agg({
         'ISO': 'first',
@@ -265,7 +300,7 @@ def get_risk_stat_24hrs(request):
     grouped_max = grouped_max.replace('Invalid', np.nan)
     final_df = grouped_max.dropna(subset=['Risk_24Hrs'], how='all')
     jsonData = final_df.to_json(orient='records')
-    print(jsonData)
+    # print(jsonData)
     return JsonResponse(jsonData, safe=False)
 
 @csrf_exempt
@@ -291,22 +326,14 @@ def get_storms_number_by_country(request):
 
 @csrf_exempt
 @xframe_options_exempt
-def get_datelist(request):
-    data = datelist
-    df = pd.read_csv(data, header=None, encoding='utf-8-sig')
-    json = df.to_json(orient='values')
-    return JsonResponse(json, safe=False)
-
-@csrf_exempt
-@xframe_options_exempt
 def get_basin_chart(request):
     basin_id = request.GET.get("basin_id")
     date_str = request.GET.get("date")
     formatted_date = date_str.replace("-", "")
     hrs = request.GET.get("hrs")
-    get_data_path = get_mrcffgs_data_path(date_str)
-    mrcffgs_data_path = get_data_path+"mrcffg_"+formatted_date+hrs+".csv"
-    df = pd.read_csv(mrcffgs_data_path)
+    get_data_path = get_seaffgs_data_path(date_str)
+    seaffgs_data_path = f'{get_data_path}/{formatted_date}{hrs}.csv.gz'
+    df = pd.read_csv(seaffgs_data_path)
     df = df[["BASIN", "FFG01", "FFG03", "FFG06"]]
     selected_basin = df[df['BASIN'] == int(basin_id)]
     json = selected_basin.to_json(orient='records')
@@ -326,3 +353,298 @@ def pdf_template_view(request):
         'bulletin_summary': bulletin_summary
     }
     return render(request, "pdf_template.html", context)
+
+colors = {
+    'yellow': '#FFFF00',
+    'lightGreen': '#90EE90',
+    'lightBlue': '#ADD8E6',
+    'blue': '#0000FF',
+    'orange': '#FFA500',
+    'red': '#FF0000',
+    'deepSkyBlue': '#00BFFF',
+    'green': '#008000',
+    'violet': '#EE82EE',
+    'white': '#FFFFFF'
+}
+
+styles = {
+    'ASMT': [
+        {'min': 0.01, 'max': 0.65, 'color': colors['yellow']},
+        {'min': 0.65, 'max': 0.9, 'color': colors['lightGreen']},
+        {'min': 0.9, 'max': 1.0, 'color': colors['blue']},
+    ],
+    # Define other styles...
+}
+
+def map_param_to_color(row, param):
+    for style_name, rules in styles.items():
+        if row[param] >= rules[0]['min'] and (row[param] < rules[-1].get('max', float('inf')) if len(rules) > 1 else True):
+            return [rule['color'] for rule in rules][0]
+
+def add_color_column(df, param):
+    df['color'] = df.apply(lambda row: map_param_to_color(row, param), axis=1)
+    return df
+
+def create_basin_groups(df):
+    basin_groups = {}
+    for index, row in df.iterrows():
+        basin = row['BASIN']
+        color = row['color']
+        if color not in basin_groups:
+            basin_groups[color] = []
+        basin_groups[color].append(basin)
+    return basin_groups
+
+@csrf_exempt
+@xframe_options_exempt
+def extract_seaffgs_value(request):
+    param = request.GET.get('param')
+    date_str = request.GET.get("date")
+    formatted_date = date_str.replace("-", "")
+    hrs = request.GET.get("hrs")
+    get_data_path = get_seaffgs_data_path(date_str)
+    data_path = f'{get_data_path}/{formatted_date}{hrs}.csv.gz'
+    df = pd.read_csv(data_path)
+    filtered_df = df[selected_columns] 
+    renamed_cols = filtered_df.rename(columns=rename_mapping)
+    selected_col = renamed_cols[["BASIN", param]]
+    selected_col_with_color = add_color_column(selected_col, param)
+    # Creating groups of basins for each color
+    basin_groups = create_basin_groups(selected_col_with_color)
+
+    # Now 'basin_groups' contains basins grouped by color
+    for color, basins in basin_groups.items():
+        print(f"Color: {color}, Basins: {basins}")
+    # data = selected_col_with_color.to_json(orient='records')
+    # return JsonResponse(data, safe=False)
+    return JsonResponse(basin_groups, safe=False)
+
+def generate_sld_content(id_cats_red, id_cats_green, id_cats_yellow):
+    red_rules = ''.join([
+        f"""
+        <Rule>
+            <Name>{category}Rule</Name>
+            <Title>{category} Polygon</Title>
+            <Abstract>A polygon with a red fill for {category}</Abstract>
+            <PolygonSymbolizer>
+                <Fill>
+                    <CssParameter name="fill">#FF0000</CssParameter>
+                </Fill>
+            </PolygonSymbolizer>
+            <ogc:Filter>
+                <ogc:PropertyIsEqualTo>
+                    <ogc:PropertyName>ID_CAT</ogc:PropertyName>
+                    <ogc:Literal>{category}</ogc:Literal>
+                </ogc:PropertyIsEqualTo>
+            </ogc:Filter>
+        </Rule>
+        """ for category in id_cats_red
+    ])
+
+    green_rules = ''.join([
+        f"""
+        <Rule>
+            <Name>{category}Rule</Name>
+            <Title>{category} Polygon</Title>
+            <Abstract>A polygon with a red fill for {category}</Abstract>
+            <PolygonSymbolizer>
+                <Fill>
+                    <CssParameter name="fill">#00FFFF</CssParameter>
+                </Fill>
+            </PolygonSymbolizer>
+            <ogc:Filter>
+                <ogc:PropertyIsEqualTo>
+                    <ogc:PropertyName>ID_CAT</ogc:PropertyName>
+                    <ogc:Literal>{category}</ogc:Literal>
+                </ogc:PropertyIsEqualTo>
+            </ogc:Filter>
+        </Rule>
+        """ for category in id_cats_green
+    ])
+
+    yellow_rules = ''.join([
+        f"""
+        <Rule>
+            <Name>{category}Rule</Name>
+            <Title>{category} Polygon</Title>
+            <Abstract>A polygon with a yellow fill for {category}</Abstract>
+            <PolygonSymbolizer>
+                <Fill>
+                    <CssParameter name="fill">#FFFF00</CssParameter>
+                </Fill>
+            </PolygonSymbolizer>
+            <ogc:Filter>
+                <ogc:PropertyIsEqualTo>
+                    <ogc:PropertyName>ID_CAT</ogc:PropertyName>
+                    <ogc:Literal>{category}</ogc:Literal>
+                </ogc:PropertyIsEqualTo>
+            </ogc:Filter>
+        </Rule>
+        """ for category in id_cats_yellow
+    ])
+
+    # print("Red Rules:", red_rules)
+    # print("Green Rules:", green_rules)
+    # print("Yellow Rules:", yellow_rules)
+
+    sld_content = f"""
+    <?xml version="1.0" encoding="UTF-8"?>
+    <StyledLayerDescriptor version="1.0.0" 
+        xsi:schemaLocation="http://www.opengis.net/sld StyledLayerDescriptor.xsd" 
+        xmlns="http://www.opengis.net/sld" 
+        xmlns:ogc="http://www.opengis.net/ogc" 
+        xmlns:xlink="http://www.w3.org/1999/xlink" 
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        <!-- a Named Layer is the basic building block of an SLD document -->
+        <NamedLayer>
+            <Name>mrc_basin_v2</Name>
+            <UserStyle>
+                <!-- Styles can have names, titles, and abstracts -->
+                <Title>Default Polygon</Title>
+                <Abstract>A sample style that draws a polygon</Abstract>
+                <!-- FeatureTypeStyles describe how to render different features -->
+                <!-- A FeatureTypeStyle for rendering polygons -->
+                <FeatureTypeStyle>
+                    {green_rules}
+                    {yellow_rules}
+                </FeatureTypeStyle>
+            </UserStyle>
+        </NamedLayer>
+    </StyledLayerDescriptor>
+    """
+    return sld_content
+
+# def generate_sld_content(categories_by_group):
+#     colors = ['#FF0000', '#00FF00', '#0000FF']  # Example colors: Red, Green, Blue
+
+#     rules = ''
+#     for i, category_group in enumerate(categories_by_group):
+#         # Construct the list of literal values for the PropertyIsIn filter
+#         literal_values = ''.join([f"<ogc:Literal>{category}</ogc:Literal>" for category in category_group])
+
+#         # Use a different color for each group
+#         color = colors[i]
+
+#         rules += f"""
+#             <Rule>
+#                 <Name>Group{i+1}Rule</Name>
+#                 <Title>Group {i+1} Polygon</Title>
+#                 <Abstract>A polygon with a {color} fill for group {i+1}</Abstract>
+#                 <PolygonSymbolizer>
+#                     <Fill>
+#                         <CssParameter name="fill">{color}</CssParameter>
+#                     </Fill>
+#                 </PolygonSymbolizer>
+#                 <ogc:Filter>
+#                     <ogc:PropertyIsIn>
+#                         <ogc:PropertyName>ID_CAT</ogc:PropertyName>
+#                         {literal_values}
+#                     </ogc:PropertyIsIn>
+#                 </ogc:Filter>
+#             </Rule>
+#             """
+
+#     sld_content = f"""
+#     <?xml version="1.0" encoding="UTF-8"?>
+#     <StyledLayerDescriptor version="1.1.1"
+#         xmlns="http://www.opengis.net/sld"
+#         xmlns:ogc="http://www.opengis.net/ogc"
+#         xmlns:xlink="http://www.w3.org/1999/xlink"
+#         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+#         xsi:schemaLocation="http://www.opengis.net/sld StyledLayerDescriptor.xsd">
+#         <NamedLayer>
+#             <Name>YourLayerName</Name>
+#             <UserStyle>
+#                 <Title>Custom Polygon</Title>
+#                 <Abstract>A sample style that draws a polygon</Abstract>
+#                 <FeatureTypeStyle>
+#                     {rules}
+#                 </FeatureTypeStyle>
+#             </UserStyle>
+#         </NamedLayer>
+#     </StyledLayerDescriptor>
+#     """
+#     return sld_content
+
+
+@csrf_exempt
+@xframe_options_exempt
+def generate_sld(request):
+    red_cats = ["2054245454", "2054245704"]
+    green_cats = ["2054247047", "2054247063"]
+    yellow_cats = ["2054245431", "2054245209", "2055740499", "2055740508" ]
+    # id_cats = ["2054245454", "2054245704"]
+    id_cats = [
+        "2055739754", "2055739760", "2055740326", "2055740327"   
+    ]
+    sld_content = generate_sld_content(id_cats_red=red_cats, id_cats_green=id_cats, id_cats_yellow=yellow_cats)
+    
+    # categories_group1 = ["2055739754", "2055739760", "2055740326"]  # Example categories in group 1
+    # categories_group2 = ["2055740327", "2055740499", "2055740508"]  # Example categories in group 2
+    # categories_group3 = ["2055740510", "2055740513", "2055740514"]  # Example categories in group 3
+
+    # categories_by_group = [categories_group1, categories_group2, categories_group3]
+
+    # sld_content = generate_sld_content(categories_by_group)
+    
+    # id_cats = ["2054245454", "2054245704"]
+    # sld_content = generate_sld_content(id_cats)
+    # # Get filter parameters from the request
+    # filter_param = request.GET.get('filter_param')
+
+    # # Generate your SLD here dynamically based on the filter parameter
+    # # For simplicity, let's assume the filter parameter is used to change the fill color
+    # if filter_param == 'value1':
+    #     fill_color = '#FF0000'  # Red color
+    # elif filter_param == 'value2':
+    #     fill_color = '#00FF00'  # Green color
+    # else:
+    # #     fill_color = '#0000FF'  # Blue color
+    # fill_color = '#7EFD81'
+
+    # # Construct the SLD content with the dynamic fill color
+    # sld_content = f"""
+    #     <?xml version="1.0" encoding="UTF-8"?>
+    #         <StyledLayerDescriptor version="1.0.0" 
+    #         xsi:schemaLocation="http://www.opengis.net/sld StyledLayerDescriptor.xsd" 
+    #         xmlns="http://www.opengis.net/sld" 
+    #         xmlns:ogc="http://www.opengis.net/ogc" 
+    #         xmlns:xlink="http://www.w3.org/1999/xlink" 
+    #         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    #         <!-- a Named Layer is the basic building block of an SLD document -->
+    #         <NamedLayer>
+    #             <Name>mrc_basin_v2</Name>
+    #             <UserStyle>
+    #             <!-- Styles can have names, titles and abstracts -->
+    #             <Title>Default Polygon</Title>
+    #             <Abstract>A sample style that draws a polygon</Abstract>
+    #             <!-- FeatureTypeStyles describe how to render different features -->
+    #             <!-- A FeatureTypeStyle for rendering polygons -->
+    #             <FeatureTypeStyle>
+    #                 <Rule>
+    #                 <Name>rule1</Name>
+    #                 <Title>Gray Polygon with Black Outline</Title>
+    #                 <Abstract>A polygon with a gray fill and a 1 pixel black outline</Abstract>
+    #                 <PolygonSymbolizer>
+    #                     <Fill>
+    #                     <CssParameter name="fill">{fill_color}</CssParameter>
+    #                     </Fill>
+    #                     <Stroke>
+    #                     <CssParameter name="stroke">#000000</CssParameter>
+    #                     <CssParameter name="stroke-width">1</CssParameter>
+    #                     </Stroke>
+    #                 </PolygonSymbolizer>
+    #                 </Rule>
+    #             </FeatureTypeStyle>
+    #             </UserStyle>
+    #         </NamedLayer>
+    #     </StyledLayerDescriptor>
+    # """
+
+    
+    # Example usage:
+    # id_cats = ["2054245454", "2054245704"]
+    # sld_content = generate_sld_content(id_cats)
+    # Return the SLD content as an XML response
+    response = HttpResponse(sld_content, content_type='application/xml')
+    return response

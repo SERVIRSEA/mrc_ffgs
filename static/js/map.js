@@ -54,6 +54,28 @@ document.addEventListener("DOMContentLoaded", function() {
         position:'bottomright'
     }).addTo(map);
 
+    // fetch('/get-sld/')
+    // .then(response => response.text())
+    // .then(sldContent => {
+        
+    //     // Create a WMS layer with the dynamically generated SLD
+    //     // http://216.218.240.196:8080/geoserver/ffgs/wms?
+    //     // http://localhost:8080/geoserver/postgis/wms?
+    //     const wmsLayer = L.tileLayer.wms('http://localhost:8080/geoserver/postgis/wms?', {
+    //         // layers: 'ffgs:mrc_basin_v2',
+    //         layers: 'postgis:mrc_basin_v2',
+    //         format: 'image/png',
+    //         transparent: false,
+    //         sld_body: sldContent
+    //     });
+
+    //     // Add the WMS layer to the map
+    //     wmsLayer.addTo(map);
+    // })
+    // .catch(error => {
+    //     console.error('Error fetching SLD:', error);
+    // });
+
     var rightSidebarBtn = document.querySelector('#rightSidebar');
     var rightSidebarContent = document.querySelector('#rightSidebarContent');
     var rightSidebarCloseBtn  = document.querySelector('#close-sidebar-content-right');
@@ -386,7 +408,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
     // Subprovince map
     const subProvinceCache = {};
-    const subprovince_url  = '/static/data/subprovincesFFGS_MK.geojson';
+    const subprovince_url  = '/static/data/adm2_mekong.geojson';
 
     async function getsubProvinceData() {
         try {
@@ -450,7 +472,7 @@ document.addEventListener("DOMContentLoaded", function() {
         }
     
         function defineStyle(param, feature){
-            const fid = feature.properties.ID_2;
+            const fid = feature.properties.AREA_ID;
             const cat = getAlertValueById(param, fid);
             const color = getColorbyCategory(cat);
             let defaultStyle = { color: "#000", weight: 1, opacity: 1, fillOpacity: 1 };
@@ -477,7 +499,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
         async function onSubProvinceClick(e) {
             const clickedFeature = e.target.feature;
-            const fid = clickedFeature.properties.ID_2;
+            const fid = clickedFeature.properties.AREA_ID;
             const filteredData = parsedData.filter(item => item.ID_2 === fid);
             const entry = filteredData[0]
             displayDetail(entry);
@@ -542,7 +564,7 @@ document.addEventListener("DOMContentLoaded", function() {
     
     // Basin Map
     var mrcBasinDataCache = {};
-    const basin_url = '/static/data/mekong_mrcffg_basins.geojson';
+    const basin_url = '/static/data/mrc_basin_simplified2.geojson';
 
     async function getMRCBasinData() {
         try {
@@ -558,6 +580,23 @@ document.addEventListener("DOMContentLoaded", function() {
         }
     }
 
+    // var mrcBasinDataCache = {};
+    // const basin_url = 'http://216.218.240.196:8080/geoserver/wfs?service=WFS&version=1.0.0&request=GetFeature&typeName=ffgs:mrc_basin_v2&outputFormat=application/json';
+
+    // async function getMRCBasinData() {
+    //     try {
+    //         if (mrcBasinDataCache[basin_url]) {
+    //             return mrcBasinDataCache[basin_url];
+    //         }
+    //         const response = await fetch(basin_url);
+    //         const data = await response.json();
+    //         mrcBasinDataCache[basin_url] = data;
+    //         return data;
+    //     } catch (error) {
+    //         console.error('Error:', error);
+    //     }
+    // }
+
     let mrcffgDataCache = {};
 
     async function getMRCFFGData(param, selectedDate, selectedHrs) {
@@ -567,7 +606,7 @@ document.addEventListener("DOMContentLoaded", function() {
                 clearBootstrapAlert();
                 return mrcffgDataCache[cacheKey];
             }
-            const mrcffg_url = `/get_mrcffg_value/?param=${param}&date=${selectedDate}&hrs=${selectedHrs}`;
+            const mrcffg_url = `/get-seaffgs-value/?param=${param}&date=${selectedDate}&hrs=${selectedHrs}`;
             const response = await fetch(mrcffg_url);
             if (!response.ok) {
                 if (response.status === 404) {
@@ -752,7 +791,7 @@ document.addEventListener("DOMContentLoaded", function() {
     }
     
     function getStyle(param, feature, data) {
-        const ffgVal = data.find(x => x && x.BASIN === feature.properties.value)?.[param];
+        const ffgVal = data.find(x => x && x.BASIN === feature.properties.ID_CAT)?.[param];
         const defaultStyle = { color: colors.white, weight: 1, opacity: 0, fillOpacity: 0 };
         const paramStyles = styles[param];
         if (!paramStyles) return defaultStyle;

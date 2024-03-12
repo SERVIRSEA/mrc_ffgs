@@ -308,10 +308,30 @@ document.addEventListener("DOMContentLoaded", function() {
     // Subprovince map
     const hmap = L.map('homemap', MapOptions);
     L.tileLayer(basemapUrl, { tileSize: 256, attribution: attribution }).addTo(hmap);
-    
+    // fetch('/get-sld/')
+    // .then(response => response.text())
+    // .then(sldContent => {
+        
+    //     // Create a WMS layer with the dynamically generated SLD
+    //     // http://localhost:8080/geoserver/postgis/wms?
+    //     const wmsLayer = L.tileLayer.wms('http://216.218.240.196:8080/geoserver/ffgs/wms?', {
+    //         layers: 'ffgs:mrc_basin_v2',
+    //         format: 'image/png',
+    //         transparent: false,
+    //         version: '1.1.0',
+    //         // sld:false,
+    //         sld_body: sldContent // Set the dynamic SLD content
+    //     });
+
+    //     // Add the WMS layer to the map
+    //     wmsLayer.addTo(hmap);
+    // })
+    // .catch(error => {
+    //     console.error('Error fetching SLD:', error);
+    // });
     var subProvinceLayer = L.geoJSON().addTo(hmap);
     const subProvinceCache = {};
-    const subprovince_url  = '/static/data/subprovincesFFGS_MK.geojson';
+    const subprovince_url  = '/static/data/adm2_mekong.geojson';
 
     async function getsubProvinceData() {
         try {
@@ -344,6 +364,7 @@ document.addEventListener("DOMContentLoaded", function() {
         const subProvinceData = await getsubProvinceData();
     
         function getAlertValueById(param, fid) {
+            // console.log(fid)
             const filtered = parsedData.find(item => item.ID_2 === fid);
             switch (param) {
                 case "FFG06":
@@ -371,7 +392,7 @@ document.addEventListener("DOMContentLoaded", function() {
         }
     
         function defineStyle(param, feature){
-            const fid = feature.properties.ID_2;
+            const fid = feature.properties.AREA_ID;
             const cat = getAlertValueById(param, fid);
             const color = getColorbyCategory(cat);
             let defaultStyle = { color: "#000", weight: 1, opacity: 1, fillOpacity: 1 };

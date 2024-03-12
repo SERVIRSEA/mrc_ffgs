@@ -452,7 +452,7 @@ document.addEventListener("DOMContentLoaded", function() {
     }
 
     async function getMRCBasin() {
-        const basin_url = '/static/data/mekong_mrcffg_basins.geojson';
+        const basin_url = '/static/data/mrc_basin_simplified2.geojson';
         return await fetchData(basin_url);
     }
 
@@ -471,7 +471,7 @@ document.addEventListener("DOMContentLoaded", function() {
     }
 
     const bulletin_map_data = {};
-    const bulletin_map_data_url = '/get-mrcffg-bulletin-map-data/';
+    const bulletin_map_data_url = '/get-seaffgs-bulletin-map-data/';
 
     async function getBulletinMapData(date, hrs) {
         try {
