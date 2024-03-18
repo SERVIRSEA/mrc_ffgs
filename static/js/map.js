@@ -938,13 +938,71 @@ document.addEventListener("DOMContentLoaded", function() {
         ffgsLayer.setStyle(feature => getStyle(param, feature, parsed_data)); 
     }
 
+    // GeoServer URL
+    const geoserver_url = 'http://119.15.81.22:8081/geoserver/';
+
+    // Create a function to generate WMS URL
+    function generateWMSUrl(param, selectedDate, selectedHr) {
+        return `${geoserver_url}wms?`;
+    }
+
+    // // Initialize wmsLayer variable
+    // var wmsLayer = null;
+
+    // Define an empty WMS layer
+    var wmsLayer = L.tileLayer.wms('', {
+        format: 'image/png',
+        version: '1.1.0',
+        transparent: true
+    });
+
+    // Function to create or update WMS layer
+    async function createOrUpdateBasinWMSLayer(param, selectedDate, selectedHr) {
+        var wmsUrl = generateWMSUrl(param, selectedDate, selectedHr);
+        if (wmsLayer && map.hasLayer(wmsLayer)) {
+            // Remove existing WMS layer
+            map.removeLayer(wmsLayer);
+        }
+        wmsLayer.setUrl(wmsUrl);
+        wmsLayer.setParams({
+            layers: `${param}:${param}_${selectedDate}${selectedHr}`
+        });
+        if (!map.hasLayer(wmsLayer)) {
+            wmsLayer.addTo(map);
+        }
+        // wmsLayer = L.tileLayer.wms(wmsUrl, {
+        //     layers: `${param}:${param}_${selectedDate}${selectedHr}`,
+        //     format: 'image/png',
+        //     version: '1.1.0',
+        //     transparent: true
+        // });//.addTo(map);
+    }
+
+    // var param = "ASMT"
+    // var selectedDate = '2024-02-10';
+    // var selectedHr = '10';
+    // var dateWithoutHyphens = selectedDate.replace(/-/g, '');
+
+    // wmsLayer = L.tileLayer.wms('http://119.15.81.22:8081/geoserver/wms?', {
+    //     layers: `${param}:${param}_${dateWithoutHyphens}${selectedHr}`,
+    //     format: 'image/png',
+    //     // transparent: false,
+    //     version: '1.1.0'
+    //     // attribution: 'Your attribution here'
+    // }).addTo(map);
+
     document.querySelectorAll('input[name="ffpRadio"]').forEach((elem) => {
         elem.addEventListener("change", function() {
-            var selectedDate = dateInput.value;
-            var selectedHrs = hourInput.value;
-            var selectedCountry = countryDropdown.value;
-            updateMap(this.id, selectedDate, selectedHrs, selectedCountry);
-            populateLegend(this.id);
+            // var selectedDate = dateInput.value;
+            // var selectedHr = hourInput.value;
+            var selectedDate = '2024-02-10';
+            var selectedHr = '10';
+            var dateWithoutHyphens = selectedDate.replace(/-/g, '');
+            var selectedParam = this.id; 
+            createOrUpdateBasinWMSLayer(selectedParam, dateWithoutHyphens, selectedHr)
+            // var selectedCountry = countryDropdown.value;
+            // updateMap(this.id, selectedDate, selectedHrs, selectedCountry);
+            // populateLegend(this.id);
         });
     });
 
@@ -1253,7 +1311,8 @@ document.addEventListener("DOMContentLoaded", function() {
 
         updateTable('6hrs', parsedData);
         updateSubProvinceMap("FFG06", parsedData);
-        updateMap('MAP06', selectedDate, selectedHrs, selectedCountry);
+        // createOrUpdateBasinWMSLayer('MAP06', selectedDate, selectedHrs)
+        // updateMap('MAP06', selectedDate, selectedHrs, selectedCountry);
         populateLegend('MAP06');
     })();
 
@@ -1276,10 +1335,11 @@ document.addEventListener("DOMContentLoaded", function() {
     const ffpBasin = document.querySelector('#ffpBasin');
     ffpBasin.addEventListener("click", ()=> {
         if(ffpBasin.checked){
-            map.addLayer(ffgsLayer);
+            // map.addLayer(ffgsLayer);
+            map.addLayer(wmsLayer);
             document.getElementById("ffpLegend").style.display = "block";
         } else {
-            map.removeLayer(ffgsLayer);
+            map.removeLayer(wmsLayer);
             document.getElementById("ffpLegend").style.display = "none";
         }
     });
