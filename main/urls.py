@@ -6,6 +6,7 @@ urlpatterns = [
     path('map/', views.MapPage.as_view(), name='map'),
     path('bulletin/', views.BulletinPage.as_view(), name='bulletin'),
     path('get-datelist/', views.get_datelist),
+    path('get-hourlist/', views.get_hours),
     path('get-seaffgs-bulletin-map-data/', views.get_seaffgs_bulletin_data),
     path('get-seaffgs-value/', views.get_seaffgs_value),
     path('get-alert-stat-6hrs/', views.get_alert_stat_6hrs),

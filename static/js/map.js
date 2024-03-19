@@ -563,22 +563,22 @@ document.addEventListener("DOMContentLoaded", function() {
     });
     
     // Basin Map
-    var mrcBasinDataCache = {};
-    const basin_url = '/static/data/mrc_basin_simplified2.geojson';
+    // var mrcBasinDataCache = {};
+    // const basin_url = '/static/data/mrc_basin_simplified2.geojson';
 
-    async function getMRCBasinData() {
-        try {
-            if (mrcBasinDataCache[basin_url]) {
-                return mrcBasinDataCache[basin_url];
-            }
-            const response = await fetch(basin_url);
-            const data = await response.json();
-            mrcBasinDataCache[basin_url] = data;
-            return data;
-        } catch (error) {
-            console.error('Error:', error);
-        }
-    }
+    // async function getMRCBasinData() {
+    //     try {
+    //         if (mrcBasinDataCache[basin_url]) {
+    //             return mrcBasinDataCache[basin_url];
+    //         }
+    //         const response = await fetch(basin_url);
+    //         const data = await response.json();
+    //         mrcBasinDataCache[basin_url] = data;
+    //         return data;
+    //     } catch (error) {
+    //         console.error('Error:', error);
+    //     }
+    // }
 
     // var mrcBasinDataCache = {};
     // const basin_url = 'http://216.218.240.196:8080/geoserver/wfs?service=WFS&version=1.0.0&request=GetFeature&typeName=ffgs:mrc_basin_v2&outputFormat=application/json';
@@ -892,51 +892,51 @@ document.addEventListener("DOMContentLoaded", function() {
         });
     }
     
-    async function updateMap(param, selectedDate, selectedHrs, selectedCountry){
-        const ffgData = await getMRCFFGData(param, selectedDate, selectedHrs);
-        const parsed_data = JSON.parse(ffgData);
-        let basinData = await getMRCBasinData();
+    // async function updateMap(param, selectedDate, selectedHrs, selectedCountry){
+    //     const ffgData = await getMRCFFGData(param, selectedDate, selectedHrs);
+    //     const parsed_data = JSON.parse(ffgData);
+    //     let basinData = await getMRCBasinData();
 
-        if (selectedCountry === "All") {
-            basinData = basinData; // This line is redundant, as basinData remains unchanged. You can remove it.
-        } else if (["KHM", "VNM", "THA", "LAO"].includes(selectedCountry)) {
-            basinData = {
-                ...basinData,
-                features: basinData.features.filter(feature => feature.properties.iso === selectedCountry)
-            };
-        }
+    //     if (selectedCountry === "All") {
+    //         basinData = basinData; // This line is redundant, as basinData remains unchanged. You can remove it.
+    //     } else if (["KHM", "VNM", "THA", "LAO"].includes(selectedCountry)) {
+    //         basinData = {
+    //             ...basinData,
+    //             features: basinData.features.filter(feature => feature.properties.iso === selectedCountry)
+    //         };
+    //     }
 
-        ffgsLayer.on('layeradd', function (e) {
-            onEachFeature(e.layer.feature, e.layer);
-        });
+    //     ffgsLayer.on('layeradd', function (e) {
+    //         onEachFeature(e.layer.feature, e.layer);
+    //     });
 
-        function onEachFeature(feature, layer) {
-            layer.on({
-                click: onFFGSClick,
-            });
-        }
+    //     function onEachFeature(feature, layer) {
+    //         layer.on({
+    //             click: onFFGSClick,
+    //         });
+    //     }
 
-        async function onFFGSClick(e) {
-            const clickedFeature = e.target.feature;
-            const basin_id = clickedFeature.properties.value;
-            let selectedDate = dateInput.value;
-            let selectedHrs = hourInput.value;
-            const chart_data = await getBasinChartData(basin_id, selectedDate, selectedHrs);
-            // console.log(chart_data);
-            let collapseElem = document.getElementById('collapseExample');
-            let btnElem = document.querySelector('a[data-bs-toggle="collapse"]');
-            let chartPanel = document.getElementById('chartPanel');
-            chartPanel.style.display = "block";
-            if (!collapseElem.classList.contains('show')) {
-                btnElem.click();
-            }
-            generateChart(selectedDate, chart_data);
-        }
+    //     async function onFFGSClick(e) {
+    //         const clickedFeature = e.target.feature;
+    //         const basin_id = clickedFeature.properties.value;
+    //         let selectedDate = dateInput.value;
+    //         let selectedHrs = hourInput.value;
+    //         const chart_data = await getBasinChartData(basin_id, selectedDate, selectedHrs);
+    //         // console.log(chart_data);
+    //         let collapseElem = document.getElementById('collapseExample');
+    //         let btnElem = document.querySelector('a[data-bs-toggle="collapse"]');
+    //         let chartPanel = document.getElementById('chartPanel');
+    //         chartPanel.style.display = "block";
+    //         if (!collapseElem.classList.contains('show')) {
+    //             btnElem.click();
+    //         }
+    //         generateChart(selectedDate, chart_data);
+    //     }
 
-        ffgsLayer.clearLayers();
-        ffgsLayer.addData(basinData);
-        ffgsLayer.setStyle(feature => getStyle(param, feature, parsed_data)); 
-    }
+    //     ffgsLayer.clearLayers();
+    //     ffgsLayer.addData(basinData);
+    //     ffgsLayer.setStyle(feature => getStyle(param, feature, parsed_data)); 
+    // }
 
     // GeoServer URL
     const geoserver_url = 'http://119.15.81.22:8081/geoserver/';
@@ -956,6 +956,30 @@ document.addEventListener("DOMContentLoaded", function() {
         transparent: true
     });
 
+    function getStyleName(param) {
+        // Map parameter values to corresponding style names
+        const styleMap = {
+            'ASMT': 'asmt_style',
+            'MAP06': '',
+            'MAP24': '',
+            'FFG01': '',
+            'FFG03': '',
+            'FFG06': '',
+            'FMAP01': 'fmap_style',
+            'FMAP03': 'fmap_style',
+            'FMAP06': 'fmap_style',
+            'FMAP24': 'fmap_style',
+            'FFFT01': 'ffft_style',
+            'FFFT03': 'ffft_style',
+            'FFFT06': 'ffft_style',
+            'FFR12': 'ffr_style',
+            'FFR24': 'ffr_style'
+        };
+    
+        // Return the corresponding style name if it exists in the map, otherwise return null
+        return styleMap[param] || null;
+    }
+
     // Function to create or update WMS layer
     async function createOrUpdateBasinWMSLayer(param, selectedDate, selectedHr) {
         var wmsUrl = generateWMSUrl(param, selectedDate, selectedHr);
@@ -965,7 +989,8 @@ document.addEventListener("DOMContentLoaded", function() {
         }
         wmsLayer.setUrl(wmsUrl);
         wmsLayer.setParams({
-            layers: `${param}:${param}_${selectedDate}${selectedHr}`
+            layers: `${param}:${param}_${selectedDate}${selectedHr}`,
+            styles: getStyleName(param)
         });
         if (!map.hasLayer(wmsLayer)) {
             wmsLayer.addTo(map);
@@ -993,10 +1018,10 @@ document.addEventListener("DOMContentLoaded", function() {
 
     document.querySelectorAll('input[name="ffpRadio"]').forEach((elem) => {
         elem.addEventListener("change", function() {
-            // var selectedDate = dateInput.value;
-            // var selectedHr = hourInput.value;
-            var selectedDate = '2024-02-10';
-            var selectedHr = '10';
+            var selectedDate = dateInput.value;
+            var selectedHr = hourInput.value;
+            // var selectedDate = '2024-02-10';
+            // var selectedHr = '10';
             var dateWithoutHyphens = selectedDate.replace(/-/g, '');
             var selectedParam = this.id; 
             createOrUpdateBasinWMSLayer(selectedParam, dateWithoutHyphens, selectedHr)
@@ -1090,7 +1115,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
             updateTable(statsParam, parsedData);
             updateSubProvinceMap(id, parsedData);
-            updateMap(checkedValue, selectedDate, selectedHrs, selectedCountry);
+            // updateMap(checkedValue, selectedDate, selectedHrs, selectedCountry);
         } catch (error) {
             console.error("Failed to update data:", error);
         }
@@ -1240,7 +1265,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
         updateTable(statsParam, parsedData); 
         updateSubProvinceMap(id, parsedData);
-        updateMap(checkedValue, selectedDate, selectedHrs, selectedCountry);
+        // updateMap(checkedValue, selectedDate, selectedHrs, selectedCountry);
     });
 
     hourInput.addEventListener("change", async function () {
@@ -1291,7 +1316,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
         updateTable(statsParam, parsedData); 
         updateSubProvinceMap(id, parsedData);
-        updateMap(checkedValue, selectedDate, selectedHrs, selectedCountry);
+        // updateMap(checkedValue, selectedDate, selectedHrs, selectedCountry);
     });
 
     //////////////////////////

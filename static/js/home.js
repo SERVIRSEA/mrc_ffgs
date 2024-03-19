@@ -308,27 +308,7 @@ document.addEventListener("DOMContentLoaded", function() {
     // Subprovince map
     const hmap = L.map('homemap', MapOptions);
     L.tileLayer(basemapUrl, { tileSize: 256, attribution: attribution }).addTo(hmap);
-    // fetch('/get-sld/')
-    // .then(response => response.text())
-    // .then(sldContent => {
-        
-    //     // Create a WMS layer with the dynamically generated SLD
-    //     // http://localhost:8080/geoserver/postgis/wms?
-    //     const wmsLayer = L.tileLayer.wms('http://216.218.240.196:8080/geoserver/ffgs/wms?', {
-    //         layers: 'ffgs:mrc_basin_v2',
-    //         format: 'image/png',
-    //         transparent: false,
-    //         version: '1.1.0',
-    //         // sld:false,
-    //         sld_body: sldContent // Set the dynamic SLD content
-    //     });
-
-    //     // Add the WMS layer to the map
-    //     wmsLayer.addTo(hmap);
-    // })
-    // .catch(error => {
-    //     console.error('Error fetching SLD:', error);
-    // });
+    
     var subProvinceLayer = L.geoJSON().addTo(hmap);
     const subProvinceCache = {};
     const subprovince_url  = '/static/data/adm2_mekong.geojson';
@@ -435,6 +415,20 @@ document.addEventListener("DOMContentLoaded", function() {
         }
     }
 
+    async function getHour(date) {
+        const date_url = `/get-hourlist?date=${date}`; 
+        try {
+            const response = await fetch(date_url);
+            if (!response.ok) {
+                throw new Error(`HTTP error! Status: ${response.status}`);
+            }
+            const data = await response.json();
+            return data;
+        } catch (error) {
+            console.error('Error:', error);
+        }
+    }
+
     function formatDate(inputDate) {
         const options = { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' };
         const date = new Date(inputDate);
@@ -500,13 +494,24 @@ document.addEventListener("DOMContentLoaded", function() {
             let dateList = await getDate();
             const parsedDateList = JSON.parse(dateList);
             const selected_date = parsedDateList[0][0];
-            const selected_hrs = '06'; 
+            let hours = await getHour(selected_date);
+            let latestHour;
+            if (hours.length > 0) {
+                // Sort the hours in descending order
+                hours.sort(function(a, b) {
+                    return b.localeCompare(a);
+                });
+                latestHour = hours[0];
+            } else {
+                console.log("No data available.");
+            }
+            const selected_hrs = latestHour; 
             const selected_country = 'All';
 
             const formattedDate =  formatDate(selected_date);
 
             document.querySelector('#ffgsDate').innerHTML = formattedDate;
-            document.querySelector('.datePlaceholder').innerHTML = selected_date + " 06:00 UTC"
+            document.querySelector('.datePlaceholder').innerHTML = selected_date + " " + selected_hrs + ":00 (UTC+7)"
             
             generateGraph("All");
             

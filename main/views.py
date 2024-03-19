@@ -57,13 +57,39 @@ rename_mapping = {
     "F2FFR24": "FFR24"
 }
 
+def extract_hours_from_files(folder_path):
+    # Set to store unique hours
+    hours_set = set()
+
+    # Iterate over files in the folder
+    for file_name in os.listdir(folder_path):
+        # Check if the path is a file (not directory) and ends with .csv.gz
+        if file_name.endswith('.csv.gz') and os.path.isfile(os.path.join(folder_path, file_name)):
+            # Extract hour from the filename
+            hour = file_name.split('.')[0][-2:]
+            hours_set.add(hour.zfill(2))  # Add leading zeros to the hour
+
+    return sorted(list(hours_set))  # Return sorted list of unique hours
+
+
 @csrf_exempt
 @xframe_options_exempt
 def get_datelist(request):
     data = datelist
     df = pd.read_csv(data, header=None, encoding='utf-8-sig')
+    # Sort the DataFrame by the date column in descending order
+    df = df.sort_values(by=0, ascending=False)
     json = df.to_json(orient='values')
     return JsonResponse(json, safe=False)
+
+@csrf_exempt
+@xframe_options_exempt
+def get_hours(request):
+    date_str = request.GET.get("date")
+    formatted_date = date_str.replace("-", "")
+    data_path = get_seaffgs_data_path(date_str)
+    hours = extract_hours_from_files(data_path)
+    return JsonResponse(hours, safe=False)
 
 @csrf_exempt
 @xframe_options_exempt
