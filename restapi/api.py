@@ -26,9 +26,9 @@ from main.models import Bulletin
     operation_summary="Get Drought Stats.",
     manual_parameters=[
         openapi.Parameter('index', openapi.IN_QUERY, description="Index of the stats (spi, cdi, iswf)", type=openapi.TYPE_STRING),
-        openapi.Parameter('date', openapi.IN_QUERY, description="Date of the stats (yyyy-mm-dd)", type=openapi.TYPE_STRING),
-        openapi.Parameter('stats_type', openapi.IN_QUERY, description="Type of stats (gdp, population, crop damage)", type=openapi.TYPE_STRING),
-        openapi.Parameter('area_id', openapi.IN_QUERY, description="Id of requested area (mekong, subprovince name)", type=openapi.TYPE_STRING),
+        # openapi.Parameter('date', openapi.IN_QUERY, description="Date of the stats (yyyy-mm-dd)", type=openapi.TYPE_STRING),
+        # openapi.Parameter('stats_type', openapi.IN_QUERY, description="Type of stats (gdp, population, crop damage)", type=openapi.TYPE_STRING),
+        # openapi.Parameter('area_id', openapi.IN_QUERY, description="Id of requested area (mekong, subprovince name)", type=openapi.TYPE_STRING),
     ],
     responses={200: 'OK - Successful response'}
 )
@@ -42,24 +42,24 @@ def get_drought_stats(request):
 
     Parameters:
     - index: Index of the stats (spi, cdi, iswf)
-    - date: Date of the stats (yyyy-mm-dd)
-    - stats_type: Type of stats (gdp, population, crop damage)
-    - area_id: Id of requested area (mekong, subprovince name)
+    # - date: Date of the stats (yyyy-mm-dd)
+    # - stats_type: Type of stats (gdp, population, crop damage)
+    # - area_id: Id of requested area (mekong, subprovince name)
 
     Returns:
     - JSON: Drought statistics based on the provided parameters.
     """
     try:
         index = request.GET.get('index')
-        date = request.GET.get('date')
-        stats_type = request.GET.get('stats_type')
-        area_id = request.GET.get('area_id')
+        # date = request.GET.get('date')
+        # stats_type = request.GET.get('stats_type')
+        # area_id = request.GET.get('area_id')
         
         # Check if required parameters are missing
-        if not all([index, date, stats_type, area_id]):
+        if not all([index]): # , date, stats_type, area_id
             raise ParseError("Missing required parameters")
-
-        data_path = f'{settings.DROUGHT_STAT_DATA_PATH}/drought_spi_gdp_mk.csv'
+        index = index.upper()
+        data_path = f'{settings.DROUGHT_STAT_DATA_PATH}/{index}_impact.csv'
         df = pd.read_csv(data_path)
         
         # Convert the filtered DataFrame to JSON
