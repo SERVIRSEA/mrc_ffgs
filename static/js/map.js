@@ -954,7 +954,7 @@ document.addEventListener("DOMContentLoaded", function() {
         format: 'image/png',
         version: '1.1.0',
         transparent: true
-    });
+    }).addTo(map);
 
     function getStyleName(param) {
         // Map parameter values to corresponding style names
@@ -968,7 +968,7 @@ document.addEventListener("DOMContentLoaded", function() {
             'FMAP01': 'fmap_style',
             'FMAP03': 'fmap_style',
             'FMAP06': 'fmap_style',
-            'FMAP24': 'fmap_style',
+            'FMAP24': 'ffg_style',
             'FFFT01': 'ffft_style',
             'FFFT03': 'ffft_style',
             'FFFT06': 'ffft_style',
@@ -999,7 +999,8 @@ document.addEventListener("DOMContentLoaded", function() {
         //     layers: `${param}:${param}_${selectedDate}${selectedHr}`,
         //     format: 'image/png',
         //     version: '1.1.0',
-        //     transparent: true
+        //     transparent: true,
+        //     styles: getStyleName(param)
         // });//.addTo(map);
     }
 

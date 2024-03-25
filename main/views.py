@@ -30,7 +30,10 @@ class BulletinPage(TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['bulletin_summary'] = Bulletin.objects.order_by('-created_at')[0]
+        try:
+            context['bulletin_summary'] = Bulletin.objects.order_by('-created_at')[0]
+        except IndexError:
+            context['bulletin_summary'] = None
         return context
 
 def get_seaffgs_data_path(date_string):
