@@ -990,18 +990,11 @@ document.addEventListener("DOMContentLoaded", function() {
         wmsLayer.setUrl(wmsUrl);
         wmsLayer.setParams({
             layers: `${param}:${param}_${selectedDate}${selectedHr}`,
-            styles: getStyleName(param)
+            styles: 'raster'//getStyleName(param)
         });
         if (!map.hasLayer(wmsLayer)) {
             wmsLayer.addTo(map);
         }
-        // wmsLayer = L.tileLayer.wms(wmsUrl, {
-        //     layers: `${param}:${param}_${selectedDate}${selectedHr}`,
-        //     format: 'image/png',
-        //     version: '1.1.0',
-        //     transparent: true,
-        //     styles: getStyleName(param)
-        // });//.addTo(map);
     }
 
     // var param = "ASMT"

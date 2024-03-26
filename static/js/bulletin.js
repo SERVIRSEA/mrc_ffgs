@@ -600,36 +600,104 @@ document.addEventListener("DOMContentLoaded", function() {
         ffgsLayers[param] = L.geoJSON().addTo(mapInstances[param]);
     }
 
-    async function createMap(param, selected_date, selected_hrs, selectedCountry) {
-        const ffgData = await getBulletinMapData(selected_date, selected_hrs);
-        let dataArray = JSON.parse(ffgData);
-        let basinData = await getMRCBasin();
+    // async function createMap(param, selected_date, selected_hrs, selectedCountry) {
+    //     const ffgData = await getBulletinMapData(selected_date, selected_hrs);
+    //     let dataArray = JSON.parse(ffgData);
+    //     let basinData = await getMRCBasin();
 
-        // Get the corresponding ffgsLayer variable based on the parameter
-        const ffgsLayer = ffgsLayers[param];
+    //     // Get the corresponding ffgsLayer variable based on the parameter
+    //     const ffgsLayer = ffgsLayers[param];
 
-        if (selectedCountry === "All") {
-            basinData = basinData; // This line is redundant, as basinData remains unchanged. You can remove it.
-        } else if (["KHM", "VNM", "THA", "LAO"].includes(selectedCountry)) {
-            basinData = {
-                ...basinData,
-                features: basinData.features.filter(feature => feature.properties.iso === selectedCountry)
-            };
+    //     if (selectedCountry === "All") {
+    //         basinData = basinData; // This line is redundant, as basinData remains unchanged. You can remove it.
+    //     } else if (["KHM", "VNM", "THA", "LAO"].includes(selectedCountry)) {
+    //         basinData = {
+    //             ...basinData,
+    //             features: basinData.features.filter(feature => feature.properties.iso === selectedCountry)
+    //         };
+    //     }
+        
+    //     // Clear the layer before adding new data
+    //     ffgsLayer.clearLayers();
+    //     ffgsLayer.addData(basinData);
+    //     ffgsLayer.setStyle(feature => getStyle(param, feature, dataArray)); 
+        
+    //     // Add the layer to the corresponding map instance
+    //     mapInstances[param].addLayer(ffgsLayer);
+
+    //     const bounds = ffgsLayer.getBounds();
+    //     mapInstances[param].fitBounds(bounds);
+    //     // Add legend dynamically
+    //     const legendContent = createLegend(param);
+    //     addLegendToMap(mapInstances[param], legendContent);
+    // }
+
+    // GeoServer URL
+    const geoserver_url = 'http://119.15.81.22:8081/geoserver/';
+
+    // Create a function to generate WMS URL
+    function generateWMSUrl(param, selectedDate, selectedHr) {
+        return `${geoserver_url}wms?`;
+    }
+
+    var wmsLayer = L.tileLayer.wms('', {
+        format: 'image/png',
+        version: '1.1.0',
+        transparent: true
+    });
+
+    function getStyleName(param) {
+        // Map parameter values to corresponding style names
+        const styleMap = {
+            'ASMT': 'asmt_style',
+            'MAP06': '',
+            'MAP24': '',
+            'FFG01': '',
+            'FFG03': '',
+            'FFG06': '',
+            'FMAP01': 'fmap_style',
+            'FMAP03': 'fmap_style',
+            'FMAP06': 'fmap_style',
+            'FMAP24': 'ffg_style',
+            'FFFT01': 'ffft_style',
+            'FFFT03': 'ffft_style',
+            'FFFT06': 'ffft_style',
+            'FFR12': 'ffr_style',
+            'FFR24': 'ffr_style'
+        };
+    
+        // Return the corresponding style name if it exists in the map, otherwise return null
+        return styleMap[param] || null;
+    }
+
+    async function createMap(param, selectedDate, selectedHr) {
+        var wmsUrl = generateWMSUrl(param, selectedDate, selectedHr);
+        const mapInstance = mapInstances[param];
+        if (!mapInstance) {
+            console.error(`Map instance for parameter ${param} not found.`);
+            return;
         }
-        
-        // Clear the layer before adding new data
-        ffgsLayer.clearLayers();
-        ffgsLayer.addData(basinData);
-        ffgsLayer.setStyle(feature => getStyle(param, feature, dataArray)); 
-        
-        // Add the layer to the corresponding map instance
-        mapInstances[param].addLayer(ffgsLayer);
-
-        const bounds = ffgsLayer.getBounds();
-        mapInstances[param].fitBounds(bounds);
-        // Add legend dynamically
-        const legendContent = createLegend(param);
-        addLegendToMap(mapInstances[param], legendContent);
+        // Initialize wmsLayer if it's not already defined for the map instance
+        if (!mapInstance.wmsLayer) {
+            mapInstance.wmsLayer = L.tileLayer.wms('', {
+                format: 'image/png',
+                version: '1.1.0',
+                transparent: true
+            });
+        }
+        var wmsLayer = mapInstance.wmsLayer;
+    
+        if (wmsLayer && mapInstance.hasLayer(wmsLayer)) {
+            mapInstance.removeLayer(wmsLayer);
+        }
+        wmsLayer.setUrl(wmsUrl);
+        wmsLayer.setParams({
+            layers: `${param}:${param}_${selectedDate}${selectedHr}`,
+            styles: 'raster' // getStyleName(param)
+        });
+        if (!mapInstance.hasLayer(wmsLayer)) {
+            wmsLayer.addTo(mapInstance);
+        }
     }
 
     // Function to create the legend content based on parameter styles
@@ -829,13 +897,9 @@ document.addEventListener("DOMContentLoaded", function() {
                 updateTable(filteredData);
             }
 
-            // Clear all ffgsLayer layers for all parameters
+            var dateWithoutHyphens = selected_date.replace(/-/g, '');
             for (const param in mapInstances) {
-                const ffgsLayer = ffgsLayers[param];
-                ffgsLayer.clearLayers();
-            }
-            for (const param in mapInstances) {
-                await createMap(param, selected_date, selectedHrs, selectedCountry);
+                await createMap(param, dateWithoutHyphens, selectedHrs);
             } 
 
             let countriesToProcess = [];
@@ -1041,9 +1105,11 @@ document.addEventListener("DOMContentLoaded", function() {
                 element.textContent = selected_date + " " + selected_hrs + ":00 UTC";
             });
 
+            var dateWithoutHyphens = selected_date.replace(/-/g, '');
+
             // Call createMap sequentially for each parameter
             for (const param in mapInstances) {
-                await createMap(param, selected_date, selected_hrs, selected_country);
+                await createMap(param, dateWithoutHyphens, selected_hrs);
             }
 
             // Loop through countries and intervals
