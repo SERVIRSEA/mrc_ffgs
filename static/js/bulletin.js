@@ -161,7 +161,8 @@ document.addEventListener("DOMContentLoaded", function() {
                 type: 'pie'
             },
             title: {
-                text: null
+                text: null,
+                // width: '400px'
             },
             plotOptions: {
                 pie: {
@@ -193,29 +194,86 @@ document.addEventListener("DOMContentLoaded", function() {
             }
         });
 
+        // var titleText = '<h6 class="h6 fw-bold text-start">TOTAL STORM EVENTS</h6>';
+        // var totalEventsText = '<tspan x="5.7em" dy="1.2em">' + totalEvents + '</tspan>';
+
+        // var chartCenterX = chart.plotWidth / 2;
+        // var chartCenterY = chart.plotHeight / 2;
+
+        // var textElement = chart.renderer.text(titleText + totalEventsText, chartCenterX, chartCenterY)
+        //     .attr({
+        //         zIndex: 999
+        //     })
+        //     .css({
+        //         color: '#000',
+        //         fontSize: '50px',
+        //         fontWeight: 'bold',
+        //         textAlign: 'center'
+        //     })
+        //     .add();
+
+        // // Now, reposition the text based on its bounding box
+        // var textBBox = textElement.getBBox();
+        // textElement.attr({
+        //     x: chartCenterX - textBBox.width / 2,
+        //     y: chartCenterY - textBBox.height / 2
+        // });
+        
+        // Calculate the center of the chart dynamically
+        var chartCenterX = chart.plotWidth / 2;
+        var chartCenterY = chart.plotHeight / 2;
+
+        // Define the title and total events text
         var titleText = '<h6 class="h6 fw-bold text-start">TOTAL STORM EVENTS</h6>';
-        var totalEventsText = '<tspan x="5.7em" dy="1.2em">' + totalEvents + '</tspan>';
+        var totalEventsText = '<tspan x="50%" dy="1.2em">' + totalEvents + '</tspan>'; // Use x="50%" to center text
 
-        var chartCenterX = chart.plotWidth / 2.1;
-        var chartCenterY = chart.plotHeight / 1.9;
-
-        var textElement = chart.renderer.text(titleText + totalEventsText, chartCenterX, chartCenterY)
+        // Create the text element for the title
+        var titleElement = chart.renderer.text(titleText, 0, 0)
             .attr({
                 zIndex: 999
             })
             .css({
                 color: '#000',
-                fontSize: '50px',
+                fontSize: '20px',
                 fontWeight: 'bold',
                 textAlign: 'center'
             })
             .add();
 
-        // Now, reposition the text based on its bounding box
-        var textBBox = textElement.getBBox();
-        textElement.attr({
-            x: chartCenterX - textBBox.width / 3,
-            y: chartCenterY - textBBox.height / 6
+        // Create the text element for the total events
+        var totalEventsElement = chart.renderer.text(totalEventsText, 0, 0)
+            .attr({
+                zIndex: 999
+            })
+            .css({
+                color: '#000',
+                fontSize: '20px',
+                fontWeight: 'bold',
+                textAlign: 'center'
+            })
+            .add();
+
+        // Get the bounding boxes of the title and total events text
+        var titleBBox = titleElement.getBBox();
+        var totalEventsBBox = totalEventsElement.getBBox();
+
+        // Calculate the position to center the title text
+        var titleX = chartCenterX - titleBBox.width / 2;
+        var titleY = chartCenterY - (titleBBox.height + totalEventsBBox.height) / 2;
+
+        // Calculate the position to center the total events text
+        var totalEventsX = chartCenterX - totalEventsBBox.width / 2;
+        var totalEventsY = titleY + titleBBox.height;
+
+        // Update the positions of the title and total events text elements
+        titleElement.attr({
+            x: titleX,
+            y: titleY
+        });
+
+        totalEventsElement.attr({
+            x: totalEventsX,
+            y: totalEventsY
         });
     }
     
