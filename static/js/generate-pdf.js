@@ -347,7 +347,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
     const MapOptions = {
         center: [15.9162, 102.9560],
-        zoom: 6,
+        zoom: 5,
         zoomControl: false,
         scrollWheelZoom: false,
         minZoom: 5,

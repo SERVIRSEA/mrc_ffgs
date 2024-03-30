@@ -653,117 +653,117 @@ document.addEventListener("DOMContentLoaded", function() {
         }
     }
 
-    // const colors = {
-    //     yellow: '#FFFF00',
-    //     lightGreen: '#90EE90',
-    //     lightBlue: '#ADD8E6',
-    //     blue: '#0000FF',
-    //     orange: '#FFA500',
-    //     red: '#FF0000',
-    //     deepSkyBlue: '#00BFFF',
-    //     green: '#008000',
-    //     violet: '#EE82EE',
-    //     white: '#FFFFFF'
-    // };
+    const colors = {
+        yellow: '#FFFF00',
+        lightGreen: '#90EE90',
+        lightBlue: '#ADD8E6',
+        blue: '#0000FF',
+        orange: '#FFA500',
+        red: '#FF0000',
+        deepSkyBlue: '#00BFFF',
+        green: '#008000',
+        violet: '#EE82EE',
+        white: '#FFFFFF'
+    };
 
-    // const styles = {
-    //     ASMT: [
-    //         {min: 0.01, max: 0.65, color: colors.yellow},
-    //         {min: 0.65, max: 0.9, color: colors.lightGreen},
-    //         {min: 0.9, max: 1.0, color: colors.blue},
-    //     ],
-    //     MAP01: [
-    //         {min: 0, max: 2.5, color: colors.lightBlue},
-    //         {min: 2.5, max: 15, color: colors.blue},
-    //         {min: 15, max: 30, color: colors.deepSkyBlue},
-    //         {min: 30, color: colors.lightGreen}
-    //     ],
-    //     MAP03: [
-    //         {min: 0, max: 5, color: colors.lightBlue},
-    //         {min: 5, max: 25, color: colors.blue},
-    //         {min: 25, max: 50, color: colors.deepSkyBlue},
-    //         {min: 50, color: colors.lightGreen}
-    //     ],
-    //     MAP06: [
-    //         {min: 0, max: 7.5, color: colors.lightBlue},
-    //         {min: 7.5, max: 35, color: colors.blue},
-    //         {min: 35, max: 70, color: colors.deepSkyBlue},
-    //         {min: 70, color: colors.lightGreen}
-    //     ],
-    //     MAP24: [
-    //         {min: 0, max: 10, color: colors.lightBlue},
-    //         {min: 10, max: 50, color: colors.blue},
-    //         {min: 50, max: 100, color: colors.deepSkyBlue},
-    //         {min: 100, color: colors.lightGreen}
-    //     ],
-    //     FMAP01: [
-    //         {min: 0, max: 2.5, color: colors.lightBlue},
-    //         {min: 2.5, max: 15, color: colors.blue},
-    //         {min: 15, max: 30, color: colors.deepSkyBlue},
-    //         {min: 30, color: colors.lightGreen},
-    //     ],   
-    //     FMAP03: [
-    //         {min: 0, max: 5, color: colors.lightBlue},
-    //         {min: 5, max: 25, color: colors.blue},
-    //         {min: 25, max: 50, color: colors.deepSkyBlue},
-    //         {min: 50, color: colors.lightGreen},
-    //     ],
-    //     FMAP06: [
-    //         {min: 0, max: 7.5, color: colors.lightBlue},
-    //         {min: 7.5, max: 35, color: colors.blue},
-    //         {min: 35, max: 70, color: colors.deepSkyBlue},
-    //         {min: 70, color: colors.lightGreen},
-    //     ],
-    //     FMAP24: [
-    //         {min: 0, max: 10, color: colors.lightBlue},
-    //         {min: 10, max: 50, color: colors.blue},
-    //         {min: 50, max: 100, color: colors.deepSkyBlue},
-    //         {min: 100, color: colors.lightGreen},
-    //     ],
-    //     FFG01: [
-    //         {min: 0, max: 10, color: colors.violet},
-    //         {min: 10, max: 25, color: colors.red},
-    //         {min: 25, max: 40, color: colors.yellow},
-    //         {min: 40, max: 60, color: colors.lightGreen},
-    //     ],
-    //     FFG03: [
-    //         {min: 0, max: 10, color: colors.violet},
-    //         {min: 10, max: 25, color: colors.red},
-    //         {min: 25, max: 40, color: colors.yellow},
-    //         {min: 40, max: 70, color: colors.lightGreen},
-    //     ],
-    //     FFG06: [
-    //         {min: 0, max: 15, color: colors.violet},
-    //         {min: 15, max: 30, color: colors.red},
-    //         {min: 30, max: 60, color: colors.yellow},
-    //         {min: 60, max: 100, color: colors.lightGreen},
-    //     ],
-    //     FFFT01: [
-    //         {min: 0.01, max: 10, color: colors.yellow},
-    //         {min: 10, max: 40, color: colors.orange},
-    //         {min: 40, max: 100, color: colors.red},
-    //     ],
-    //     FFFT03: [
-    //         {min: 0.01, max: 10, color: colors.yellow},
-    //         {min: 10, max: 40, color: colors.orange},
-    //         {min: 40, max: 100, color: colors.red},
-    //     ],
-    //     FFFT06: [
-    //         {min: 0.01, max: 10, color: colors.yellow},
-    //         {min: 10, max: 40, color: colors.orange},
-    //         {min: 40, max: 100, color: colors.red},
-    //     ],
-    //     FFR12: [
-    //         {min: 0.01, max: 0.2, color: colors.red},
-    //         {min: 0.2, max: 0.4, color: colors.orange},
-    //         {min: 0.4, max: 1, color: colors.yellow},
-    //     ],
-    //     FFR24: [
-    //         {min: 0.01, max: 0.2, color: colors.red},
-    //         {min: 0.2, max: 0.4, color: colors.orange},
-    //         {min: 0.4, max: 1, color: colors.yellow},
-    //     ],
-    // };
+    const styles = {
+        ASMT: [
+            {min: 0.01, max: 0.65, color: colors.yellow},
+            {min: 0.65, max: 0.9, color: colors.lightGreen},
+            {min: 0.9, max: 1.0, color: colors.blue},
+        ],
+        MAP01: [
+            {min: 0, max: 2.5, color: colors.lightBlue},
+            {min: 2.5, max: 15, color: colors.blue},
+            {min: 15, max: 30, color: colors.deepSkyBlue},
+            {min: 30, color: colors.lightGreen}
+        ],
+        MAP03: [
+            {min: 0, max: 5, color: colors.lightBlue},
+            {min: 5, max: 25, color: colors.blue},
+            {min: 25, max: 50, color: colors.deepSkyBlue},
+            {min: 50, color: colors.lightGreen}
+        ],
+        MAP06: [
+            {min: 0, max: 7.5, color: colors.lightBlue},
+            {min: 7.5, max: 35, color: colors.blue},
+            {min: 35, max: 70, color: colors.deepSkyBlue},
+            {min: 70, color: colors.lightGreen}
+        ],
+        MAP24: [
+            {min: 0, max: 10, color: colors.lightBlue},
+            {min: 10, max: 50, color: colors.blue},
+            {min: 50, max: 100, color: colors.deepSkyBlue},
+            {min: 100, color: colors.lightGreen}
+        ],
+        FMAP01: [
+            {min: 0, max: 2.5, color: colors.lightBlue},
+            {min: 2.5, max: 15, color: colors.blue},
+            {min: 15, max: 30, color: colors.deepSkyBlue},
+            {min: 30, color: colors.lightGreen},
+        ],   
+        FMAP03: [
+            {min: 0, max: 5, color: colors.lightBlue},
+            {min: 5, max: 25, color: colors.blue},
+            {min: 25, max: 50, color: colors.deepSkyBlue},
+            {min: 50, color: colors.lightGreen},
+        ],
+        FMAP06: [
+            {min: 0, max: 7.5, color: colors.lightBlue},
+            {min: 7.5, max: 35, color: colors.blue},
+            {min: 35, max: 70, color: colors.deepSkyBlue},
+            {min: 70, color: colors.lightGreen},
+        ],
+        FMAP24: [
+            {min: 0, max: 10, color: colors.lightBlue},
+            {min: 10, max: 50, color: colors.blue},
+            {min: 50, max: 100, color: colors.deepSkyBlue},
+            {min: 100, color: colors.lightGreen},
+        ],
+        FFG01: [
+            {min: 0, max: 10, color: colors.violet},
+            {min: 10, max: 25, color: colors.red},
+            {min: 25, max: 40, color: colors.yellow},
+            {min: 40, max: 60, color: colors.lightGreen},
+        ],
+        FFG03: [
+            {min: 0, max: 10, color: colors.violet},
+            {min: 10, max: 25, color: colors.red},
+            {min: 25, max: 40, color: colors.yellow},
+            {min: 40, max: 70, color: colors.lightGreen},
+        ],
+        FFG06: [
+            {min: 0, max: 15, color: colors.violet},
+            {min: 15, max: 30, color: colors.red},
+            {min: 30, max: 60, color: colors.yellow},
+            {min: 60, max: 100, color: colors.lightGreen},
+        ],
+        FFFT01: [
+            {min: 0.01, max: 10, color: colors.yellow},
+            {min: 10, max: 40, color: colors.orange},
+            {min: 40, max: 100, color: colors.red},
+        ],
+        FFFT03: [
+            {min: 0.01, max: 10, color: colors.yellow},
+            {min: 10, max: 40, color: colors.orange},
+            {min: 40, max: 100, color: colors.red},
+        ],
+        FFFT06: [
+            {min: 0.01, max: 10, color: colors.yellow},
+            {min: 10, max: 40, color: colors.orange},
+            {min: 40, max: 100, color: colors.red},
+        ],
+        FFR12: [
+            {min: 0.01, max: 0.2, color: colors.red},
+            {min: 0.2, max: 0.4, color: colors.orange},
+            {min: 0.4, max: 1, color: colors.yellow},
+        ],
+        FFR24: [
+            {min: 0.01, max: 0.2, color: colors.red},
+            {min: 0.2, max: 0.4, color: colors.orange},
+            {min: 0.4, max: 1, color: colors.yellow},
+        ],
+    };
 
     function populateLegend(key) {
         // Reference to the legend element
