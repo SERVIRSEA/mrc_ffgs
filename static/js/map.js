@@ -1021,7 +1021,7 @@ document.addEventListener("DOMContentLoaded", function() {
             createOrUpdateBasinWMSLayer(selectedParam, dateWithoutHyphens, selectedHr)
             // var selectedCountry = countryDropdown.value;
             // updateMap(this.id, selectedDate, selectedHrs, selectedCountry);
-            // populateLegend(this.id);
+            populateLegend(this.id);
         });
     });
 

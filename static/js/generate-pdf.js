@@ -346,8 +346,12 @@ document.addEventListener("DOMContentLoaded", function() {
     }
 
     const MapOptions = {
-        center: [15.9162, 102.9560],
-        zoom: 5,
+        // center: [15.9162, 102.9560],
+        defaultCenter: [15.9162, 102.9560],
+        khmCenter: [11.56, 105.2],
+        // zoom: 5,
+        defaultZoom: 5,
+        khmZoom: 6,
         zoomControl: false,
         scrollWheelZoom: false,
         minZoom: 5,
@@ -375,10 +379,10 @@ document.addEventListener("DOMContentLoaded", function() {
         }
     }
 
-    async function getMRCBasin() {
-        const basin_url = '/static/data/mekong_mrcffg_basins.geojson';
-        return await fetchData(basin_url);
-    }
+    // async function getMRCBasin() {
+    //     const basin_url = '/static/data/mekong_mrcffg_basins.geojson';
+    //     return await fetchData(basin_url);
+    // }
 
     const bulletin_map_data = {};
     const bulletin_map_data_url = '/get-seaffgs-bulletin-map-data/';
@@ -398,73 +402,73 @@ document.addEventListener("DOMContentLoaded", function() {
         }
     }
 
-    // const colors = {
-    //     yellow: '#FFFF00',
-    //     lightGreen: '#90EE90',
-    //     lightBlue: '#ADD8E6',
-    //     blue: '#0000FF',
-    //     orange: '#FFA500',
-    //     red: '#FF0000',
-    //     deepSkyBlue: '#00BFFF',
-    //     green: '#008000',
-    //     violet: '#EE82EE',
-    //     white: '#FFFFFF'
-    // };
+    const colors = {
+        yellow: '#FFFF00',
+        lightGreen: '#90EE90',
+        lightBlue: '#ADD8E6',
+        blue: '#0000FF',
+        orange: '#FFA500',
+        red: '#FF0000',
+        deepSkyBlue: '#00BFFF',
+        green: '#008000',
+        violet: '#EE82EE',
+        white: '#FFFFFF'
+    };
 
-    // const styles = {
-    //     ASMT: [
-    //         {min: 0.01, max: 0.65, color: colors.yellow},
-    //         {min: 0.65, max: 0.9, color: colors.lightGreen},
-    //         {min: 0.9, max: 1.0, color: colors.blue},
-    //     ],
-    //     MAP24: [
-    //         {min: 0, max: 10, color: colors.lightBlue},
-    //         {min: 10, max: 50, color: colors.blue},
-    //         {min: 50, max: 100, color: colors.deepSkyBlue},
-    //         {min: 100, color: colors.lightGreen}
-    //     ],
-    //     FMAP06: [
-    //         {min: 0, max: 7.5, color: colors.lightBlue},
-    //         {min: 7.5, max: 35, color: colors.blue},
-    //         {min: 35, max: 70, color: colors.deepSkyBlue},
-    //         {min: 70, max: 100, color: colors.lightGreen},
-    //     ],
-    //     FFG06: [
-    //         {min: 0, max: 15, color: colors.violet},
-    //         {min: 15, max: 30, color: colors.red},
-    //         {min: 30, max: 60, color: colors.yellow},
-    //         {min: 60, max: 100, color: colors.lightGreen},
-    //     ],
-    //     FFFT06: [
-    //         {min: 0.01, max: 10, color: colors.yellow},
-    //         {min: 10, max: 40, color: colors.orange},
-    //         {min: 40, max: 100, color: colors.red},
-    //     ],
-    //     FFR12: [
-    //         {min: 0.01, max: 0.2, color: colors.red},
-    //         {min: 0.2, max: 0.4, color: colors.orange},
-    //         {min: 0.4, max: 1, color: colors.yellow},
-    //     ],
-    //     FFR24: [
-    //         {min: 0.01, max: 0.2, color: colors.red},
-    //         {min: 0.2, max: 0.4, color: colors.orange},
-    //         {min: 0.4, max: 1, color: colors.yellow},
-    //     ],
-    // };
+    const styles = {
+        ASMT: [
+            {min: 0.01, max: 0.65, color: colors.yellow},
+            {min: 0.65, max: 0.9, color: colors.lightGreen},
+            {min: 0.9, max: 1.0, color: colors.blue},
+        ],
+        MAP24: [
+            {min: 0, max: 10, color: colors.lightBlue},
+            {min: 10, max: 50, color: colors.blue},
+            {min: 50, max: 100, color: colors.deepSkyBlue},
+            {min: 100, color: colors.lightGreen}
+        ],
+        FMAP06: [
+            {min: 0, max: 7.5, color: colors.lightBlue},
+            {min: 7.5, max: 35, color: colors.blue},
+            {min: 35, max: 70, color: colors.deepSkyBlue},
+            {min: 70, max: 100, color: colors.lightGreen},
+        ],
+        FFG06: [
+            {min: 0, max: 15, color: colors.violet},
+            {min: 15, max: 30, color: colors.red},
+            {min: 30, max: 60, color: colors.yellow},
+            {min: 60, max: 100, color: colors.lightGreen},
+        ],
+        FFFT06: [
+            {min: 0.01, max: 10, color: colors.yellow},
+            {min: 10, max: 40, color: colors.orange},
+            {min: 40, max: 100, color: colors.red},
+        ],
+        FFR12: [
+            {min: 0.01, max: 0.2, color: colors.red},
+            {min: 0.2, max: 0.4, color: colors.orange},
+            {min: 0.4, max: 1, color: colors.yellow},
+        ],
+        FFR24: [
+            {min: 0.01, max: 0.2, color: colors.red},
+            {min: 0.2, max: 0.4, color: colors.orange},
+            {min: 0.4, max: 1, color: colors.yellow},
+        ],
+    };
 
-    // function getStyle(param, feature, data) {
-    //     const ffgVal = data.find(x => x && x.BASIN === feature.properties.value)?.[param];
-    //     const defaultStyle = { color: colors.white, weight: 1, opacity: 0, fillOpacity: 0 };
-    //     const paramStyles = styles[param];
-    //     if (!paramStyles) return defaultStyle;
+    function getStyle(param, feature, data) {
+        const ffgVal = data.find(x => x && x.BASIN === feature.properties.value)?.[param];
+        const defaultStyle = { color: colors.white, weight: 1, opacity: 0, fillOpacity: 0 };
+        const paramStyles = styles[param];
+        if (!paramStyles) return defaultStyle;
     
-    //     for (let style of paramStyles) {
-    //         if (ffgVal > style.min && ffgVal <= style.max) {
-    //             return { ...defaultStyle, ...style, opacity: 1, fillOpacity: 0.8 };
-    //         }
-    //     }
-    //     return defaultStyle;
-    // }
+        for (let style of paramStyles) {
+            if (ffgVal > style.min && ffgVal <= style.max) {
+                return { ...defaultStyle, ...style, opacity: 1, fillOpacity: 0.8 };
+            }
+        }
+        return defaultStyle;
+    }
 
     // Define a function to create map instances
     function createMapInstance(id) {
@@ -531,6 +535,15 @@ document.addEventListener("DOMContentLoaded", function() {
         return styleMap[param] || 'raster';
     }
 
+    // Function to update map center based on selected country
+    function updateMapCenter(mapInstance, selectedCountry) {
+        if (selectedCountry === 'KHM') {
+            mapInstance.setView(MapOptions.khmCenter, MapOptions.khmZoom);
+        } else {
+            mapInstance.setView(MapOptions.defaultCenter, MapOptions.defaultZoom);
+        }
+    }
+
     async function createMap(param, selectedDate, selectedHr) {
         var wmsUrl = generateWMSUrl(param, selectedDate, selectedHr);
         const mapInstance = mapInstances[param];
@@ -559,6 +572,37 @@ document.addEventListener("DOMContentLoaded", function() {
         if (!mapInstance.hasLayer(wmsLayer)) {
             wmsLayer.addTo(mapInstance);
         }
+        // Update map center based on selected country
+        updateMapCenter(mapInstance, selectedCountry);
+        
+        // Construct CQL filter based on the selected country
+        var cqlFilter = '';
+
+        // Check if all countries are selected
+        if (selectedCountry === 'All') {
+            // Remove wmsLayer2 if it exists
+            if (mapInstance.wmsLayer2 && mapInstance.hasLayer(mapInstance.wmsLayer2)) {
+                mapInstance.removeLayer(mapInstance.wmsLayer2);
+                mapInstance.wmsLayer2 = null; // Remove reference to wmsLayer2
+            }
+        } else {
+            // List of all countries
+            const allCountries = ['KHM', 'THA', 'VNM', 'LAO'];
+            // Exclude selected country from the list
+            const filteredCountries = allCountries.filter(country => country !== selectedCountry);
+            // Construct CQL filter
+            cqlFilter = `ISO IN ('${filteredCountries.join("', '")}')`;
+            
+            // Add wmsLayer2 with the constructed CQL filter
+            var wmsLayer2 = L.tileLayer.wms('http://119.15.81.22:8081/geoserver/adm/wms?', {
+                layers: 'adm:adm0',
+                format: 'image/png',
+                version: '1.1.0',
+                transparent: true,
+                CQL_FILTER: cqlFilter
+            }).addTo(mapInstance);
+            mapInstance.wmsLayer2 = wmsLayer2; // Store reference to wmsLayer2
+        }  
     }
 
     // // Define an object to store ffgsLayer variables for each parameter
@@ -602,35 +646,35 @@ document.addEventListener("DOMContentLoaded", function() {
     //     addLegendToMap(mapInstances[param], legendContent);
     // }
 
-    // // Function to create the legend content based on parameter styles
-    // function createLegend(param) {
-    //     const paramStyles = styles[param];
-    //     let legendHTML = '<div class="legend" style="background-color: white; padding: 10px;">';
+    // Function to create the legend content based on parameter styles
+    function createLegend(param) {
+        const paramStyles = styles[param];
+        let legendHTML = '<div class="legend" style="background-color: white; padding: 10px;">';
         
-    //     for (const style of paramStyles) {
-    //         const { color, min, max } = style;
-    //         const label = `${min} - ${max}`;
-    //         legendHTML += `<div><span class="legend-color p-2" style="background-color: ${color}; display: inline-block; margin-right: 5px;"></span>${label}</div>`;
-    //     }
+        for (const style of paramStyles) {
+            const { color, min, max } = style;
+            const label = `${min} - ${max}`;
+            legendHTML += `<div><span class="legend-color p-2" style="background-color: ${color}; display: inline-block; margin-right: 5px;"></span>${label}</div>`;
+        }
         
-    //     legendHTML += '</div>';
+        legendHTML += '</div>';
         
-    //     return legendHTML;
-    // }
+        return legendHTML;
+    }
 
 
-    // // Function to add a legend to the map
-    // function addLegendToMap(map, legendContent) {
-    //     const legend = L.control({ position: 'bottomright' });
+    // Function to add a legend to the map
+    function addLegendToMap(map, legendContent) {
+        const legend = L.control({ position: 'bottomright' });
 
-    //     legend.onAdd = function () {
-    //         const div = L.DomUtil.create('div', 'info legend');
-    //         div.innerHTML = legendContent;
-    //         return div;
-    //     };
+        legend.onAdd = function () {
+            const div = L.DomUtil.create('div', 'info legend');
+            div.innerHTML = legendContent;
+            return div;
+        };
 
-    //     legend.addTo(map);
-    // }
+        legend.addTo(map);
+    }
 
     async function populateTable(tableElement, data, interval) {
         const existingTbody = tableElement.querySelector('tbody');
@@ -792,6 +836,9 @@ document.addEventListener("DOMContentLoaded", function() {
             // Call createMap sequentially for each parameter
             for (const param in mapInstances) {
                 await createMap(param, dateWithoutHyphens, selectedHour);
+                // Add legend dynamically
+                const legendContent = createLegend(param);
+                addLegendToMap(mapInstances[param], legendContent); 
             }
 
             const tableContainers = {

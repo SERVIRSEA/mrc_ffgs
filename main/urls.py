@@ -16,8 +16,4 @@ urlpatterns = [
     path('get-storms-number-by-country/', views.get_storms_number_by_country),
     path('get-basin-chart-data/', views.get_basin_chart),
     path('pdf-template/', views.pdf_template_view, name='pdf-template'),
-    path('get-sld/', views.generate_sld, name='get-sld'),
-    path('extract/', views.extract_seaffgs_value),
 ]
-
-# http://127.0.0.1:8000/mrcffgs/?action=get-mrcffg-value
