@@ -980,6 +980,16 @@ document.addEventListener("DOMContentLoaded", function() {
         return styleMap[param] || 'raster';
     }
 
+    // Basin boundary layer
+    var wmsBasinUrl = 'http://119.15.81.22:8081/geoserver/adm/wms?';
+
+    // Replace 'workspace:layername' with the name of your workspace and layer
+    var wmsBasinLayer = L.tileLayer.wms(wmsBasinUrl, {
+        layers: 'adm:basins_mekong',
+        format: 'image/png',
+        transparent: true
+    });
+
     // Function to create or update WMS layer
     async function createOrUpdateBasinWMSLayer(param, selectedDate, selectedHr) {
         var wmsUrl = generateWMSUrl(param, selectedDate, selectedHr);
@@ -995,6 +1005,9 @@ document.addEventListener("DOMContentLoaded", function() {
         if (!map.hasLayer(wmsLayer)) {
             wmsLayer.addTo(map);
         }
+        // Bring wmsLayer to the back
+        // wmsLayer.bringToBack();
+        wmsBasinLayer.bringToFront();
     }
 
     // var param = "ASMT"
@@ -1351,16 +1364,6 @@ document.addEventListener("DOMContentLoaded", function() {
         }
     });
 
-    // Basin boundary layer
-    var wmsUrl = 'http://119.15.81.22:8081/geoserver/adm/wms?';
-
-    // Replace 'workspace:layername' with the name of your workspace and layer
-    var wmsBasinLayer = L.tileLayer.wms(wmsUrl, {
-        layers: 'adm:basins_mekong',
-        format: 'image/png',
-        transparent: true
-    });
-
     const ffpBasin = document.querySelector('#ffpBasin');
     ffpBasin.addEventListener("click", ()=> {
         if(ffpBasin.checked){
@@ -1374,6 +1377,8 @@ document.addEventListener("DOMContentLoaded", function() {
             document.getElementById("ffpLegend").style.display = "none";
         }
     });
+
+    wmsBasinLayer.bringToFront();
 
     let adm0;
     let subprovince_map;
