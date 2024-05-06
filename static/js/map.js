@@ -1351,14 +1351,26 @@ document.addEventListener("DOMContentLoaded", function() {
         }
     });
 
+    // Basin boundary layer
+    var wmsUrl = 'http://119.15.81.22:8081/geoserver/adm/wms?';
+
+    // Replace 'workspace:layername' with the name of your workspace and layer
+    var wmsBasinLayer = L.tileLayer.wms(wmsUrl, {
+        layers: 'adm:basins_mekong',
+        format: 'image/png',
+        transparent: true
+    });
+
     const ffpBasin = document.querySelector('#ffpBasin');
     ffpBasin.addEventListener("click", ()=> {
         if(ffpBasin.checked){
             // map.addLayer(ffgsLayer);
             map.addLayer(wmsLayer);
+            map.addLayer(wmsBasinLayer);
             document.getElementById("ffpLegend").style.display = "block";
         } else {
             map.removeLayer(wmsLayer);
+            map.removeLayer(wmsBasinLayer);
             document.getElementById("ffpLegend").style.display = "none";
         }
     });
@@ -1500,6 +1512,20 @@ document.addEventListener("DOMContentLoaded", function() {
                 belowmincolor:'extend',
                 numcolorbands: 150,
             });
+
+            // var tdWmsRainLayer = L.tileLayer.wms("https://thredds-servir.adpc.net/thredds/wms/RAINSTORM/operational/MCS_2024-05-03_230000_ID8.nc?", {
+            //     service:'WMS',
+            //     layers:'rain',
+            //     styles:'boxfill/rainbow',
+            //     format:'image/png',
+            //     transparent:true,
+            //     version:'1.3.0',
+            //     time:'2024-05-04T00:00:00.000Z',
+            //     colorscalerange:'0,150',
+            //     logscale:false,
+            //     abovemaxcolor:'extend',
+            //     belowmincolor:'extend',
+            //     numcolorbands:"150"})
 
             var timeDimension = new L.TimeDimension();
             map.timeDimension = timeDimension;

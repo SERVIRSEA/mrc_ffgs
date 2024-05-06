@@ -396,6 +396,7 @@ document.addEventListener("DOMContentLoaded", function() {
         let totalCroplands = 0;
     
         parsed_data.forEach(item => {
+            // console.log(item)
             totalPopulation += parseFloat(item.M1) + parseFloat(item.M2) + parseFloat(item.M3) + parseFloat(item.F1) + parseFloat(item.F2) + parseFloat(item.F3);
             totalFemalePopulation += parseFloat(item.F1) + parseFloat(item.F2) + parseFloat(item.F3);
             femalePopulationF1 += parseFloat(item.F1);
