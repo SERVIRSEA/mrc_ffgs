@@ -987,7 +987,9 @@ document.addEventListener("DOMContentLoaded", function() {
     var wmsBasinLayer = L.tileLayer.wms(wmsBasinUrl, {
         layers: 'adm:basins_mekong',
         format: 'image/png',
-        transparent: true
+        transparent: true,
+        minZoom: 9,
+        style: { weight: 0.1 } 
     });
 
     // Add wmsLayer2 with the constructed CQL filter

@@ -349,8 +349,8 @@ def get_storms(request):
 def get_storms_number_by_country(request):
     data = events_country
     df = pd.read_csv(data)
+    df.fillna(0, inplace=True)
     json = df.to_json(orient='records')
-    # print(json)
     return JsonResponse(json, safe=False)
 
 @csrf_exempt

@@ -784,16 +784,16 @@ document.addEventListener("DOMContentLoaded", function() {
             });
         }
 
-        var wmsBasinLayer = mapInstance.wmsBasinLayer;
+        // var wmsBasinLayer = mapInstance.wmsBasinLayer;
     
-        if (wmsBasinLayer && mapInstance.hasLayer(wmsBasinLayer)) {
-            mapInstance.removeLayer(wmsBasinLayer);
-        }
-        wmsBasinLayer.setUrl(wmsBasinUrl);
+        // if (wmsBasinLayer && mapInstance.hasLayer(wmsBasinLayer)) {
+        //     mapInstance.removeLayer(wmsBasinLayer);
+        // }
+        // wmsBasinLayer.setUrl(wmsBasinUrl);
         
-        if (!mapInstance.hasLayer(wmsBasinLayer)) {
-            wmsBasinLayer.addTo(mapInstance);
-        }
+        // if (!mapInstance.hasLayer(wmsBasinLayer)) {
+        //     wmsBasinLayer.addTo(mapInstance);
+        // }
         
         const selectedCountry = countryInput.value;
         
@@ -810,9 +810,9 @@ document.addEventListener("DOMContentLoaded", function() {
                 mapInstance.removeLayer(mapInstance.wmsLayer2);
                 mapInstance.wmsLayer2 = null; // Remove reference to wmsLayer2
             }
-            wmsBasinLayer.setParams({
-                layers:'adm:basins_mekong'
-            })
+            // wmsBasinLayer.setParams({
+            //     layers:'adm:basins_mekong'
+            // })
         } else {
             // List of all countries
             const allCountries = ['KHM', 'THA', 'VNM', 'LAO'];
@@ -831,18 +831,18 @@ document.addEventListener("DOMContentLoaded", function() {
             }).addTo(mapInstance);
             mapInstance.wmsLayer2 = wmsLayer2; // Store reference to wmsLayer2
 
-            if (selectedCountry === 'KHM') {
-                wmsBasinLayer.setParams({layers:'adm:basins_cambodia'})
-            } else if (selectedCountry === 'LAO') {
-                wmsBasinLayer.setParams({layers:'adm:basins_laos'});
-            } else if (selectedCountry === 'VNM') {
-                wmsBasinLayer.setParams({layers:'adm:basins_vietnam'});
-            } else if (selectedCountry === 'THA') {
-                wmsBasinLayer.setParams({layers:'adm:basins_thailand'});
-            } else {
-                // Handle other cases or provide a default behavior
-                console.log("Selected country not supported or no country selected.");
-            }
+            // if (selectedCountry === 'KHM') {
+            //     wmsBasinLayer.setParams({layers:'adm:basins_cambodia'})
+            // } else if (selectedCountry === 'LAO') {
+            //     wmsBasinLayer.setParams({layers:'adm:basins_laos'});
+            // } else if (selectedCountry === 'VNM') {
+            //     wmsBasinLayer.setParams({layers:'adm:basins_vietnam'});
+            // } else if (selectedCountry === 'THA') {
+            //     wmsBasinLayer.setParams({layers:'adm:basins_thailand'});
+            // } else {
+            //     // Handle other cases or provide a default behavior
+            //     console.log("Selected country not supported or no country selected.");
+            // }
         } 
     }
 
