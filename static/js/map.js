@@ -990,6 +990,14 @@ document.addEventListener("DOMContentLoaded", function() {
         transparent: true
     });
 
+    // Add wmsLayer2 with the constructed CQL filter
+    var wmsLayer2 = L.tileLayer.wms('http://119.15.81.22:8081/geoserver/adm/wms?', {
+        layers: 'adm:adm0',
+        format: 'image/png',
+        version: '1.1.0',
+        transparent: true
+    });
+
     // Function to create or update WMS layer
     async function createOrUpdateBasinWMSLayer(param, selectedDate, selectedHr) {
         var wmsUrl = generateWMSUrl(param, selectedDate, selectedHr);
@@ -1005,9 +1013,18 @@ document.addEventListener("DOMContentLoaded", function() {
         if (!map.hasLayer(wmsLayer)) {
             wmsLayer.addTo(map);
         }
+        // if (!map.hasLayer(wmsLayer2)) {
+        //     wmsLayer2.addTo(map);
+        // }
         // Bring wmsLayer to the back
         // wmsLayer.bringToBack();
         wmsBasinLayer.bringToFront();
+        wmsLayer2.bringToFront();
+    }
+
+    // Function to update layers dynamically
+    function updateBasinBoundaryWMSLayer(newLayerName){
+        wmsBasinLayer.setParams({ layers: newLayerName });
     }
 
     // var param = "ASMT"
@@ -1264,10 +1281,47 @@ document.addEventListener("DOMContentLoaded", function() {
         const dataToProcess = await getStats(statsParam, selectedDate, selectedHrs)
         let parsedData = JSON.parse(dataToProcess);
 
+        // Construct CQL filter based on the selected country
+        var cqlFilter = '';
+
         if (selectedCountry === "All"){
+            updateBasinBoundaryWMSLayer('adm:basins_mekong')
             parsedData = parsedData;
+            map.removeLayer(wmsLayer2);
         } else {
+            if (selectedCountry === 'KHM') {
+                updateBasinBoundaryWMSLayer('adm:basins_cambodia');
+            } else if (selectedCountry === 'LAO') {
+                updateBasinBoundaryWMSLayer('adm:basins_laos');
+            } else if (selectedCountry === 'VNM') {
+                updateBasinBoundaryWMSLayer('adm:basins_vietnam');
+            } else if (selectedCountry === 'THA') {
+                updateBasinBoundaryWMSLayer('adm:basins_thailand');
+            } else {
+                // Handle other cases or provide a default behavior
+                console.log("Selected country not supported or no country selected.");
+            }
             parsedData =  parsedData.filter(item => item.ISO === selectedCountry); 
+
+            // List of all countries
+            const allCountries = ['KHM', 'THA', 'VNM', 'LAO'];
+            // Exclude selected country from the list
+            const filteredCountries = allCountries.filter(country => country !== selectedCountry);
+            // Construct CQL filter
+            cqlFilter = `ISO IN ('${filteredCountries.join("', '")}')`;
+            
+            // // Add wmsLayer2 with the constructed CQL filter
+            // var wmsLayer2 = L.tileLayer.wms('http://119.15.81.22:8081/geoserver/adm/wms?', {
+            //     layers: 'adm:adm0',
+            //     format: 'image/png',
+            //     version: '1.1.0',
+            //     transparent: true,
+            //     CQL_FILTER: cqlFilter
+            // }).addTo(map);
+            wmsLayer2.setParams({CQL_FILTER: cqlFilter});
+            if (!map.hasLayer(wmsLayer2)) {
+                wmsLayer2.addTo(map);
+            }
         }
 
         updateTable(statsParam, parsedData); 

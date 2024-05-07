@@ -703,11 +703,11 @@ document.addEventListener("DOMContentLoaded", function() {
         return `${geoserver_url}wms?`;
     }
 
-    var wmsLayer = L.tileLayer.wms('', {
-        format: 'image/png',
-        version: '1.1.0',
-        transparent: true
-    });
+    // var wmsLayer = L.tileLayer.wms('', {
+    //     format: 'image/png',
+    //     version: '1.1.0',
+    //     transparent: true
+    // });
 
     function getStyleName(param) {
         // Map parameter values to corresponding style names
@@ -742,6 +742,10 @@ document.addEventListener("DOMContentLoaded", function() {
         }
     }
 
+    // Basin boundary layer
+    var wmsBasinUrl = 'http://119.15.81.22:8081/geoserver/adm/wms?';
+
+
     async function createMap(param, selectedDate, selectedHr) {
         var wmsUrl = generateWMSUrl(param, selectedDate, selectedHr);
         const mapInstance = mapInstances[param];
@@ -770,6 +774,26 @@ document.addEventListener("DOMContentLoaded", function() {
         if (!mapInstance.hasLayer(wmsLayer)) {
             wmsLayer.addTo(mapInstance);
         }
+
+        // Initialize wmsBasinLayer if it's not already defined for the map instance
+        if (!mapInstance.wmsBasinLayer) {
+            mapInstance.wmsBasinLayer = L.tileLayer.wms('', {
+                format: 'image/png',
+                version: '1.1.0',
+                transparent: true
+            });
+        }
+
+        var wmsBasinLayer = mapInstance.wmsBasinLayer;
+    
+        if (wmsBasinLayer && mapInstance.hasLayer(wmsBasinLayer)) {
+            mapInstance.removeLayer(wmsBasinLayer);
+        }
+        wmsBasinLayer.setUrl(wmsBasinUrl);
+        
+        if (!mapInstance.hasLayer(wmsBasinLayer)) {
+            wmsBasinLayer.addTo(mapInstance);
+        }
         
         const selectedCountry = countryInput.value;
         
@@ -786,6 +810,9 @@ document.addEventListener("DOMContentLoaded", function() {
                 mapInstance.removeLayer(mapInstance.wmsLayer2);
                 mapInstance.wmsLayer2 = null; // Remove reference to wmsLayer2
             }
+            wmsBasinLayer.setParams({
+                layers:'adm:basins_mekong'
+            })
         } else {
             // List of all countries
             const allCountries = ['KHM', 'THA', 'VNM', 'LAO'];
@@ -803,7 +830,20 @@ document.addEventListener("DOMContentLoaded", function() {
                 CQL_FILTER: cqlFilter
             }).addTo(mapInstance);
             mapInstance.wmsLayer2 = wmsLayer2; // Store reference to wmsLayer2
-        }  
+
+            if (selectedCountry === 'KHM') {
+                wmsBasinLayer.setParams({layers:'adm:basins_cambodia'})
+            } else if (selectedCountry === 'LAO') {
+                wmsBasinLayer.setParams({layers:'adm:basins_laos'});
+            } else if (selectedCountry === 'VNM') {
+                wmsBasinLayer.setParams({layers:'adm:basins_vietnam'});
+            } else if (selectedCountry === 'THA') {
+                wmsBasinLayer.setParams({layers:'adm:basins_thailand'});
+            } else {
+                // Handle other cases or provide a default behavior
+                console.log("Selected country not supported or no country selected.");
+            }
+        } 
     }
 
     // Function to create the legend content based on parameter styles
