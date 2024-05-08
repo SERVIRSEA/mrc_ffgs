@@ -988,7 +988,7 @@ document.addEventListener("DOMContentLoaded", function() {
         layers: 'adm:basins_mekong',
         format: 'image/png',
         transparent: true,
-        minZoom: 9,
+        minZoom: 7,
         style: { weight: 0.1 } 
     });
 
@@ -1009,7 +1009,7 @@ document.addEventListener("DOMContentLoaded", function() {
         }
         wmsLayer.setUrl(wmsUrl);
         wmsLayer.setParams({
-            layers: `${param}:${param}_${selectedDate}${selectedHr}`,
+            layers: `ffgs:${param}_${selectedDate}${selectedHr}`,
             styles: getStyleName(param)
         });
         if (!map.hasLayer(wmsLayer)) {
