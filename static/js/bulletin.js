@@ -70,7 +70,6 @@ document.addEventListener("DOMContentLoaded", function() {
     async function generateGraph(selectedCountry) {
         const data = await getStorms();
         const parsedData = JSON.parse(data);
-
         const data_by_country = await getStormsByCountry();
         const stormsCountryData = JSON.parse(data_by_country);
 
