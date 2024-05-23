@@ -1404,10 +1404,10 @@ document.addEventListener("DOMContentLoaded", function() {
         populateLegend('MAP06');
     })();
 
-    // Keep this layer always on bottom
-    map.on('layeradd', function() {
-        subProvinceLayer.bringToBack();
-    });
+    // // Keep this layer always on bottom
+    // map.on('layeradd', function() {
+    //     subProvinceLayer.bringToBack();
+    // });
 
     const subp_check = document.querySelector("#ffwSubp");
     subp_check.addEventListener("click", ()=> {
@@ -1529,6 +1529,12 @@ document.addEventListener("DOMContentLoaded", function() {
                     fillOpacity: 0.0,
                 },
             }).addTo(map);
+            map.on('layeradd', function(event) {
+                adm0.bringToBack();           // Ensure admin layer is at the bottom
+                mekong_basin.bringToBack();
+                // subProvinceLayer.bringToBack();   // Ensure sub-province layer is above admin and mekong_basin layers
+                river.bringToFront();         // Ensure river layer is on top of all layers
+            });
         } catch (error) {
             console.error('Layer loading error:', error);
         }

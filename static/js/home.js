@@ -313,11 +313,11 @@ document.addEventListener("DOMContentLoaded", function() {
     const subProvinceCache = {};
     const subprovince_url  = '/static/data/adm2_mekong.geojson';
 
-    // Keep this layer always on bottom
-    hmap.on('layeradd', function() {
-        subProvinceLayer.bringToBack();
-    });
-    
+    // // Keep this layer always on bottom
+    // hmap.on('layeradd', function() {
+    //     subProvinceLayer.bringToBack();
+    // });
+
     async function getsubProvinceData() {
         try {
             if (subProvinceCache[subprovince_url]) {
@@ -647,6 +647,13 @@ document.addEventListener("DOMContentLoaded", function() {
                     fillOpacity: 0.0,
                 },
             }).addTo(hmap);
+            // Ensure the correct layer order by using bringToBack and bringToFront
+            hmap.on('layeradd', function(event) {
+                adm0.bringToBack();           // Ensure admin layer is at the bottom
+                mekong_basin.bringToBack();
+                // subProvinceLayer.bringToBack();   // Ensure sub-province layer is above admin and mekong_basin layers
+                river.bringToFront();         // Ensure river layer is on top of all layers
+            });
         } catch (error) {
             console.error('Layer loading error:', error);
         }
