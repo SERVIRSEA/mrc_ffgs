@@ -195,7 +195,7 @@ def get_alert_stat_6hrs(request):
             'Hospital': 'sum',
             'GDP': 'sum',
             'crop_sqm': 'sum',
-            'FFG06': 'min',
+            'FFG06': 'median',
         }).reset_index()
         grouped_max_FFFT = scols_ffft.groupby(['NAME_2']).agg({'FFFT06': 'max'})
         join_max = grouped_max_FFG.merge(grouped_max_FFFT, on="NAME_2")
@@ -259,7 +259,7 @@ def get_risk_stat_12hrs(request):
         'Hospital': 'sum',
         'GDP': 'sum',
         'crop_sqm': 'sum',
-        'FFR12': 'min',
+        'FFR12': 'median',
     }).reset_index()
     bins = [-np.inf, 0.01, 0.2, 0.4, 1, np.inf]
     labels = ['Invalid', 'High', 'Moderate', 'Low', 'Invalid']
@@ -321,7 +321,7 @@ def get_risk_stat_24hrs(request):
         'Hospital': 'sum',
         'GDP': 'sum',
         'crop_sqm': 'sum',
-        'FFR24': 'min',
+        'FFR24': 'median',
     }).reset_index()
     bins = [-np.inf, 0.01, 0.2, 0.4, 1, np.inf]
     labels = ['Invalid', 'High', 'Moderate', 'Low', 'Invalid']
