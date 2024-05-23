@@ -1404,7 +1404,7 @@ document.addEventListener("DOMContentLoaded", function() {
         populateLegend('MAP06');
     })();
 
-    // Keep this layer always on top
+    // Keep this layer always on bottom
     map.on('layeradd', function() {
         subProvinceLayer.bringToBack();
     });

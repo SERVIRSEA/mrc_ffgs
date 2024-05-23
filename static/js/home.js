@@ -313,6 +313,11 @@ document.addEventListener("DOMContentLoaded", function() {
     const subProvinceCache = {};
     const subprovince_url  = '/static/data/adm2_mekong.geojson';
 
+    // Keep this layer always on bottom
+    hmap.on('layeradd', function() {
+        subProvinceLayer.bringToBack();
+    });
+    
     async function getsubProvinceData() {
         try {
             if (subProvinceCache[subprovince_url]) {
