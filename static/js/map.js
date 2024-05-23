@@ -1405,9 +1405,9 @@ document.addEventListener("DOMContentLoaded", function() {
     })();
 
     // Keep this layer always on top
-    // map.on('layeradd', function() {
-    //     subProvinceLayer.bringToFront();
-    // });
+    map.on('layeradd', function() {
+        subProvinceLayer.bringToBack();
+    });
 
     const subp_check = document.querySelector("#ffwSubp");
     subp_check.addEventListener("click", ()=> {
