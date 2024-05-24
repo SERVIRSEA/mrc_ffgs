@@ -1384,6 +1384,20 @@ document.addEventListener("DOMContentLoaded", function() {
 
     //////////////////////////
 
+    async function getHour(date) {
+        const date_url = `/get-hourlist?date=${date}`; 
+        try {
+            const response = await fetch(date_url);
+            if (!response.ok) {
+                throw new Error(`HTTP error! Status: ${response.status}`);
+            }
+            const data = await response.json();
+            return data;
+        } catch (error) {
+            console.error('Error:', error);
+        }
+    }
+
     // Fetch and display initial 6-hour data on page load
     (async function init() {
         let dateList = await getStats('dates');
@@ -1392,7 +1406,20 @@ document.addEventListener("DOMContentLoaded", function() {
         createCustomCalender(clickableDates);
 
         let selectedDate = dateInput.value; 
-        let selectedHrs = hourInput.value;
+        let hours = await getHour(selectedDate);
+            
+        let latestHour;
+        if (hours.length > 0) {
+            // Sort the hours in descending order
+            hours.sort(function(a, b) {
+                return b.localeCompare(a);
+            });
+            latestHour = hours[0];
+        } else {
+            console.log("No data available.");
+        }
+        hourInput.value = latestHour;
+        let selectedHrs = latestHour;
         let selectedCountry = countryDropdown.value;
         const dataToProcess = await getStats('6hrs', selectedDate, selectedHrs);
         const parsedData = JSON.parse(dataToProcess);
@@ -1808,7 +1835,6 @@ document.addEventListener("DOMContentLoaded", function() {
             bottombarContent.style.display ="block";
         } 
     }
-
 
     var bottom_basemap_list = document.querySelectorAll(".bottom-basemap-card");
     for (var i = 0; i < bottom_basemap_list.length; i++) {

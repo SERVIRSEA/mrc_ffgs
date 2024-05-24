@@ -1,6 +1,6 @@
 document.addEventListener("DOMContentLoaded", function() {
     const dateInput = document.getElementById("dateInput");
-    const hourInput = document.getElementById("hrSelection");
+    let hourInput = document.getElementById("hrSelection");
     const countryInput = document.getElementById("countryBulletin");
     const updateBulletinBtn = document.getElementById("updateBulletin");
 
@@ -1217,7 +1217,20 @@ document.addEventListener("DOMContentLoaded", function() {
         generateCalendar(currentMonth, currentYear);
     }
     // ============== End Date Panel ==================!
-
+    async function getHour(date) {
+        const date_url = `/get-hourlist?date=${date}`; 
+        try {
+            const response = await fetch(date_url);
+            if (!response.ok) {
+                throw new Error(`HTTP error! Status: ${response.status}`);
+            }
+            const data = await response.json();
+            return data;
+        } catch (error) {
+            console.error('Error:', error);
+        }
+    }
+    
     async function init() {
         try {
             loader.style.display = 'block';
@@ -1227,7 +1240,20 @@ document.addEventListener("DOMContentLoaded", function() {
             createCustomCalender(clickableDates);
 
             var selected_date = dateInput.value; 
-            var selected_hrs = hourInput.value;
+            let hours = await getHour(selected_date);
+            
+            let latestHour;
+            if (hours.length > 0) {
+                // Sort the hours in descending order
+                hours.sort(function(a, b) {
+                    return b.localeCompare(a);
+                });
+                latestHour = hours[0];
+            } else {
+                console.log("No data available.");
+            }
+            hourInput.value = latestHour;
+            var selected_hrs = latestHour;
             var selected_country = countryInput.value;
 
             paramCache.date = selected_date;

@@ -500,6 +500,7 @@ document.addEventListener("DOMContentLoaded", function() {
             const parsedDateList = JSON.parse(dateList);
             const selected_date = parsedDateList[0][0];
             let hours = await getHour(selected_date);
+            
             let latestHour;
             if (hours.length > 0) {
                 // Sort the hours in descending order
@@ -507,6 +508,7 @@ document.addEventListener("DOMContentLoaded", function() {
                     return b.localeCompare(a);
                 });
                 latestHour = hours[0];
+                console.log(latestHour);
             } else {
                 console.log("No data available.");
             }
