@@ -141,7 +141,10 @@
                 </div>
             </div>
             <div class="col-md-6">
-                <h4 class="fw-bold fs-4 text-center">CRITICAL INFRASTRUCTURE</h4>
+                <div class="rmap" id="rfmap"></div>
+                <p>Source: GSMaP NOW</p>
+                <p>This map shows the 24-hour rainfall accumulation using GSMaP NOW satellite-based precipitation estimates.</p>
+                <!-- <h4 class="fw-bold fs-4 text-center">CRITICAL INFRASTRUCTURE</h4>
                 <p class="text-center">(Details in the table below)</p>
                 <ul class="nav nav-tabs temp-tab pt-3" id="insTab" role="tablist">
                     <li class="nav-item" role="presentation">
@@ -322,7 +325,7 @@
                                 <small class="text-muted">*GDP = Gross Domestic Product</small>
                             </div>
                         </div>
-                    </div>
+                    </div> -->
                 </div>
                 <p class="fw-bold text-center">* Mekong Xray provide multidimensional vulnerability data for the flash flood risk areas in the Lower Mekong Basin by Big Earth Data including Earth Observation, Social Networks, IoT and Miscellaneous data.</p>
             </div>
@@ -364,20 +367,35 @@
             <div class="col-md-4 col-lg-4">
                 <div class="card card-body pb-0 mb-0">
                     <ul class="horizontal-list">
-                        <li>FMAP - 06 hr</li>
+                        <li>FFG - 01 hr</li>
                         <li class="datePlaceholder"></li>
                         <li>REGIONAL</li>
                     </ul>
                 </div>
                 <div class="card card-body p-0 m-0">
-                    <div class="bmap" id="fmap6hr"></div>
+                    <div class="bmap" id="ffg1hr"></div>
                 </div> 
                 <div class="card card-body pb-0 mb-0">
-                    <h4 class="fs-6 text-center">Rainfall forecast (FMAP)</h4>
+                    <h4 class="fs-6 text-center">Rainfall which can cause flooding (FFG)</h4>
                 </div>
             </div>
         </div>
         <div class="row ms-5 me-5 mt-5">
+            <div class="col-md-4 col-lg-4">
+                <div class="card card-body pb-0 mb-0">
+                    <ul class="horizontal-list">
+                        <li>FFG - 03 hr</li>
+                        <li class="datePlaceholder"></li>
+                        <li>REGIONAL</li>
+                    </ul>
+                </div>
+                <div class="card card-body p-0 m-0">
+                    <div class="bmap" id="ffg3hr"></div>
+                </div> 
+                <div class="card card-body pb-0 mb-0">
+                    <h4 class="fs-6 text-center">Rainfall which can cause flooding (FFG)</h4>
+                </div>
+            </div>
             <div class="col-md-4 col-lg-4">
                 <div class="card card-body pb-0 mb-0">
                     <ul class="horizontal-list">
@@ -396,19 +414,21 @@
             <div class="col-md-4 col-lg-4">
                 <div class="card card-body pb-0 mb-0">
                     <ul class="horizontal-list">
-                        <li>FFFT - 06 hr</li>
+                        <li>FMAP - 24 hr</li>
                         <li class="datePlaceholder"></li>
                         <li>REGIONAL</li>
                     </ul>
                 </div>
                 <div class="card card-body p-0 m-0">
-                    <div class="bmap" id="ffft6hr"></div>
+                    <div class="bmap" id="fmap24hr"></div>
                 </div> 
                 <div class="card card-body pb-0 mb-0">
-                    <h4 class="fs-6 text-center">Forecast of basin with a surplus of rainfall (FFFT)</h4>
+                    <h4 class="fs-6 text-center">Rainfall Forecast (FMAP)</h4>
                 </div>
             </div>
-            <div class="col-md-4 col-lg-4">
+        </div>
+        <div class="row ms-5 me-5 mt-5">
+            <div class="col-md-6 col-lg-6">
                 <div class="card card-body pb-0 mb-0">
                     <ul class="horizontal-list">
                         <li>FFR - 12 hr</li>
@@ -423,9 +443,7 @@
                     <h4 class="fs-6 text-center">Flood risk up to 12.00 UTC (FFR+12)</h4>
                 </div>
             </div>
-        </div>
-        <div class="row ms-5 me-5 mt-5">
-            <div class="col-md-4 col-lg-4">
+            <div class="col-md-6 col-lg-6">
                 <div class="card card-body pb-0 mb-0">
                     <ul class="horizontal-list">
                         <li>FFR - 24 hr</li>
@@ -440,7 +458,9 @@
                     <h4 class="fs-6 text-center">Flood risk up to 24.00 UTC (FFR+24)</h4>
                 </div>
             </div>
-            <div class="col-md-8 col-lg-8">
+        </div>
+        <div class="row ms-5 me-5 mt-5">
+            <div class="col-md-12 col-lg-12">
                 <div class="card card-body remarks ps-4 pe-4 pt-5 pb-4">
                     <h6 class="fs-5 fw-bold text-decoration-underline fst-italic">REMARKS</h6>
                     <p class="pt-3"><span class="fw-bold fs-5">FFG - Flash Flood Guidance: </span>The amount of rainfall over a given duration (1, 3, 6
@@ -464,9 +484,7 @@
                         and FFG models.</p>
                 </div>
             </div>
-        </div>
-        <div class="row ms-5 me-5 mt-5">
-            <h3 class="fw-bold fs-4">Note: Please be aware of the different color bar codes of each product.</h3>
+            <h3 class="fw-bold fs-4 mt-5">Note: Please be aware of the different color bar codes of each product.</h3>
             <div class="row pt-3">
                 <div class="col-md-6">
                     <table class="table table-responsive">
@@ -497,7 +515,7 @@
                         <thead>
                             <tr>
                                 <th class="h6 fw-bold">FFFT (Forecast Flash Flood Threat)</th>
-                                <th class="h6 fw-bold">(FFR) Flash Flood Risk </th>
+                                <th class="h6 fw-bold">FFR (Flash Flood Risk)</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -518,7 +536,50 @@
                 </div>
             </div>
             <div class="row pt-3">
-                <div class="col-md-6">
+                <div class="col-md-8">
+                    <table class="table table-responsive">
+                        <thead>
+                            <tr>
+                                <th colspan="6" class="h6 fw-bold text-center">Flash Flood Guidance (FFG)</th>
+                            </tr>
+                            <tr>
+                                <th scope="col" class="h6 fw-bold">FFG 01 Hrs</th>
+                                <th scope="col" class="h6 fw-bold">Classification </th>
+                                <th scope="col" class="h6 fw-bold">FFG 03 Hrs</th>
+                                <th scope="col" class="h6 fw-bold">Classification </th>
+                                <th scope="col" class="h6 fw-bold">FFG 06 Hrs</th>
+                                <th scope="col" class="h6 fw-bold">Classification </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="h6 text-white" style="background: red;">FFG ≤ 10</td>
+                                <td class="h6 text-white" style="background: red;">High</td>
+                                <td class="h6 text-white" style="background: red;">FFG ≤ 10</td>
+                                <td class="h6 text-white" style="background: red;">High</td>
+                                <td class="h6 text-white" style="background: red;">FFG ≤ 15</td>
+                                <td class="h6 text-white" style="background: red;">High</td>
+                            </tr>
+                            <tr>
+                                <td class="h6" style="background: yellow;">10 < FFG ≤ 25</td>
+                                <td class="h6" style="background: yellow;">Moderate</td>
+                                <td class="h6" style="background: yellow;">10 < FFG ≤ 25</td>
+                                <td class="h6" style="background: yellow;">Moderate</td>
+                                <td class="h6" style="background: yellow;">15 < FFG ≤ 30</td>
+                                <td class="h6" style="background: yellow;">Moderate</td>
+                            </tr>
+                            <tr>
+                                <td class="h6" style="background: palegreen;">25 < FFG ≤ 40</td>
+                                <td class="h6" style="background: palegreen;">Low</td>
+                                <td class="h6" style="background: palegreen;">25 < FFG ≤ 40</td>
+                                <td class="h6" style="background: palegreen;">Low</td>
+                                <td class="h6" style="background: palegreen;">30 < FFG ≤ 60</td>
+                                <td class="h6" style="background: palegreen;">Low</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="col-md-4">
                     <table class="table table-responsive">
                         <thead>
                             <tr>
@@ -554,45 +615,17 @@
                         </tbody>
                     </table>
                 </div>
-                <div class="col-md-6">
-                    <table class="table table-responsive">
-                        <thead>
-                            <tr>
-                                <th class="h6 fw-bold">FFG (Flash Flood Guidance)</th>
-                                <th rowspan="2" class="h6 fw-bold">Classification </th>
-                            </tr>
-                            <tr>
-                                <th class="h6 fw-bold">(mm/6hr)</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td class="h6 text-white" style="background: rgb(232, 92, 192);">FFG ≤ 15</td>
-                                <td class="h6 text-white" style="background: rgb(232, 92, 192);">Extreme - risk</td>
-                            </tr>
-                            <tr>
-                                <td class="h6text-white" style="background: red;">15 < FFG ≤ 30</td>
-                                <td class="h6 text-white" style="background: red;">High risk</td>
-                            </tr>
-                            <tr>
-                                <td class="h6" style="background: yellow;">30 < FFG ≤ 60</td>
-                                <td class="h6" style="background: yellow;">Moderate - risk</td>
-                            </tr>
-                            <tr>
-                                <td class="h6" style="background: palegreen;">60 < FFG ≤ 100</td>
-                                <td class="h" style="background: palegreen;">Low - risk </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
             </div>
             <p class="fw-bold text-center p-4">* This Bulletin is meant to contribute to forecasting flash flood events for meteorologists and relate experts in each member country and enhancing flash flood warning information for the overall area of the Lower Mekong basin.</p>
         </div>
     </div> 
-    {% include 'country-bulletin/cambodia.html' %}
-    {% include 'country-bulletin/laos.html' %}
-    {% include 'country-bulletin/thailand.html' %}
-    {% include 'country-bulletin/vietnam.html' %}
+    <div class="container-fluid">
+        <div class="row ms-5 me-5 mt-5 mb-5">
+            <div id="tablesContainer"></div>
+        </div>
+    </div>
+    
+    
 </div>
 <div class="footer bg-secondary mt-5">
     <div class="text-center py-4 text-white">

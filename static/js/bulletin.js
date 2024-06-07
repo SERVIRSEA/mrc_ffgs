@@ -286,6 +286,8 @@ document.addEventListener("DOMContentLoaded", function() {
 
     // Fetch URLs
     const urls = {
+        '1hrs': '/get-alert-stat-1hrs/',
+        '3hrs': '/get-alert-stat-3hrs/',
         '6hrs': '/get-alert-stat-6hrs/',
         '12hrs': '/get-risk-stat-12hrs/',
         '24hrs': '/get-risk-stat-24hrs/',
@@ -341,142 +343,158 @@ document.addEventListener("DOMContentLoaded", function() {
     }
 
     async function updateTable(dataToProcess) {
-        const total_pop = document.querySelector("#total_pop");
-        const total_female_pop = document.querySelector("#total_female_pop");
-        const female_pop_f1 = document.querySelector("#female_pop_f1");
-        const female_pop_f2 = document.querySelector("#female_pop_f2");
-        const female_pop_f3 = document.querySelector("#female_pop_f3");
-        const total_male_pop = document.querySelector("#total_male_pop");
-        const male_pop_m1 = document.querySelector("#male_pop_m1");
-        const male_pop_m2 = document.querySelector("#male_pop_m2");
-        const male_pop_m3 = document.querySelector("#male_pop_m3");
+        // const total_pop = document.querySelector("#total_pop");
+        // const total_female_pop = document.querySelector("#total_female_pop");
+        // const female_pop_f1 = document.querySelector("#female_pop_f1");
+        // const female_pop_f2 = document.querySelector("#female_pop_f2");
+        // const female_pop_f3 = document.querySelector("#female_pop_f3");
+        // const total_male_pop = document.querySelector("#total_male_pop");
+        // const male_pop_m1 = document.querySelector("#male_pop_m1");
+        // const male_pop_m2 = document.querySelector("#male_pop_m2");
+        // const male_pop_m3 = document.querySelector("#male_pop_m3");
         
-        const highway_road =  document.querySelector("#highwayRoad");
-        const primary_road =  document.querySelector("#primaryRoad");
-        const secondary_road =  document.querySelector("#secondaryRoad");
-        const tertiary_road =  document.querySelector("#tertiaryRoad");
-        const hospital =  document.querySelector("#hospital");
-        const gdp =  document.querySelector("#gdp");
-        const croplands =  document.querySelector("#cropLands");
+        // const highway_road =  document.querySelector("#highwayRoad");
+        // const primary_road =  document.querySelector("#primaryRoad");
+        // const secondary_road =  document.querySelector("#secondaryRoad");
+        // const tertiary_road =  document.querySelector("#tertiaryRoad");
+        // const hospital =  document.querySelector("#hospital");
+        // const gdp =  document.querySelector("#gdp");
+        // const croplands =  document.querySelector("#cropLands");
         
-        // Initialize all elements to '---' as default
-        [total_pop, total_female_pop, female_pop_f1, female_pop_f2, female_pop_f3, 
-        total_male_pop, male_pop_m1, male_pop_m2, male_pop_m3, highway_road, primary_road,
-        secondary_road, tertiary_road, hospital, gdp, croplands].forEach(el => el.innerHTML = '---');
+        // // Initialize all elements to '---' as default
+        // [total_pop, total_female_pop, female_pop_f1, female_pop_f2, female_pop_f3, 
+        // total_male_pop, male_pop_m1, male_pop_m2, male_pop_m3, highway_road, primary_road,
+        // secondary_road, tertiary_road, hospital, gdp, croplands].forEach(el => el.innerHTML = '---');
     
-        if (!dataToProcess || Object.keys(dataToProcess).length === 0) {
-            return;
-        }
+        // if (!dataToProcess || Object.keys(dataToProcess).length === 0) {
+        //     return;
+        // }
     
-        let parsed_data = dataToProcess; //JSON.parse(dataToProcess);
+        // let parsed_data = dataToProcess; //JSON.parse(dataToProcess);
     
-        // Population calculations
-        let totalPopulation = 0;
-        let totalFemalePopulation = 0;
-        let femalePopulationF1 = 0;
-        let femalePopulationF2 = 0;
-        let femalePopulationF3 = 0;
-        let totalMalePopulation = 0;
-        let malePopulationM1 = 0;
-        let malePopulationM2 = 0;
-        let malePopulationM3 = 0;
+        // // Population calculations
+        // let totalPopulation = 0;
+        // let totalFemalePopulation = 0;
+        // let femalePopulationF1 = 0;
+        // let femalePopulationF2 = 0;
+        // let femalePopulationF3 = 0;
+        // let totalMalePopulation = 0;
+        // let malePopulationM1 = 0;
+        // let malePopulationM2 = 0;
+        // let malePopulationM3 = 0;
     
-        // Road Infrastructures
-        let highwayRoad = 0;
-        let primaryRoad = 0;
-        let secondaryRoad = 0;
-        let tertiaryRoad = 0;
+        // // Road Infrastructures
+        // let highwayRoad = 0;
+        // let primaryRoad = 0;
+        // let secondaryRoad = 0;
+        // let tertiaryRoad = 0;
 
-        // Hospital
-        let hospitalNumber = 0;
+        // // Hospital
+        // let hospitalNumber = 0;
 
-        // Economic vulnerability
-        let totalGDP = 0;
-        let totalCroplands = 0;
+        // // Economic vulnerability
+        // let totalGDP = 0;
+        // let totalCroplands = 0;
     
-        parsed_data.forEach(item => {
-            // console.log(item)
-            totalPopulation += parseFloat(item.M1) + parseFloat(item.M2) + parseFloat(item.M3) + parseFloat(item.F1) + parseFloat(item.F2) + parseFloat(item.F3);
-            totalFemalePopulation += parseFloat(item.F1) + parseFloat(item.F2) + parseFloat(item.F3);
-            femalePopulationF1 += parseFloat(item.F1);
-            femalePopulationF2 += parseFloat(item.F2);
-            femalePopulationF3 += parseFloat(item.F3);
-            totalMalePopulation += parseFloat(item.M1) + parseFloat(item.M2) + parseFloat(item.M3);
-            malePopulationM1 += parseFloat(item.M1);
-            malePopulationM2 += parseFloat(item.M2);
-            malePopulationM3 += parseFloat(item.M3);
+        // parsed_data.forEach(item => {
+        //     // console.log(item)
+        //     totalPopulation += parseFloat(item.M1) + parseFloat(item.M2) + parseFloat(item.M3) + parseFloat(item.F1) + parseFloat(item.F2) + parseFloat(item.F3);
+        //     totalFemalePopulation += parseFloat(item.F1) + parseFloat(item.F2) + parseFloat(item.F3);
+        //     femalePopulationF1 += parseFloat(item.F1);
+        //     femalePopulationF2 += parseFloat(item.F2);
+        //     femalePopulationF3 += parseFloat(item.F3);
+        //     totalMalePopulation += parseFloat(item.M1) + parseFloat(item.M2) + parseFloat(item.M3);
+        //     malePopulationM1 += parseFloat(item.M1);
+        //     malePopulationM2 += parseFloat(item.M2);
+        //     malePopulationM3 += parseFloat(item.M3);
             
-            highwayRoad += parseFloat(item.RTP1);
-            primaryRoad += parseFloat(item.RTP2);
-            secondaryRoad += parseFloat(item.RTP3);
-            tertiaryRoad += parseFloat(item.RTP4);
-            hospitalNumber += parseFloat(item.Hospital);
-            totalGDP += parseFloat(item.GDP);
-            totalCroplands += parseFloat(item.crop_sqm);
-        });
+        //     highwayRoad += parseFloat(item.RTP1);
+        //     primaryRoad += parseFloat(item.RTP2);
+        //     secondaryRoad += parseFloat(item.RTP3);
+        //     tertiaryRoad += parseFloat(item.RTP4);
+        //     hospitalNumber += parseFloat(item.Hospital);
+        //     totalGDP += parseFloat(item.GDP);
+        //     totalCroplands += parseFloat(item.crop_sqm);
+        // });
      
-        total_pop.innerHTML = totalPopulation > 0 ? totalPopulation.toLocaleString() : "---";
-        total_female_pop.innerHTML = totalFemalePopulation > 0 ? totalFemalePopulation.toLocaleString() : "---";
-        female_pop_f1.innerHTML = femalePopulationF1 > 0 ? femalePopulationF1.toLocaleString() : "---";
-        female_pop_f2.innerHTML = femalePopulationF2 > 0 ? femalePopulationF2.toLocaleString() : "---";
-        female_pop_f3.innerHTML = femalePopulationF3 > 0 ? femalePopulationF3.toLocaleString() : "---";
-        total_male_pop.innerHTML = totalMalePopulation > 0 ? totalMalePopulation.toLocaleString() : "---";
-        male_pop_m1.innerHTML = malePopulationM1 > 0 ? malePopulationM1.toLocaleString() : "---";
-        male_pop_m2.innerHTML = malePopulationM2 > 0 ? malePopulationM2.toLocaleString() : "---";
-        male_pop_m3.innerHTML = malePopulationM3 > 0 ? malePopulationM3.toLocaleString() : "---";
-        highway_road.innerHTML = highwayRoad > 0 ? Math.floor(highwayRoad).toLocaleString() : "---";
-        primary_road.innerHTML = primaryRoad > 0 ? Math.floor(primaryRoad).toLocaleString() : "---";
-        secondary_road.innerHTML = secondaryRoad > 0 ? Math.floor(secondaryRoad).toLocaleString() : "---";
-        tertiary_road.innerHTML = tertiaryRoad > 0 ? Math.floor(tertiaryRoad).toLocaleString() : "---";
-        hospital.innerHTML = hospitalNumber > 0 ? Math.floor(hospitalNumber).toLocaleString() : "---";
-        gdp.innerHTML = totalGDP > 0 ? Math.floor(totalGDP).toLocaleString() : "---";
-        croplands.innerHTML = totalCroplands > 0 ? Math.floor(totalCroplands).toLocaleString() : "---";
+        // total_pop.innerHTML = totalPopulation > 0 ? totalPopulation.toLocaleString() : "---";
+        // total_female_pop.innerHTML = totalFemalePopulation > 0 ? totalFemalePopulation.toLocaleString() : "---";
+        // female_pop_f1.innerHTML = femalePopulationF1 > 0 ? femalePopulationF1.toLocaleString() : "---";
+        // female_pop_f2.innerHTML = femalePopulationF2 > 0 ? femalePopulationF2.toLocaleString() : "---";
+        // female_pop_f3.innerHTML = femalePopulationF3 > 0 ? femalePopulationF3.toLocaleString() : "---";
+        // total_male_pop.innerHTML = totalMalePopulation > 0 ? totalMalePopulation.toLocaleString() : "---";
+        // male_pop_m1.innerHTML = malePopulationM1 > 0 ? malePopulationM1.toLocaleString() : "---";
+        // male_pop_m2.innerHTML = malePopulationM2 > 0 ? malePopulationM2.toLocaleString() : "---";
+        // male_pop_m3.innerHTML = malePopulationM3 > 0 ? malePopulationM3.toLocaleString() : "---";
+        // highway_road.innerHTML = highwayRoad > 0 ? Math.floor(highwayRoad).toLocaleString() : "---";
+        // primary_road.innerHTML = primaryRoad > 0 ? Math.floor(primaryRoad).toLocaleString() : "---";
+        // secondary_road.innerHTML = secondaryRoad > 0 ? Math.floor(secondaryRoad).toLocaleString() : "---";
+        // tertiary_road.innerHTML = tertiaryRoad > 0 ? Math.floor(tertiaryRoad).toLocaleString() : "---";
+        // hospital.innerHTML = hospitalNumber > 0 ? Math.floor(hospitalNumber).toLocaleString() : "---";
+        // gdp.innerHTML = totalGDP > 0 ? Math.floor(totalGDP).toLocaleString() : "---";
+        // croplands.innerHTML = totalCroplands > 0 ? Math.floor(totalCroplands).toLocaleString() : "---";
     }
 
-    document.getElementById("tab6hrs").addEventListener("click", async function() {
-        let selected_date = paramCache.date;
-        let selected_hrs = paramCache.hour;
-        let selected_country = paramCache.country;
-        // console.log(selected_country)
-        const data = await getStatsBulletin('6hrs', selected_date, selected_hrs);
-        const parsedData = JSON.parse(data);
-        if (selected_country === "All") {
-            updateTable(parsedData);
-        } else {
-            const filteredData = parsedData.filter(item => item.ISO === selected_country); 
-            updateTable(filteredData);
-        }
-        // updateTable(data);
-    });
+    // document.getElementById("tab6hrs").addEventListener("click", async function() {
+    //     let selected_date = paramCache.date;
+    //     let selected_hrs = paramCache.hour;
+    //     let selected_country = paramCache.country;
+    //     // console.log(selected_country)
+    //     const data = await getStatsBulletin('6hrs', selected_date, selected_hrs);
+    //     const parsedData = JSON.parse(data);
+    //     if (selected_country === "All") {
+    //         updateTable(parsedData);
+    //     } else {
+    //         const filteredData = parsedData.filter(item => item.ISO === selected_country); 
+    //         updateTable(filteredData);
+    //     }
+    //     // updateTable(data);
+    // });
 
-    document.getElementById("tab12hrs").addEventListener("click", async function() {
-        let selected_date = paramCache.date;
-        let selected_hrs = paramCache.hour;
-        let selected_country = paramCache.country;
-        const data = await getStatsBulletin('12hrs', selected_date, selected_hrs);
-        const parsedData = JSON.parse(data);
-        if (selected_country === "All") {
-            updateTable(parsedData);
-        } else {
-            const filteredData = parsedData.filter(item => item.ISO === selected_country); 
-            updateTable(filteredData);
-        }
-        // updateTable(data);
-    });
+    // document.getElementById("tab12hrs").addEventListener("click", async function() {
+    //     let selected_date = paramCache.date;
+    //     let selected_hrs = paramCache.hour;
+    //     let selected_country = paramCache.country;
+    //     const data = await getStatsBulletin('12hrs', selected_date, selected_hrs);
+    //     const parsedData = JSON.parse(data);
+    //     if (selected_country === "All") {
+    //         updateTable(parsedData);
+    //     } else {
+    //         const filteredData = parsedData.filter(item => item.ISO === selected_country); 
+    //         updateTable(filteredData);
+    //     }
+    //     // updateTable(data);
+    // });
 
-    document.getElementById("tab24hrs").addEventListener("click", async function() {
-        let selected_date = paramCache.date;
-        let selected_hrs = paramCache.hour;
-        let selected_country = paramCache.country;
-        const data = await getStatsBulletin('24hrs', selected_date, selected_hrs);
-        const parsedData = JSON.parse(data);
-        if (selected_country === "All") {
-            updateTable(parsedData);
-        } else {
-            const filteredData = parsedData.filter(item => item.ISO === selected_country); 
-            updateTable(filteredData);
-        }
-        // updateTable(data);
+    // document.getElementById("tab24hrs").addEventListener("click", async function() {
+    //     let selected_date = paramCache.date;
+    //     let selected_hrs = paramCache.hour;
+    //     let selected_country = paramCache.country;
+    //     const data = await getStatsBulletin('24hrs', selected_date, selected_hrs);
+    //     const parsedData = JSON.parse(data);
+    //     if (selected_country === "All") {
+    //         updateTable(parsedData);
+    //     } else {
+    //         const filteredData = parsedData.filter(item => item.ISO === selected_country); 
+    //         updateTable(filteredData);
+    //     }
+    //     // updateTable(data);
+    // });
+
+    var tdWmsRainLayer = L.tileLayer.wms("https://thredds-servir.adpc.net/thredds/wms/RAINSTORM/rainacc/Rain_accumulation_GSMAP_NOW.nc", {
+        layers: 'rain',
+        format: 'image/png',
+        transparent: true,
+        styles: 'boxfill/rainbow',
+        opacity:1,
+        version:'1.3.0',
+        zIndex:100,
+        colorscalerange:'0,300',
+        bounds: [[0, 90], [22, 120]],
+        logscale: false,
+        abovemaxcolor:'extend',
+        belowmincolor:'extend',
+        numcolorbands: 300,
     });
 
     const MapOptions = {
@@ -493,6 +511,100 @@ document.addEventListener("DOMContentLoaded", function() {
 
     const basemapUrl = 'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}';
     const attribution = '&copy; <a href="https://www.openstreetmap.org/copyright">Esri | OpenStreetMap</a> contributors';
+
+    const rfMapOptions = {
+        center: [15.9162, 102.9560],
+        zoom: 5,
+        zoomControl: false,
+        scrollWheelZoom: false,
+        minZoom: 5,
+    }
+    var rfmap = L.map('rfmap', rfMapOptions);
+    // Add the basemap layer
+    var rfbasemap = L.tileLayer(basemapUrl, {
+        attribution: attribution
+    }).addTo(rfmap);
+    rfmap.addLayer(tdWmsRainLayer);
+
+    let adm0Layer;
+    let mainlakesLayer;
+    let riverLayer;
+    let mekong_basinLayer;
+    const staticCache = {};
+
+    async function fetchData(url) {
+        try {
+            if (staticCache[url]) {
+                return staticCache[url]; 
+            }
+    
+            const response = await fetch(url);
+            if (!response.ok) {
+                throw new Error(`HTTP error! Status: ${response.status}`);
+            }
+            const data = await response.json();
+            staticCache[url] = data; 
+            return data;
+        } catch (error) {
+            console.error('Fetch error:', error);
+            throw error;
+        }
+    }
+    
+    async function loadLayers() {
+        try {
+            // Load adm0 data
+            const adm0Data = await fetchData('/static/data/adm0.geojson');
+            adm0Layer = L.geoJSON(adm0Data, {
+                style: {
+                    fillColor: '#9999ff',
+                    weight: 1,
+                    opacity: 0.5,
+                    color: 'gray',
+                    fillOpacity: 0.0,
+                },
+            });
+    
+            // Load main lakes data
+            const mainLakesData = await fetchData('/static/data/mainlakes_FFGS.geojson');
+            mainlakesLayer = L.geoJSON(mainLakesData, {
+                style: {
+                    fillColor: 'darkgray',
+                    weight: 0,
+                    opacity: 0.1,
+                    color: 'white',
+                    dashArray: '3',
+                    fillOpacity: 1,
+                },
+            });
+    
+            // Load river data
+            const riverData = await fetchData('/static/data/riverMK_FFGS.geojson');
+            riverLayer = L.geoJSON(riverData, {
+                style: {
+                    fillColor: '#9999ff',
+                    weight: 2,
+                    opacity: 1,
+                    color: 'blue',
+                    fillOpacity: 0.8,
+                },
+            });
+    
+            // Load mekong basin data
+            const mekongBasinData = await fetchData('/static/data/mekong_basin_area.geojson');
+            mekong_basinLayer = L.geoJSON(mekongBasinData, {
+                style: {
+                    fillColor: '#2E86C1',
+                    weight: 3,
+                    opacity: 0.5,
+                    color: '#000',
+                    fillOpacity: 0.0,
+                },
+            });
+        } catch (error) {
+            console.error('Layer loading error:', error);
+        }
+    }
 
     const bulletincache = {};
 
@@ -578,11 +690,41 @@ document.addEventListener("DOMContentLoaded", function() {
             {min: 0.65, max: 0.9, color: colors.lightGreen},
             {min: 0.9, max: 1.0, color: colors.blue},
         ],
+        MAP01: [
+            {min: 0, max: 2.5, color: colors.lightBlue},
+            {min: 2.5, max: 15, color: colors.blue},
+            {min: 15, max: 30, color: colors.deepSkyBlue},
+            {min: 30, color: colors.lightGreen}
+        ],
+        MAP03: [
+            {min: 0, max: 5, color: colors.lightBlue},
+            {min: 5, max: 25, color: colors.blue},
+            {min: 25, max: 50, color: colors.deepSkyBlue},
+            {min: 50, color: colors.lightGreen}
+        ],
+        MAP06: [
+            {min: 0, max: 7.5, color: colors.lightBlue},
+            {min: 7.5, max: 35, color: colors.blue},
+            {min: 35, max: 70, color: colors.deepSkyBlue},
+            {min: 70, color: colors.lightGreen}
+        ],
         MAP24: [
             {min: 0, max: 10, color: colors.lightBlue},
             {min: 10, max: 50, color: colors.blue},
             {min: 50, max: 100, color: colors.deepSkyBlue},
             {min: 100, color: colors.lightGreen}
+        ],
+        FMAP01: [
+            {min: 0, max: 2.5, color: colors.lightBlue},
+            {min: 2.5, max: 15, color: colors.blue},
+            {min: 15, max: 30, color: colors.deepSkyBlue},
+            {min: 30, color: colors.lightGreen},
+        ],   
+        FMAP03: [
+            {min: 0, max: 5, color: colors.lightBlue},
+            {min: 5, max: 25, color: colors.blue},
+            {min: 25, max: 50, color: colors.deepSkyBlue},
+            {min: 50, color: colors.lightGreen},
         ],
         FMAP06: [
             {min: 0, max: 7.5, color: colors.lightBlue},
@@ -590,11 +732,39 @@ document.addEventListener("DOMContentLoaded", function() {
             {min: 35, max: 70, color: colors.deepSkyBlue},
             {min: 70, color: colors.lightGreen},
         ],
+        FMAP24: [
+            {min: 0, max: 10, color: colors.lightBlue},
+            {min: 10, max: 50, color: colors.blue},
+            {min: 50, max: 100, color: colors.deepSkyBlue},
+            {min: 100, color: colors.lightGreen},
+        ],
+        FFG01: [
+            {min: 0, max: 10, color: colors.red},
+            {min: 10, max: 25, color: colors.yellow},
+            {min: 25, max: 40, color: colors.lightGreen},
+            // {min: 40, max: 60, color: colors.lightGreen},
+        ],
+        FFG03: [
+            {min: 0, max: 10, color: colors.red},
+            {min: 10, max: 25, color: colors.yellow},
+            {min: 25, max: 40, color: colors.lightGreen},
+            // {min: 40, max: 70, color: colors.lightGreen},
+        ],
         FFG06: [
-            {min: 0, max: 15, color: colors.violet},
-            {min: 15, max: 30, color: colors.red},
-            {min: 30, max: 60, color: colors.yellow},
-            {min: 60, max: 100, color: colors.lightGreen},
+            {min: 0, max: 15, color: colors.red},
+            {min: 15, max: 30, color: colors.yellow},
+            {min: 30, max: 60, color: colors.lightGreen},
+            // {min: 60, max: 100, color: colors.lightGreen},
+        ],
+        FFFT01: [
+            {min: 0.01, max: 10, color: colors.yellow},
+            {min: 10, max: 40, color: colors.orange},
+            {min: 40, max: 100, color: colors.red},
+        ],
+        FFFT03: [
+            {min: 0.01, max: 10, color: colors.yellow},
+            {min: 10, max: 40, color: colors.orange},
+            {min: 40, max: 100, color: colors.red},
         ],
         FFFT06: [
             {min: 0.01, max: 10, color: colors.yellow},
@@ -637,9 +807,10 @@ document.addEventListener("DOMContentLoaded", function() {
     // Create map instances for different parameters
     const asm6hrMap = createMapInstance('asm6hr');
     const map24hrMap = createMapInstance('map24hr');
-    const fmap6hrMap = createMapInstance('fmap6hr');
+    const ffg1hrMap = createMapInstance('ffg1hr');
+    const ffg3hrMap = createMapInstance('ffg3hr');
     const ffg6hrMap = createMapInstance('ffg6hr');
-    const ffft6hrMap = createMapInstance('ffft6hr');
+    const fmap24hrMap = createMapInstance('fmap24hr');
     const ffr12hrMap = createMapInstance('ffr12hr');
     const ffr24hrMap = createMapInstance('ffr24hr');
 
@@ -647,9 +818,10 @@ document.addEventListener("DOMContentLoaded", function() {
     const mapInstances = {
         ASMT: asm6hrMap,
         MAP24: map24hrMap,
-        FMAP06: fmap6hrMap,
+        FFG01: ffg1hrMap,
+        FFG03: ffg3hrMap,
         FFG06: ffg6hrMap,
-        FFFT06: ffft6hrMap,
+        FMAP24: fmap24hrMap,
         FFR12: ffr12hrMap,
         FFR24: ffr24hrMap
     };
@@ -695,7 +867,7 @@ document.addEventListener("DOMContentLoaded", function() {
     // }
 
     // GeoServer URL
-    const geoserver_url = 'http://119.15.81.22:8081/geoserver/';
+    const geoserver_url = 'http://203.146.112.243:8080/geoserver/';
 
     // Create a function to generate WMS URL
     function generateWMSUrl(param, selectedDate, selectedHr) {
@@ -742,7 +914,7 @@ document.addEventListener("DOMContentLoaded", function() {
     }
 
     // Basin boundary layer
-    var wmsBasinUrl = 'http://119.15.81.22:8081/geoserver/adm/wms?';
+    var wmsBasinUrl = 'http://203.146.112.243:8080/geoserver/adm/wms?';
 
 
     async function createMap(param, selectedDate, selectedHr) {
@@ -767,7 +939,8 @@ document.addEventListener("DOMContentLoaded", function() {
         }
         wmsLayer.setUrl(wmsUrl);
         wmsLayer.setParams({
-            layers: `ffgs:${param}_${selectedDate}${selectedHr}`,
+            // layers: `ffgs:${param}_${selectedDate}${selectedHr}`,
+            layers: `${param}:${param}_${selectedDate}${selectedHr}`,
             styles: getStyleName(param)
         });
         if (!mapInstance.hasLayer(wmsLayer)) {
@@ -821,7 +994,7 @@ document.addEventListener("DOMContentLoaded", function() {
             cqlFilter = `ISO IN ('${filteredCountries.join("', '")}')`;
             
             // Add wmsLayer2 with the constructed CQL filter
-            var wmsLayer2 = L.tileLayer.wms('http://119.15.81.22:8081/geoserver/adm/wms?', {
+            var wmsLayer2 = L.tileLayer.wms('http://203.146.112.243:8080/geoserver/adm/wms?', {
                 layers: 'adm:adm0',
                 format: 'image/png',
                 version: '1.1.0',
@@ -898,44 +1071,44 @@ document.addEventListener("DOMContentLoaded", function() {
             const cellProvinces = row.insertCell(0);
             const cellDistricts = row.insertCell(1);
             const cellLevel = row.insertCell(2);
-            const cellFemalePopulation = row.insertCell(3);
-            const cellMalePopulation = row.insertCell(4);
-            const cellRoad = row.insertCell(5);
-            const cellHospital = row.insertCell(6);
-            const cellGDP = row.insertCell(7);
-            const cellCropLands = row.insertCell(8);
+            // const cellFemalePopulation = row.insertCell(3);
+            // const cellMalePopulation = row.insertCell(4);
+            // const cellRoad = row.insertCell(5);
+            // const cellHospital = row.insertCell(6);
+            // const cellGDP = row.insertCell(7);
+            // const cellCropLands = row.insertCell(8);
 
             cellProvinces.innerHTML = 'NO RISK AREA';
             cellDistricts.innerHTML = '';
             cellLevel.innerHTML = '';
-            cellFemalePopulation.innerHTML = '';
-            cellMalePopulation.innerHTML = '';
-            cellRoad.innerHTML = '';
-            cellHospital.innerHTML = '';
-            cellGDP.innerHTML = '';
-            cellCropLands.innerHTML = '';
+            // cellFemalePopulation.innerHTML = '';
+            // cellMalePopulation.innerHTML = '';
+            // cellRoad.innerHTML = '';
+            // cellHospital.innerHTML = '';
+            // cellGDP.innerHTML = '';
+            // cellCropLands.innerHTML = '';
         } else {
             data.forEach(item => {
                 const row = tbody.insertRow();
                 const cellProvinces = row.insertCell(0);
                 const cellDistricts = row.insertCell(1);
                 const cellLevel = row.insertCell(2);
-                const cellFemalePopulation = row.insertCell(3);
-                const cellMalePopulation = row.insertCell(4);
-                const cellRoad = row.insertCell(5);
-                const cellHospital = row.insertCell(6);
-                const cellGDP = row.insertCell(7);
-                const cellCropLands = row.insertCell(8);
+                // const cellFemalePopulation = row.insertCell(3);
+                // const cellMalePopulation = row.insertCell(4);
+                // const cellRoad = row.insertCell(5);
+                // const cellHospital = row.insertCell(6);
+                // const cellGDP = row.insertCell(7);
+                // const cellCropLands = row.insertCell(8);
 
                 cellProvinces.innerHTML = item.NAME_1 || '---';
                 cellDistricts.innerHTML = item.NAME_2 || '---';
-                cellLevel.innerHTML = interval === '6hrs' ? item.Alert_6Hrs : interval === '12hrs' ? item.Risk_12Hrs : item.Risk_24Hrs;
-                cellFemalePopulation.innerHTML = (parseFloat(item.F1) + parseFloat(item.F2) + parseFloat(item.F3)).toLocaleString() || '---';
-                cellMalePopulation.innerHTML = (parseFloat(item.M1) + parseFloat(item.M2) + parseFloat(item.M3)).toLocaleString() || '---';
-                cellRoad.innerHTML = (parseFloat(item.RTP1) + parseFloat(item.RTP2) + parseFloat(item.RTP3) + parseFloat(item.RTP4)).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) || '---';
-                cellHospital.innerHTML = (parseFloat(item.Hospital)).toLocaleString() || '---';
-                cellGDP.innerHTML = Math.floor((parseFloat(item.GDP))).toLocaleString() || '---';
-                cellCropLands.innerHTML = (parseFloat(item.crop_sqm)).toLocaleString() || '---';
+                cellLevel.innerHTML = interval === '1hrs' ? item.Alert_1Hrs : interval === '3hrs' ? item.Alert_3Hrs : interval === '6hrs' ? item.Alert_6Hrs : interval === '12hrs' ? item.Risk_12Hrs : item.Risk_24Hrs;
+                // cellFemalePopulation.innerHTML = (parseFloat(item.F1) + parseFloat(item.F2) + parseFloat(item.F3)).toLocaleString() || '---';
+                // cellMalePopulation.innerHTML = (parseFloat(item.M1) + parseFloat(item.M2) + parseFloat(item.M3)).toLocaleString() || '---';
+                // cellRoad.innerHTML = (parseFloat(item.RTP1) + parseFloat(item.RTP2) + parseFloat(item.RTP3) + parseFloat(item.RTP4)).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) || '---';
+                // cellHospital.innerHTML = (parseFloat(item.Hospital)).toLocaleString() || '---';
+                // cellGDP.innerHTML = Math.floor((parseFloat(item.GDP))).toLocaleString() || '---';
+                // cellCropLands.innerHTML = (parseFloat(item.crop_sqm)).toLocaleString() || '---';
 
                 if (cellLevel.innerHTML === 'Low') {
                     cellLevel.style.backgroundColor = lowColor;
@@ -978,7 +1151,7 @@ document.addEventListener("DOMContentLoaded", function() {
             displayDate.innerHTML = formattedDate;
 
             dateElements.forEach(function (element) {
-                element.textContent = selected_date + " " + selectedHrs +":00 UTC";
+                element.textContent = selected_date + " " + selectedHrs +":00 (UTC+7)";
             });
 
             const selectedCountry = countryInput.value;
@@ -1000,47 +1173,47 @@ document.addEventListener("DOMContentLoaded", function() {
                 generateGraph(countryName);
             }
 
-            const insTab = document.getElementById('insTab'); // Critical infrastructure tab
-            const activeButton = insTab.querySelector('.nav-link.active');
+            // const insTab = document.getElementById('insTab'); // Critical infrastructure tab
+            // const activeButton = insTab.querySelector('.nav-link.active');
 
             // Get the 'id' attribute of the active button
-            const activeButtonId = activeButton.getAttribute('id');
-            const selectedTabParam = tabMapping[activeButtonId];
+            // const activeButtonId = activeButton.getAttribute('id');
+            // const selectedTabParam = tabMapping[activeButtonId];
 
-            const data = await getStatsBulletin(selectedTabParam, selected_date, selectedHrs);
-            const parsedData = JSON.parse(data);
+            // const data = await getStatsBulletin(selectedTabParam, selected_date, selectedHrs);
+            // const parsedData = JSON.parse(data);
 
-            const tableContainers = {
-                "KHM": document.getElementById("KHMTableContainer"),
-                "LAO": document.getElementById("LAOTableContainer"),
-                "THA": document.getElementById("THATableContainer"),
-                "VNM": document.getElementById("VNMTableContainer")
-            };
+            // const tableContainers = {
+            //     "KHM": document.getElementById("KHMTableContainer"),
+            //     "LAO": document.getElementById("LAOTableContainer"),
+            //     "THA": document.getElementById("THATableContainer"),
+            //     "VNM": document.getElementById("VNMTableContainer")
+            // };
             
-            function hideAllExcept(exceptISO) {
-                for (let countryISO of countryISOs) {
-                    if (tableContainers[countryISO]) { 
-                        if (countryISO === exceptISO) {
-                            tableContainers[countryISO].style.display = "block";
-                        } else {
-                            tableContainers[countryISO].style.display = "none";
-                        }
-                    } else {
-                        console.error(`Container for ${countryISO} is not defined in tableContainers.`);
-                    }
-                }
-            }
+            // function hideAllExcept(exceptISO) {
+            //     for (let countryISO of countryISOs) {
+            //         if (tableContainers[countryISO]) { 
+            //             if (countryISO === exceptISO) {
+            //                 tableContainers[countryISO].style.display = "block";
+            //             } else {
+            //                 tableContainers[countryISO].style.display = "none";
+            //             }
+            //         } else {
+            //             console.error(`Container for ${countryISO} is not defined in tableContainers.`);
+            //         }
+            //     }
+            // }
             
-            if (selectedCountry === "All") {
-                for (let countryISO in tableContainers) {
-                    tableContainers[countryISO].style.display = "block";
-                }
-                updateTable(parsedData);
-            } else {
-                hideAllExcept(selectedCountry); 
-                const filteredData = parsedData.filter(item => item.ISO === selectedCountry); 
-                updateTable(filteredData);
-            }
+            // if (selectedCountry === "All") {
+            //     for (let countryISO in tableContainers) {
+            //         tableContainers[countryISO].style.display = "block";
+            //     }
+            //     updateTable(parsedData);
+            // } else {
+            //     hideAllExcept(selectedCountry); 
+            //     const filteredData = parsedData.filter(item => item.ISO === selectedCountry); 
+            //     updateTable(filteredData);
+            // }
 
             var dateWithoutHyphens = selected_date.replace(/-/g, '');
             for (const param in mapInstances) {
@@ -1058,14 +1231,18 @@ document.addEventListener("DOMContentLoaded", function() {
                 return; // Exit the function or handle this case differently
             }
 
-            // Loop through countries and intervals
-            for (const iso of countriesToProcess) {
-                for (const interval of ['6hrs', '12hrs', '24hrs']) {
-                    const tableElement = document.getElementById(`${iso}Table${interval}`);
-                    await populateTableForInterval(tableElement, iso, interval, selected_date, selectedHrs);
-                }
+            // // Loop through countries and intervals
+            // for (const iso of countriesToProcess) {
+            //     for (const interval of ['1hrs', '3hrs', '6hrs', '12hrs', '24hrs']) {
+            //         const tableElement = document.getElementById(`${iso}Table${interval}`);
+            //         await populateTableForInterval(tableElement, iso, interval, selected_date, selectedHrs);
+            //     }
+            // }
+            if (selectedCountry === "All") {
+                createAndPopulateTablesForAllISOs(selected_date, selectedHrs);
+            } else {
+                createAndPopulateTablesForISO(selectedCountry, selected_date, selectedHrs)
             }
-
             // // Loop through countries and intervals
             // for (const iso of countryISOs) {
             //     for (const interval of ['6hrs', '12hrs', '24hrs']) {
@@ -1080,6 +1257,8 @@ document.addEventListener("DOMContentLoaded", function() {
             loader.style.display = 'none';
         }
     });
+
+    
 
     async function populateTableForInterval(tableElement, iso, interval, selected_date, selected_hrs) {
         const data = await getStatsBulletin(interval, selected_date, selected_hrs);
@@ -1230,6 +1409,271 @@ document.addEventListener("DOMContentLoaded", function() {
             console.error('Error:', error);
         }
     }
+
+    async function fetchDataForInterval(iso, interval, selected_date, selected_hrs) {
+        try {
+            const data = await getStatsBulletin(interval, selected_date, selected_hrs);
+            const parsedData = JSON.parse(data);
+            return parsedData.filter(item => item.ISO === iso);
+        } catch (error) {
+            console.error(`Error fetching data for ${iso} - ${interval}:`, error);
+            return [];
+        }
+    }
+    
+    async function populateTableBody(iso, intervals, tableBodyId, selected_date, selected_hrs) {
+        const combinedData = {};
+        const tableBody = document.getElementById(`${tableBodyId}Body`);
+        tableBody.innerHTML = '';  
+        
+        for (const interval of intervals) {
+            const data = await fetchDataForInterval(iso, interval, selected_date, selected_hrs);
+            combinedData[interval] = data;
+        }
+
+        if (intervals.includes('1hrs') || intervals.includes('3hrs') || intervals.includes('6hrs')) {
+            // Check for group 1 (1, 3, and 6 hours)
+            const group1Data = [combinedData['1hrs'], combinedData['3hrs'], combinedData['6hrs']];
+            const hasDataGroup1 = group1Data.some(data => data.length > 0);
+            if (!hasDataGroup1) {
+                // If no data exists for group 1, create a single row with "No risk" spanning all columns
+                const noRiskRow = document.createElement('tr');
+                const noRiskCell = document.createElement('td');
+                noRiskCell.colSpan = 9; // Span across all columns
+                noRiskCell.textContent = 'No Flash Flood Guidance in the next 1, 3 and 6 hours';
+                noRiskRow.appendChild(noRiskCell);
+                tableBody.appendChild(noRiskRow);
+                return;
+            }
+        }
+        
+        if (intervals.includes('12hrs') || intervals.includes('24hrs')) {
+            // Check for group 2 (12 and 24 hours)
+            const group2Data = [combinedData['12hrs'], combinedData['24hrs']];
+            const hasDataGroup2 = group2Data.some(data => data.length > 0);
+            if (!hasDataGroup2) {
+                // If no data exists for group 2, create a single row with "No risk" spanning all columns
+                const noRiskRow = document.createElement('tr');
+                const noRiskCell = document.createElement('td');
+                noRiskCell.colSpan = 6; // Span across all columns
+                noRiskCell.textContent = 'No Flash Flood Risk in the next 12, and 24 hours';
+                noRiskRow.appendChild(noRiskCell);
+                tableBody.appendChild(noRiskRow);
+                return;
+            }
+        }
+
+        const maxRows = Math.max(...Object.values(combinedData).map(intervalData => intervalData.length));
+        
+        for (let i = 0; i < maxRows; i++) {
+            const row = document.createElement('tr');
+            
+            intervals.forEach((interval, index) => {
+                const data = combinedData[interval][i] || { NAME_1: '', NAME_2: '', Level: '' };
+    
+                const cell1 = document.createElement('td');
+                cell1.textContent = data.NAME_1 || '';
+                row.appendChild(cell1);
+    
+                const cell2 = document.createElement('td');
+                cell2.textContent = data.NAME_2 || '';
+                row.appendChild(cell2);
+    
+                const cellLevel = document.createElement('td');
+                cellLevel.textContent = data.Level || '';
+                if (data.Level) {
+                    applyCellColor(cellLevel, data.Level);
+                }
+                if (index < intervals.length - 1) {
+                    cellLevel.classList.add('border-right');
+                }
+                row.appendChild(cellLevel);
+            });
+
+            tableBody.appendChild(row);
+        }
+    }
+
+    // Helper function to apply cell color based on the level value
+    function applyCellColor(cell, level) {
+        const lowColor = 'yellow';
+        const moderateColor = 'orange';
+        const highColor = 'red';
+    
+        if (level === 'Low') {
+            cell.style.backgroundColor = lowColor;
+        } else if (level === 'Moderate') {
+            cell.style.backgroundColor = moderateColor;
+        } else if (level === 'High') {
+            cell.style.backgroundColor = highColor;
+        }
+    }
+    
+    const countryMappings = {
+        'KHM': 'CAMBODIA',
+        'LAO': 'LAOS',
+        'THA': 'THAILAND',
+        'VNM': 'VIETNAM'
+    };
+
+    async function createAndPopulateTablesForAllISOs(selected_date, selected_hrs) {
+        const countryISOs = ['KHM', 'LAO', 'THA', 'VNM']; // Add other ISOs as needed
+        const intervalsGroup1 = ['1hrs', '3hrs', '6hrs'];
+        const intervalsGroup2 = ['12hrs', '24hrs'];
+        const tablesContainer = document.getElementById('tablesContainer');
+        tablesContainer.innerHTML = '';
+    
+        for (const iso of countryISOs) {
+            const flagContainer = document.createElement('div');
+            flagContainer.className = 'pt-5';
+            flagContainer.style.display = 'flex';
+            flagContainer.style.justifyContent = 'flex-start';
+
+            // Append the flag container to the tables container
+            tablesContainer.appendChild(flagContainer);
+
+            // Create an image element for the flag
+            const flagImage = document.createElement('img');
+            flagImage.src = `/static/img/${iso.toLowerCase()}.png`; // Adjust the path to your local image
+            // flagImage.width = '160px';
+            flagImage.alt = 'Flag';
+
+            // Set the width of the flag image using CSS
+            flagImage.classList.add('flag-image');
+
+            // Append the flag image to the flag container
+            flagContainer.appendChild(flagImage);
+
+            // Create and append the country-specific title
+            const countryTitle = document.createElement('h1');
+            countryTitle.className = 'pt-3 ps-4';
+            const titleSpan = document.createElement('span');
+            titleSpan.className = 'text-primary';
+            titleSpan.textContent = 'THE DETAILED INFORMATION FOR FLASH FLOOD WARNING';
+            const countryName = document.createElement('p');
+            countryName.textContent = countryMappings[iso];
+            countryTitle.appendChild(titleSpan);
+            countryTitle.appendChild(countryName);
+            flagContainer.appendChild(countryTitle);
+
+            // Append the flag container before each table
+            tablesContainer.appendChild(flagContainer);
+
+            // Create the first table (1, 3, 6 hours)
+            const table1 = createTableStructure(iso, 'FLASH FLOOD GUIDANCE', intervalsGroup1);
+            tablesContainer.appendChild(table1);
+    
+            // Create the second table (12 and 24 hours)
+            const table2 = createTableStructure(iso, 'FLASH FLOOD RISK', intervalsGroup2);
+            tablesContainer.appendChild(table2);
+    
+            await populateTableBody(iso, intervalsGroup1, `${iso}Table1`, selected_date, selected_hrs);
+            await populateTableBody(iso, intervalsGroup2, `${iso}Table2`, selected_date, selected_hrs);
+        }
+    }
+    
+    async function createAndPopulateTablesForISO(iso, selected_date, selected_hrs) {
+        const intervalsGroup1 = ['1hrs', '3hrs', '6hrs'];
+        const intervalsGroup2 = ['12hrs', '24hrs'];
+        const tablesContainer = document.getElementById('tablesContainer');
+        tablesContainer.innerHTML = '';
+
+        const flagContainer = document.createElement('div');
+        flagContainer.className = 'pt-5';
+        flagContainer.style.display = 'flex';
+        flagContainer.style.justifyContent = 'flex-start';
+
+        // Append the flag container to the tables container
+        tablesContainer.appendChild(flagContainer);
+
+        // Create an image element for the flag
+        const flagImage = document.createElement('img');
+        flagImage.src = `/static/img/${iso.toLowerCase()}.png`; // Adjust the path to your local image
+        // flagImage.width = '160px';
+        flagImage.alt = 'Flag';
+
+        // Set the width of the flag image using CSS
+        flagImage.classList.add('flag-image');
+
+        // Append the flag image to the flag container
+        flagContainer.appendChild(flagImage);
+
+        // Create and append the country-specific title
+        const countryTitle = document.createElement('h1');
+        countryTitle.className = 'pt-3 ps-4';
+        const titleSpan = document.createElement('span');
+        titleSpan.className = 'text-primary';
+        titleSpan.textContent = 'THE DETAILED INFORMATION FOR FLASH FLOOD WARNING';
+        const countryName = document.createElement('p');
+        countryName.textContent = countryMappings[iso];
+        countryTitle.appendChild(titleSpan);
+        countryTitle.appendChild(countryName);
+        flagContainer.appendChild(countryTitle);
+
+        // Append the flag container before each table
+        tablesContainer.appendChild(flagContainer);
+
+        // Create the first table (1, 3, 6 hours)
+        const table1 = createTableStructure(iso, 'FLASH FLOOD GUIDANCE', intervalsGroup1);
+        tablesContainer.appendChild(table1);
+    
+        // Create the second table (12 and 24 hours)
+        const table2 = createTableStructure(iso, 'FLASH FLOOD RISK', intervalsGroup2);
+        tablesContainer.appendChild(table2);
+    
+        await populateTableBody(iso, intervalsGroup1, `${iso}Table1`, selected_date, selected_hrs);
+        await populateTableBody(iso, intervalsGroup2, `${iso}Table2`, selected_date, selected_hrs);
+    }
+    
+    function createTableStructure(iso, title, intervals) {
+        const tableId = `${iso}Table${intervals.length > 2 ? '1' : '2'}`;
+        const table = document.createElement('table');
+        table.className = 'table table-responsive table-hover mt-5 mb-5 text-center';
+        table.id = tableId;
+    
+        const intervalHeaders = intervals.map(interval => `
+            <th colspan="3" class="text-center fs-5 ${interval === '6hrs' || interval === '24hrs' ? '' : 'border-right'}">In the next ${interval}</th>
+        `).join('');
+    
+        const intervalFields = intervals.map((interval, index) => `
+            <th class="align-middle">Provinces</th>
+            <th class="align-middle">Districts</th>
+            <th class="align-middle ${index === intervals.length - 1 ? '' : 'border-right'}">Level</th>
+        `).join('');
+    
+        table.innerHTML = `
+            <thead class="table-secondary">
+                <tr>
+                    <th colspan="${intervals.length * 3}" class="fs-4 fw-bold text-center border-top-1">${title} IN THE LOWER MEKONG BASIN</th>
+                </tr>
+                <tr>
+                    ${intervalHeaders}
+                </tr>
+                <tr>
+                    ${intervalFields}
+                </tr>
+            </thead>
+            <tbody id="${tableId}Body">
+            </tbody>
+        `;
+    
+        return table;
+    }
+
+    const allMapInstances = [rfmap, asm6hrMap, map24hrMap, ffg1hrMap, ffg3hrMap, ffg6hrMap, fmap24hrMap, ffr12hrMap, ffr24hrMap];
+    // Load the layers
+    loadLayers().then(() => {
+        // Add layers to each map instance
+        allMapInstances.forEach(map => {
+            // adm0Layer.addTo(map);
+            // mainlakesLayer.addTo(map);
+            // riverLayer.addTo(map);
+            mekong_basinLayer.addTo(map);
+        });
+    }).catch(error => {
+        console.error('Error adding layers to maps:', error);
+    });
+    
     
     async function init() {
         try {
@@ -1273,7 +1717,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
             // 2023-07-01 06:00 UTC
             dateElements.forEach(function (element) {
-                element.textContent = selected_date + " " + selected_hrs + ":00 UTC";
+                element.textContent = selected_date + " " + selected_hrs + ":00 (UTC+7)";
             });
 
             var dateWithoutHyphens = selected_date.replace(/-/g, '');
@@ -1286,13 +1730,16 @@ document.addEventListener("DOMContentLoaded", function() {
                 addLegendToMap(mapInstances[param], legendContent); 
             }
 
-            // Loop through countries and intervals
-            for (const iso of countryISOs) {
-                for (const interval of ['6hrs', '12hrs', '24hrs']) {
-                    const tableElement = document.getElementById(`${iso}Table${interval}`);
-                    await populateTableForInterval(tableElement, iso, interval, selected_date, selected_hrs);
-                }
-            }
+            // // Loop through countries and intervals
+            // for (const iso of countryISOs) {
+            //     for (const interval of ['1hrs', '3hrs', '6hrs', '12hrs', '24hrs']) {
+            //         const tableElement = document.getElementById(`${iso}Table${interval}`);
+            //         await populateTableForInterval(tableElement, iso, interval, selected_date, selected_hrs);
+            //     }
+            // }
+
+            createAndPopulateTablesForAllISOs(selected_date, selected_hrs);
+            
             loader.style.display = 'none';
             
         } catch (error) {
@@ -1358,7 +1805,7 @@ document.addEventListener("DOMContentLoaded", function() {
                 modalHeader.innerHTML = " " + sc +" , with the date set to " + sd;
             }
 
-            const response = await fetch(`http://119.15.81.22:8000/generate-pdf/?selectedDate=${selected_date}&selectedHr=${selected_hour}&selectedCountry=${selected_country}`);
+            const response = await fetch(`http://127.0.0.1:3000/generate-pdf/?selectedDate=${selected_date}&selectedHr=${selected_hour}&selectedCountry=${selected_country}`);
 
             if (!response.ok) {
                 throw new Error('Network response was not ok');

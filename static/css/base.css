@@ -157,3 +157,14 @@ ul.horizontal-list li {
 #hlegend .ffwLegend {
     display: block;
 }
+.border-right {
+    border-right: 1px solid #000;
+} 
+.flag-image {
+    width: 160px;
+}
+.flag-image-pdf {
+    width: 90px;
+    height: 60px;
+    margin-top: 10px;
+}

@@ -141,6 +141,128 @@ float_columns = ['RTP1', 'RTP2', 'RTP3', 'RTP4', 'GDP', 'crop_sqm']
 float_round_0_cols = ['GDP', 'crop_sqm']
 float_round_2_cols = ['RTP1', 'RTP2', 'RTP3', 'RTP4']
 
+def assign_alert_1hrs(row):
+    if (40 < row['FFG01'] <= 60):
+        return 'Low'
+    elif (25 < row['FFG01'] <= 40):
+        return 'Moderate'
+    elif (0.01 < row['FFG01'] <= 25):
+        return 'High'
+    else:
+        return np.nan
+
+def assign_alert_3hrs(row):
+    if (40 < row['FFG03'] <= 70):
+        return 'Low'
+    elif (25 < row['FFG03'] <= 40):
+        return 'Moderate'
+    elif (0.01 < row['FFG03'] <= 25):
+        return 'High'
+    else:
+        return np.nan
+
+@csrf_exempt
+@xframe_options_exempt
+def get_alert_stat_1hrs(request):
+    try:
+        static_data_path = mekongxray
+        date_str = request.GET.get("date")
+        formatted_date = date_str.replace("-", "")
+        hrs = request.GET.get("hrs")
+        get_data_path = get_seaffgs_data_path(date_str)
+        seaffgs_data_path = f'{get_data_path}/{formatted_date}{hrs}.csv.gz'
+        df1 = pd.read_csv(static_data_path)
+        df1[int_columns] = df1[int_columns].astype(int)
+        df1[float_columns] = df1[float_columns].astype(float)
+        df1[float_round_0_cols] = df1[float_round_0_cols].round(0)
+        df1[float_round_2_cols] = df1[float_round_2_cols].round(2)
+        df1.rename(columns={'value': 'BASIN'}, inplace=True)
+        df2 = pd.read_csv(seaffgs_data_path)
+        filtered_df2 = df2[selected_columns] 
+        renamed_cols2 = filtered_df2.rename(columns=rename_mapping)
+        s_df2 = renamed_cols2[["BASIN", "FFG01"]]
+        join_df = df1.merge(s_df2, on='BASIN', how='inner')
+        scols_ffg = join_df[['ID_2', 'ISO', 'NAME_1', 'NAME_2', 'M1', 'M2', 'M3', 'F1', 'F2', 'F3', 'RTP1', 'RTP2', 'RTP3', 'RTP4', 'Hospital', 'GDP', 'crop_sqm', 'FFG01']]
+        grouped_max_FFG = scols_ffg.groupby(['NAME_2']).agg({
+            'ID_2': 'first',
+            'ISO': 'first',
+            'NAME_1': 'first',
+            'M1': 'sum',
+            'M2': 'sum',
+            'M3': 'sum',
+            'F1': 'sum',
+            'F2': 'sum',
+            'F3': 'sum',
+            'RTP1': 'sum',
+            'RTP2': 'sum',
+            'RTP3': 'sum',
+            'RTP4': 'sum',
+            'Hospital': 'sum',
+            'GDP': 'sum',
+            'crop_sqm': 'sum',
+            'FFG01': 'median',
+        }).reset_index()
+        grouped_max_FFG['Alert_1Hrs'] = grouped_max_FFG.apply(lambda row: assign_alert_1hrs(row), axis=1)
+        final_df = grouped_max_FFG.dropna(subset=['Alert_1Hrs'], how='all')
+        # final_df = final_df[['ID_2', 'ISO', 'NAME_1', 'NAME_2', 'Alert_1Hrs']].rename(columns={'Alert_1Hrs': 'Level'})
+        final_df = final_df.rename(columns={'Alert_1Hrs': 'Level'})
+        json = final_df.to_json(orient='records')
+        return JsonResponse(json, safe=False)
+    except FileNotFoundError:
+        # Return a JSON response indicating that data was not found.
+        return JsonResponse({"error": "Data not found"}, status=404)
+
+@csrf_exempt
+@xframe_options_exempt
+def get_alert_stat_3hrs(request):
+    try:
+        static_data_path = mekongxray
+        date_str = request.GET.get("date")
+        formatted_date = date_str.replace("-", "")
+        hrs = request.GET.get("hrs")
+        get_data_path = get_seaffgs_data_path(date_str)
+        seaffgs_data_path = f'{get_data_path}/{formatted_date}{hrs}.csv.gz'
+        df1 = pd.read_csv(static_data_path)
+        df1[int_columns] = df1[int_columns].astype(int)
+        df1[float_columns] = df1[float_columns].astype(float)
+        df1[float_round_0_cols] = df1[float_round_0_cols].round(0)
+        df1[float_round_2_cols] = df1[float_round_2_cols].round(2)
+        df1.rename(columns={'value': 'BASIN'}, inplace=True)
+        df2 = pd.read_csv(seaffgs_data_path)
+        filtered_df2 = df2[selected_columns] 
+        renamed_cols2 = filtered_df2.rename(columns=rename_mapping)
+        s_df2 = renamed_cols2[["BASIN", "FFG03"]]
+        join_df = df1.merge(s_df2, on='BASIN', how='inner')
+        scols_ffg = join_df[['ID_2', 'ISO', 'NAME_1', 'NAME_2', 'M1', 'M2', 'M3', 'F1', 'F2', 'F3', 'RTP1', 'RTP2', 'RTP3', 'RTP4', 'Hospital', 'GDP', 'crop_sqm', 'FFG03']]
+        grouped_max_FFG = scols_ffg.groupby(['NAME_2']).agg({
+            'ID_2': 'first',
+            'ISO': 'first',
+            'NAME_1': 'first',
+            'M1': 'sum',
+            'M2': 'sum',
+            'M3': 'sum',
+            'F1': 'sum',
+            'F2': 'sum',
+            'F3': 'sum',
+            'RTP1': 'sum',
+            'RTP2': 'sum',
+            'RTP3': 'sum',
+            'RTP4': 'sum',
+            'Hospital': 'sum',
+            'GDP': 'sum',
+            'crop_sqm': 'sum',
+            'FFG03': 'median',
+        }).reset_index()
+        grouped_max_FFG['Alert_3Hrs'] = grouped_max_FFG.apply(lambda row: assign_alert_3hrs(row), axis=1)
+        final_df = grouped_max_FFG.dropna(subset=['Alert_3Hrs'], how='all')
+        # final_df = final_df[['ID_2', 'ISO', 'NAME_1', 'NAME_2', 'Alert_3Hrs']].rename(columns={'Alert_3Hrs': 'Level'})
+        final_df = final_df.rename(columns={'Alert_3Hrs': 'Level'})
+        json = final_df.to_json(orient='records')
+        return JsonResponse(json, safe=False)
+    except FileNotFoundError:
+        # Return a JSON response indicating that data was not found.
+        return JsonResponse({"error": "Data not found"}, status=404)
+
 @csrf_exempt
 @xframe_options_exempt
 def get_alert_stat_6hrs(request):
@@ -201,6 +323,8 @@ def get_alert_stat_6hrs(request):
         join_max = grouped_max_FFG.merge(grouped_max_FFFT, on="NAME_2")
         join_max['Alert_6Hrs'] = join_max.apply(lambda row: assign_alert(row), axis=1)
         final_df = join_max.dropna(subset=['Alert_6Hrs'], how='all')
+        # final_df = final_df[['ID_2', 'ISO', 'NAME_1', 'NAME_2', 'Alert_6Hrs']].rename(columns={'Alert_6Hrs': 'Level'})
+        final_df = final_df.rename(columns={'Alert_6Hrs': 'Level'})
         json = final_df.to_json(orient='records')
         return JsonResponse(json, safe=False)
     except FileNotFoundError:
@@ -266,6 +390,8 @@ def get_risk_stat_12hrs(request):
     grouped_max['Risk_12Hrs'] = pd.cut(grouped_max["FFR12"], bins=bins, labels=labels, right=True, ordered=False)
     grouped_max = grouped_max.replace('Invalid', np.nan)
     final_df = grouped_max.dropna(subset=['Risk_12Hrs'], how='all')
+    # final_df = final_df[['ID_2', 'ISO', 'NAME_1', 'NAME_2', 'Risk_12Hrs']].rename(columns={'Risk_12Hrs': 'Level'})
+    final_df = final_df.rename(columns={'Risk_12Hrs': 'Level'})
     json = final_df.to_json(orient='records')
     return JsonResponse(json, safe=False)
 
@@ -328,6 +454,8 @@ def get_risk_stat_24hrs(request):
     grouped_max['Risk_24Hrs'] = pd.cut(grouped_max["FFR24"], bins=bins, labels=labels, right=True, ordered=False)
     grouped_max = grouped_max.replace('Invalid', np.nan)
     final_df = grouped_max.dropna(subset=['Risk_24Hrs'], how='all')
+    # final_df = final_df[['ID_2', 'ISO', 'NAME_1', 'NAME_2', 'Risk_24Hrs']].rename(columns={'Risk_24Hrs': 'Level'})
+    final_df = final_df.rename(columns={'Risk_24Hrs': 'Level'})
     jsonData = final_df.to_json(orient='records')
     # print(jsonData)
     return JsonResponse(jsonData, safe=False)

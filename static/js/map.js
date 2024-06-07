@@ -159,12 +159,12 @@ document.addEventListener("DOMContentLoaded", function() {
         if (entry.length==0){
             return;
         } else {
-            if (entry.Alert_6Hrs) {
-                riskLavel.innerHTML = entry.Alert_6Hrs;
-            } else if (entry.Risk_12Hrs) {
-                riskLavel.innerHTML = entry.Risk_12Hrs;
-            } else if (entry.Risk_24Hrs) {
-                riskLavel.innerHTML = entry.Risk_24Hrs;
+            if (entry.Level) {
+                riskLavel.innerHTML = entry.Level;
+            } else if (entry.Level) {
+                riskLavel.innerHTML = entry.Level;
+            } else if (entry.Level) {
+                riskLavel.innerHTML = entry.Level;
             }
         }
 
@@ -341,11 +341,11 @@ document.addEventListener("DOMContentLoaded", function() {
 
                 
                 if (param === "6hrs") {
-                    propToSortBy = "Alert_6Hrs";
+                    propToSortBy = "Level";
                 } else if (param === "12hrs") {
-                    propToSortBy = "Risk_12Hrs";
+                    propToSortBy = "Level";
                 } else if (param === "24hrs") {
-                    propToSortBy = "Risk_24Hrs";
+                    propToSortBy = "Level";
                 }
 
                 // Primary sorting by the selected property
@@ -367,11 +367,11 @@ document.addEventListener("DOMContentLoaded", function() {
                 let riskType;
                 
                 if (param === "6hrs") {
-                    riskType = entry.Alert_6Hrs;
+                    riskType = entry.Level;
                 } else if (param === "12hrs") {
-                    riskType = entry.Risk_12Hrs;
+                    riskType = entry.Level;
                 } else if (param === "24hrs") {
-                    riskType = entry.Risk_24Hrs;
+                    riskType = entry.Level;
                 }
 
                 const rowDiv = document.createElement('div');
@@ -447,11 +447,11 @@ document.addEventListener("DOMContentLoaded", function() {
             const filtered = parsedData.find(item => item.ID_2 === fid);
             switch (param) {
                 case "FFG06":
-                    return filtered ? filtered.Alert_6Hrs : null;
+                    return filtered ? filtered.Level : null;
                 case "FFR12":
-                    return filtered ? filtered.Risk_12Hrs : null;
+                    return filtered ? filtered.Level : null;
                 case "FFR24":
-                    return filtered ? filtered.Risk_24Hrs : null;
+                    return filtered ? filtered.Level : null;
                 default:
                     return null;  
             }
