@@ -1,3 +1,33 @@
+.page-loader {
+    position: fixed;
+    z-index: 9999;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5); 
+    display: none;
+}
+.page-loader::after {
+    content: "";
+    display: block;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 40px;
+    height: 40px;
+    margin: -30px 0 0 -30px;
+    border: 4px solid orange; 
+    border-radius: 50%;
+    border-top-color: transparent;
+    animation: spin 1s linear infinite; /* loader animation */
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
 .sidebar{
     height: calc(100% - 105px);
     width: 60px;
@@ -187,7 +217,7 @@
 #rightSidebarContent{
     position: fixed;
     height: calc(100% - 120px);
-    width: 250px;
+    width: 350px;
     top: 40;
     right: 0;
     background-color: #e9ecef;
@@ -221,6 +251,11 @@
 #riskInfo {
     overflow-y: scroll;
     height: calc(100% - 65px);
+}
+.table-responsive {
+    overflow-y: scroll;
+    /* overflow-x: auto;  */
+    max-height: 290px; 
 }
 /* Light Background Color */
 .btn-outline-warning {
@@ -296,7 +331,7 @@
 }
 .leaflet-control-scale {
     position: absolute;
-    right: 250px;
+    right: 350px;
     bottom: 0;
 }
 #chartPanel {

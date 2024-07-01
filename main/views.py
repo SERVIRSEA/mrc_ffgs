@@ -1,5 +1,6 @@
 from django.shortcuts import render
 from django.views.generic import TemplateView
+from shapely.geometry import Polygon, MultiPolygon
 import pandas as pd
 import numpy as np
 import geopandas as gpd
@@ -9,15 +10,17 @@ from django.views.decorators.clickjacking import xframe_options_exempt
 from django.conf import settings
 from .models import Bulletin
 from datetime import datetime
-import os
+import os, json
 import subprocess
 from django.http import FileResponse, HttpResponse
+from django.http import HttpResponse
 
 datelist = settings.DATELIST_PATH
 seaffgs = settings.SEAFFGS_DATA_PATH
 mekongxray = settings.MEKONGXRAY_PATH
 events_country = settings.EVENTS_COUNTRYWISE_PATH
 storms = settings.STORMS_DATA_PATH
+basin_attr = settings.BASIN_ATTR_PATH
 
 class HomePage(TemplateView):
     template_name = 'index.html'
@@ -165,46 +168,27 @@ def assign_alert_3hrs(row):
 @xframe_options_exempt
 def get_alert_stat_1hrs(request):
     try:
-        static_data_path = mekongxray
+        static_data_path = basin_attr
         date_str = request.GET.get("date")
         formatted_date = date_str.replace("-", "")
         hrs = request.GET.get("hrs")
         get_data_path = get_seaffgs_data_path(date_str)
         seaffgs_data_path = f'{get_data_path}/{formatted_date}{hrs}.csv.gz'
         df1 = pd.read_csv(static_data_path)
-        df1[int_columns] = df1[int_columns].astype(int)
-        df1[float_columns] = df1[float_columns].astype(float)
-        df1[float_round_0_cols] = df1[float_round_0_cols].round(0)
-        df1[float_round_2_cols] = df1[float_round_2_cols].round(2)
-        df1.rename(columns={'value': 'BASIN'}, inplace=True)
+        df1.rename(columns={'bid': 'BASIN', 'iso': 'ISO', 'province': 'NAME_1', 'district': 'NAME_2'}, inplace=True)
         df2 = pd.read_csv(seaffgs_data_path)
         filtered_df2 = df2[selected_columns] 
         renamed_cols2 = filtered_df2.rename(columns=rename_mapping)
         s_df2 = renamed_cols2[["BASIN", "FFG01"]]
         join_df = df1.merge(s_df2, on='BASIN', how='inner')
-        scols_ffg = join_df[['ID_2', 'ISO', 'NAME_1', 'NAME_2', 'M1', 'M2', 'M3', 'F1', 'F2', 'F3', 'RTP1', 'RTP2', 'RTP3', 'RTP4', 'Hospital', 'GDP', 'crop_sqm', 'FFG01']]
+        scols_ffg = join_df[['ISO', 'NAME_1', 'NAME_2', 'FFG01']]
         grouped_max_FFG = scols_ffg.groupby(['NAME_2']).agg({
-            'ID_2': 'first',
             'ISO': 'first',
             'NAME_1': 'first',
-            'M1': 'sum',
-            'M2': 'sum',
-            'M3': 'sum',
-            'F1': 'sum',
-            'F2': 'sum',
-            'F3': 'sum',
-            'RTP1': 'sum',
-            'RTP2': 'sum',
-            'RTP3': 'sum',
-            'RTP4': 'sum',
-            'Hospital': 'sum',
-            'GDP': 'sum',
-            'crop_sqm': 'sum',
             'FFG01': 'median',
         }).reset_index()
         grouped_max_FFG['Alert_1Hrs'] = grouped_max_FFG.apply(lambda row: assign_alert_1hrs(row), axis=1)
         final_df = grouped_max_FFG.dropna(subset=['Alert_1Hrs'], how='all')
-        # final_df = final_df[['ID_2', 'ISO', 'NAME_1', 'NAME_2', 'Alert_1Hrs']].rename(columns={'Alert_1Hrs': 'Level'})
         final_df = final_df.rename(columns={'Alert_1Hrs': 'Level'})
         json = final_df.to_json(orient='records')
         return JsonResponse(json, safe=False)
@@ -216,46 +200,27 @@ def get_alert_stat_1hrs(request):
 @xframe_options_exempt
 def get_alert_stat_3hrs(request):
     try:
-        static_data_path = mekongxray
+        static_data_path = basin_attr
         date_str = request.GET.get("date")
         formatted_date = date_str.replace("-", "")
         hrs = request.GET.get("hrs")
         get_data_path = get_seaffgs_data_path(date_str)
         seaffgs_data_path = f'{get_data_path}/{formatted_date}{hrs}.csv.gz'
         df1 = pd.read_csv(static_data_path)
-        df1[int_columns] = df1[int_columns].astype(int)
-        df1[float_columns] = df1[float_columns].astype(float)
-        df1[float_round_0_cols] = df1[float_round_0_cols].round(0)
-        df1[float_round_2_cols] = df1[float_round_2_cols].round(2)
-        df1.rename(columns={'value': 'BASIN'}, inplace=True)
+        df1.rename(columns={'bid': 'BASIN', 'iso': 'ISO', 'province': 'NAME_1', 'district': 'NAME_2'}, inplace=True)
         df2 = pd.read_csv(seaffgs_data_path)
         filtered_df2 = df2[selected_columns] 
         renamed_cols2 = filtered_df2.rename(columns=rename_mapping)
         s_df2 = renamed_cols2[["BASIN", "FFG03"]]
         join_df = df1.merge(s_df2, on='BASIN', how='inner')
-        scols_ffg = join_df[['ID_2', 'ISO', 'NAME_1', 'NAME_2', 'M1', 'M2', 'M3', 'F1', 'F2', 'F3', 'RTP1', 'RTP2', 'RTP3', 'RTP4', 'Hospital', 'GDP', 'crop_sqm', 'FFG03']]
+        scols_ffg = join_df[['ISO', 'NAME_1', 'NAME_2', 'FFG03']]
         grouped_max_FFG = scols_ffg.groupby(['NAME_2']).agg({
-            'ID_2': 'first',
             'ISO': 'first',
             'NAME_1': 'first',
-            'M1': 'sum',
-            'M2': 'sum',
-            'M3': 'sum',
-            'F1': 'sum',
-            'F2': 'sum',
-            'F3': 'sum',
-            'RTP1': 'sum',
-            'RTP2': 'sum',
-            'RTP3': 'sum',
-            'RTP4': 'sum',
-            'Hospital': 'sum',
-            'GDP': 'sum',
-            'crop_sqm': 'sum',
-            'FFG03': 'median',
+            'FFG03': 'max',
         }).reset_index()
         grouped_max_FFG['Alert_3Hrs'] = grouped_max_FFG.apply(lambda row: assign_alert_3hrs(row), axis=1)
         final_df = grouped_max_FFG.dropna(subset=['Alert_3Hrs'], how='all')
-        # final_df = final_df[['ID_2', 'ISO', 'NAME_1', 'NAME_2', 'Alert_3Hrs']].rename(columns={'Alert_3Hrs': 'Level'})
         final_df = final_df.rename(columns={'Alert_3Hrs': 'Level'})
         json = final_df.to_json(orient='records')
         return JsonResponse(json, safe=False)
@@ -281,49 +246,30 @@ def get_alert_stat_6hrs(request):
         :rtype: JsonResponse
     """
     try:
-        static_data_path = mekongxray
+        static_data_path = basin_attr
         date_str = request.GET.get("date")
         formatted_date = date_str.replace("-", "")
         hrs = request.GET.get("hrs")
         get_data_path = get_seaffgs_data_path(date_str)
         seaffgs_data_path = f'{get_data_path}/{formatted_date}{hrs}.csv.gz'
         df1 = pd.read_csv(static_data_path)
-        df1[int_columns] = df1[int_columns].astype(int)
-        df1[float_columns] = df1[float_columns].astype(float)
-        df1[float_round_0_cols] = df1[float_round_0_cols].round(0)
-        df1[float_round_2_cols] = df1[float_round_2_cols].round(2)
-        df1.rename(columns={'value': 'BASIN'}, inplace=True)
+        df1.rename(columns={'bid': 'BASIN', 'iso': 'ISO', 'province': 'NAME_1', 'district': 'NAME_2'}, inplace=True)
         df2 = pd.read_csv(seaffgs_data_path)
         filtered_df2 = df2[selected_columns] 
         renamed_cols2 = filtered_df2.rename(columns=rename_mapping)
         s_df2 = renamed_cols2[["BASIN", "FFG06", "FFFT06"]]
         join_df = df1.merge(s_df2, on='BASIN', how='inner')
-        scols_ffg = join_df[['ID_2', 'ISO', 'NAME_1', 'NAME_2', 'M1', 'M2', 'M3', 'F1', 'F2', 'F3', 'RTP1', 'RTP2', 'RTP3', 'RTP4', 'Hospital', 'GDP', 'crop_sqm', 'FFG06']]
+        scols_ffg = join_df[['ISO', 'NAME_1', 'NAME_2', 'FFG06']]
         scols_ffft = join_df[['NAME_2', 'FFFT06']]
         grouped_max_FFG = scols_ffg.groupby(['NAME_2']).agg({
-            'ID_2': 'first',
             'ISO': 'first',
             'NAME_1': 'first',
-            'M1': 'sum',
-            'M2': 'sum',
-            'M3': 'sum',
-            'F1': 'sum',
-            'F2': 'sum',
-            'F3': 'sum',
-            'RTP1': 'sum',
-            'RTP2': 'sum',
-            'RTP3': 'sum',
-            'RTP4': 'sum',
-            'Hospital': 'sum',
-            'GDP': 'sum',
-            'crop_sqm': 'sum',
-            'FFG06': 'median',
+            'FFG06': 'max',
         }).reset_index()
         grouped_max_FFFT = scols_ffft.groupby(['NAME_2']).agg({'FFFT06': 'max'})
         join_max = grouped_max_FFG.merge(grouped_max_FFFT, on="NAME_2")
         join_max['Alert_6Hrs'] = join_max.apply(lambda row: assign_alert(row), axis=1)
         final_df = join_max.dropna(subset=['Alert_6Hrs'], how='all')
-        # final_df = final_df[['ID_2', 'ISO', 'NAME_1', 'NAME_2', 'Alert_6Hrs']].rename(columns={'Alert_6Hrs': 'Level'})
         final_df = final_df.rename(columns={'Alert_6Hrs': 'Level'})
         json = final_df.to_json(orient='records')
         return JsonResponse(json, safe=False)
@@ -348,49 +294,31 @@ def get_risk_stat_12hrs(request):
 
         :rtype: JsonResponse
     """
-    static_data_path = mekongxray
+    static_data_path = basin_attr
     date_str = request.GET.get("date")
     formatted_date = date_str.replace("-", "")
     hrs = request.GET.get("hrs")
     get_data_path = get_seaffgs_data_path(date_str)
     seaffgs_data_path = f'{get_data_path}/{formatted_date}{hrs}.csv.gz'
     df1 = pd.read_csv(static_data_path)
-    df1[int_columns] = df1[int_columns].astype(int)
-    df1[float_columns] = df1[float_columns].astype(float)
-    df1[float_round_0_cols] = df1[float_round_0_cols].round(0)
-    df1[float_round_2_cols] = df1[float_round_2_cols].round(2)
-    df1.rename(columns={'value': 'BASIN'}, inplace=True)
+    df1.rename(columns={'bid': 'BASIN', 'iso': 'ISO', 'province': 'NAME_1', 'district': 'NAME_2'}, inplace=True)
     df2 = pd.read_csv(seaffgs_data_path)
     filtered_df2 = df2[selected_columns] 
     renamed_cols2 = filtered_df2.rename(columns=rename_mapping)
     s_df2 = renamed_cols2[["BASIN", "FFR12"]]
     join_df = df1.merge(s_df2, on='BASIN', how='inner')
-    scols = join_df[['ISO', 'ID_2', 'NAME_1', 'NAME_2', 'M1', 'M2', 'M3', 'F1', 'F2', 'F3', 'RTP1', 'RTP2', 'RTP3', 'RTP4', 'Hospital', 'GDP', 'crop_sqm', 'FFR12']]
+    scols = join_df[['ISO', 'NAME_1', 'NAME_2', 'FFR12']]
     grouped_max = scols.groupby(['NAME_2']).agg({
-        'ID_2': 'first',
         'ISO': 'first',
         'NAME_1': 'first',
-        'M1': 'sum',
-        'M2': 'sum',
-        'M3': 'sum',
-        'F1': 'sum',
-        'F2': 'sum',
-        'F3': 'sum',
-        'RTP1': 'sum',
-        'RTP2': 'sum',
-        'RTP3': 'sum',
-        'RTP4': 'sum',
-        'Hospital': 'sum',
-        'GDP': 'sum',
-        'crop_sqm': 'sum',
-        'FFR12': 'median',
+        'FFR12': 'max',
     }).reset_index()
-    bins = [-np.inf, 0.01, 0.2, 0.4, 1, np.inf]
-    labels = ['Invalid', 'High', 'Moderate', 'Low', 'Invalid']
+    
+    bins = [-np.inf, 0.01, 0.3, 0.6, 1, np.inf]
+    labels = ['Invalid', 'Low', 'Moderate', 'High', 'Invalid']
     grouped_max['Risk_12Hrs'] = pd.cut(grouped_max["FFR12"], bins=bins, labels=labels, right=True, ordered=False)
     grouped_max = grouped_max.replace('Invalid', np.nan)
     final_df = grouped_max.dropna(subset=['Risk_12Hrs'], how='all')
-    # final_df = final_df[['ID_2', 'ISO', 'NAME_1', 'NAME_2', 'Risk_12Hrs']].rename(columns={'Risk_12Hrs': 'Level'})
     final_df = final_df.rename(columns={'Risk_12Hrs': 'Level'})
     json = final_df.to_json(orient='records')
     return JsonResponse(json, safe=False)
@@ -412,52 +340,36 @@ def get_risk_stat_24hrs(request):
 
         :rtype: JsonResponse
     """
-    static_data_path = mekongxray
+    static_data_path = basin_attr
     date_str = request.GET.get("date")
     formatted_date = date_str.replace("-", "")
     hrs = request.GET.get("hrs")
     get_data_path = get_seaffgs_data_path(date_str)
     seaffgs_data_path = f'{get_data_path}/{formatted_date}{hrs}.csv.gz'
     df1 = pd.read_csv(static_data_path)
-    df1[int_columns] = df1[int_columns].astype(int)
-    df1[float_columns] = df1[float_columns].astype(float)
-    df1[float_round_0_cols] = df1[float_round_0_cols].round(0)
-    df1[float_round_2_cols] = df1[float_round_2_cols].round(2)
-    df1.rename(columns={'value': 'BASIN'}, inplace=True)
+    df1.rename(columns={'bid': 'BASIN', 'iso': 'ISO', 'province': 'NAME_1', 'district': 'NAME_2'}, inplace=True)
     df2 = pd.read_csv(seaffgs_data_path)
     filtered_df2 = df2[selected_columns] 
     renamed_cols2 = filtered_df2.rename(columns=rename_mapping)
     s_df2 = renamed_cols2[["BASIN", "FFR24"]]
     join_df = df1.merge(s_df2, on='BASIN', how='inner')
-    scols = join_df[['ISO', 'ID_2', 'NAME_1', 'NAME_2', 'M1', 'M2', 'M3', 'F1', 'F2', 'F3', 'RTP1', 'RTP2', 'RTP3', 'RTP4', 'Hospital', 'GDP', 'crop_sqm', 'FFR24']]
+    scols = join_df[['ISO', 'NAME_1', 'NAME_2', 'FFR24']]
     grouped_max = scols.groupby(['NAME_2']).agg({
         'ISO': 'first',
-        'ID_2': 'first',
         'NAME_1': 'first',
-        'M1': 'sum',
-        'M2': 'sum',
-        'M3': 'sum',
-        'F1': 'sum',
-        'F2': 'sum',
-        'F3': 'sum',
-        'RTP1': 'sum',
-        'RTP2': 'sum',
-        'RTP3': 'sum',
-        'RTP4': 'sum',
-        'Hospital': 'sum',
-        'GDP': 'sum',
-        'crop_sqm': 'sum',
-        'FFR24': 'median',
+        'FFR24': 'max',
     }).reset_index()
-    bins = [-np.inf, 0.01, 0.2, 0.4, 1, np.inf]
-    labels = ['Invalid', 'High', 'Moderate', 'Low', 'Invalid']
+    
+    bins = [-np.inf, 0.01, 0.3, 0.6, 1, np.inf]
+    labels = ['Invalid', 'Low', 'Moderate', 'High', 'Invalid']
     grouped_max['Risk_24Hrs'] = pd.cut(grouped_max["FFR24"], bins=bins, labels=labels, right=True, ordered=False)
+    
     grouped_max = grouped_max.replace('Invalid', np.nan)
+    
     final_df = grouped_max.dropna(subset=['Risk_24Hrs'], how='all')
-    # final_df = final_df[['ID_2', 'ISO', 'NAME_1', 'NAME_2', 'Risk_24Hrs']].rename(columns={'Risk_24Hrs': 'Level'})
+    
     final_df = final_df.rename(columns={'Risk_24Hrs': 'Level'})
     jsonData = final_df.to_json(orient='records')
-    # print(jsonData)
     return JsonResponse(jsonData, safe=False)
 
 @csrf_exempt
@@ -510,3 +422,79 @@ def pdf_template_view(request):
         'bulletin_summary': bulletin_summary
     }
     return render(request, "pdf_template.html", context)
+
+# def ensure_right_hand_rule(geom):
+#     def reverse_polygon(polygon):
+#         if not polygon.exterior.is_ccw:
+#             polygon = Polygon(polygon.exterior.coords[::-1], [interior.coords[::-1] for interior in polygon.interiors])
+#         return polygon
+
+#     if isinstance(geom, Polygon):
+#         return reverse_polygon(geom)
+#     elif isinstance(geom, MultiPolygon):
+#         new_polygons = [reverse_polygon(polygon) for polygon in geom.geoms]
+#         return MultiPolygon(new_polygons)
+#     return geom
+
+def get_risk_map(request):
+    static_data_path = 'static/data/basins_with_attr.gpkg'
+    param = request.GET.get("param")
+    date_str = request.GET.get("date")
+    formatted_date = date_str.replace("-", "")
+    hr = request.GET.get("hr")
+    get_data_path = get_seaffgs_data_path(date_str)
+    seaffgs_data_path = f'{get_data_path}/{formatted_date}{hr}.csv.gz'
+
+    # Read the static GeoJSON data
+    df1 = gpd.read_file(static_data_path)
+    # df1['geometry'] = df1['geometry'].apply(ensure_right_hand_rule)
+    # df1 = df1[['bid', 'ISO_2', 'Province', 'District', 'Country', 'geometry']]
+    # df1.rename(columns={'bid': 'BASIN', 'ISO_2': 'iso', 'Province': 'province', 'District': 'district', 'Country': 'country'}, inplace=True)
+    # df1.to_file('basins_with_attr.gpkg', driver='GPKG')
+    
+    df2 = pd.read_csv(seaffgs_data_path)
+    filtered_df2 = df2[selected_columns] 
+    renamed_cols2 = filtered_df2.rename(columns=rename_mapping)
+    if param == "FFG06":
+        s_df2 = renamed_cols2[["BASIN", "FFG06", "FFFT06"]]
+        join_df = df1.merge(s_df2, on='BASIN', how='inner')
+        join_df['level'] = join_df.apply(lambda row: assign_alert(row), axis=1)
+    else:
+        s_df2 = renamed_cols2[["BASIN", param]]
+        join_df = df1.merge(s_df2, on='BASIN', how='inner')
+        bins = [-np.inf, 0.01, 0.3, 0.6, 1, np.inf]
+        labels = ['Invalid', 'Low', 'Moderate', 'High', 'Invalid']
+        join_df['level'] = pd.cut(join_df[param], bins=bins, labels=labels, right=True, ordered=False)
+        join_df = join_df.replace('Invalid', np.nan)
+    
+    final_df = join_df.dropna(subset=['level'], how='all')
+    final_df['level'] = final_df['level'].astype(str)
+    final_df = final_df[['BASIN', 'province', 'district', 'country', 'level', 'geometry']]
+    geojson = final_df.to_json()
+
+    # Return as JsonResponse
+    return JsonResponse(json.loads(geojson), safe=False)
+
+def get_admin_boundary(request):
+    name = request.GET.get("name")
+    adm_type = request.GET.get("adm_type")
+
+    if adm_type == 'adm1':
+        data = 'static/data/adm1.gpkg'
+    elif adm_type == 'adm2':
+        data = 'static/data/adm2.gpkg'
+
+    gdf = gpd.read_file(data)
+
+    # Filter the GeoDataFrame by name
+    if adm_type == 'adm1':
+        gdf = gdf[gdf['country'] == name]
+    elif adm_type == 'adm2':
+        gdf = gdf[gdf['Province'] == name]
+
+    # Convert the filtered GeoDataFrame to GeoJSON
+    geojson = gdf.to_json()
+    
+    # Return the GeoJSON response
+    return JsonResponse(json.loads(geojson), safe=False)
+

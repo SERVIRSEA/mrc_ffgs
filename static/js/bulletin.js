@@ -514,7 +514,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
     const rfMapOptions = {
         center: [15.9162, 102.9560],
-        zoom: 5,
+        zoom: 6,
         zoomControl: false,
         scrollWheelZoom: false,
         minZoom: 5,
@@ -527,9 +527,11 @@ document.addEventListener("DOMContentLoaded", function() {
     rfmap.addLayer(tdWmsRainLayer);
 
     let adm0Layer;
+    let adm2Layer
     let mainlakesLayer;
     let riverLayer;
     let mekong_basinLayer;
+    let mekong_basinLayerRf;
     const staticCache = {};
 
     async function fetchData(url) {
@@ -550,6 +552,25 @@ document.addEventListener("DOMContentLoaded", function() {
             throw error;
         }
     }
+
+    async function loadLayersRf() {
+        try {
+            // Load mekong basin data
+            const mekongBasinData = await fetchData('/static/data/mekong_basin_area.geojson');
+            mekong_basinLayerRf = L.geoJSON(mekongBasinData, {
+                style: {
+                    fillColor: '#2E86C1',
+                    weight: 3,
+                    opacity: 0.5,
+                    color: '#fefefe',
+                    fillOpacity: 0.0,
+                },
+            });
+        } catch (error) {
+            console.error('Layer loading error:', error);
+        }
+    }
+    
     
     async function loadLayers() {
         try {
@@ -563,6 +584,24 @@ document.addEventListener("DOMContentLoaded", function() {
                     color: 'gray',
                     fillOpacity: 0.0,
                 },
+            });
+        
+            const adm2Data = await fetchData('/static/data/adm2.geojson');
+            adm2Layer = L.geoJSON(adm2Data, {
+                style: {
+                    fillColor: '#eee',
+                    weight: 0.3,
+                    opacity: 0.5,
+                    color: '#1e3a8a',
+                    fillOpacity: 0.0,
+                },
+                onEachFeature: function onEachFeature(feature, layer) {
+                    if (feature.properties) {
+                        layer.bindPopup(feature.properties.iso);
+                    }
+                }
+        ,
+                
             });
     
             // Load main lakes data
@@ -772,14 +811,14 @@ document.addEventListener("DOMContentLoaded", function() {
             {min: 40, max: 100, color: colors.red},
         ],
         FFR12: [
-            {min: 0.01, max: 0.2, color: colors.red},
-            {min: 0.2, max: 0.4, color: colors.orange},
-            {min: 0.4, max: 1, color: colors.yellow},
+            {min: 0.01, max: 0.3, color: colors.yellow},
+            {min: 0.3, max: 0.6, color: colors.orange},
+            {min: 0.6, max: 1, color: colors.red},
         ],
         FFR24: [
-            {min: 0.01, max: 0.2, color: colors.red},
-            {min: 0.2, max: 0.4, color: colors.orange},
-            {min: 0.4, max: 1, color: colors.yellow},
+            {min: 0.01, max: 0.3, color: colors.yellow},
+            {min: 0.3, max: 0.6, color: colors.orange},
+            {min: 0.6, max: 1, color: colors.red},
         ],
     };
 
@@ -867,7 +906,8 @@ document.addEventListener("DOMContentLoaded", function() {
     // }
 
     // GeoServer URL
-    const geoserver_url = 'http://203.146.112.243:8080/geoserver/';
+    // http://203.146.112.243:8080/geoserver/
+    const geoserver_url = 'http://119.15.81.22:8081/geoserver/';
 
     // Create a function to generate WMS URL
     function generateWMSUrl(param, selectedDate, selectedHr) {
@@ -914,7 +954,7 @@ document.addEventListener("DOMContentLoaded", function() {
     }
 
     // Basin boundary layer
-    var wmsBasinUrl = 'http://203.146.112.243:8080/geoserver/adm/wms?';
+    var wmsBasinUrl = 'http://119.15.81.22:8081/geoserver/adm/wms?';
 
 
     async function createMap(param, selectedDate, selectedHr) {
@@ -939,8 +979,8 @@ document.addEventListener("DOMContentLoaded", function() {
         }
         wmsLayer.setUrl(wmsUrl);
         wmsLayer.setParams({
-            // layers: `ffgs:${param}_${selectedDate}${selectedHr}`,
-            layers: `${param}:${param}_${selectedDate}${selectedHr}`,
+            layers: `ffgs:${param}_${selectedDate}${selectedHr}`,
+            // layers: `${param}:${param}_${selectedDate}${selectedHr}`,
             styles: getStyleName(param)
         });
         if (!mapInstance.hasLayer(wmsLayer)) {
@@ -1660,12 +1700,13 @@ document.addEventListener("DOMContentLoaded", function() {
         return table;
     }
 
-    const allMapInstances = [rfmap, asm6hrMap, map24hrMap, ffg1hrMap, ffg3hrMap, ffg6hrMap, fmap24hrMap, ffr12hrMap, ffr24hrMap];
+    const allMapInstances = [asm6hrMap, map24hrMap, ffg1hrMap, ffg3hrMap, ffg6hrMap, fmap24hrMap, ffr12hrMap, ffr24hrMap];
     // Load the layers
     loadLayers().then(() => {
         // Add layers to each map instance
         allMapInstances.forEach(map => {
             // adm0Layer.addTo(map);
+            // adm2Layer.addTo(map);
             // mainlakesLayer.addTo(map);
             // riverLayer.addTo(map);
             mekong_basinLayer.addTo(map);
@@ -1673,8 +1714,21 @@ document.addEventListener("DOMContentLoaded", function() {
     }).catch(error => {
         console.error('Error adding layers to maps:', error);
     });
-    
-    
+
+    const allMapInstancesRf = [rfmap];
+    // Load the layers
+    loadLayersRf().then(() => {
+        // Add layers to each map instance
+        allMapInstancesRf.forEach(map => {
+            // adm0Layer.addTo(map);
+            // mainlakesLayer.addTo(map);
+            // riverLayer.addTo(map);
+            mekong_basinLayerRf.addTo(map);
+        });
+    }).catch(error => {
+        console.error('Error adding layers to maps:', error);
+    });
+
     async function init() {
         try {
             loader.style.display = 'block';

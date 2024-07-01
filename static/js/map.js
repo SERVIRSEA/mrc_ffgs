@@ -28,8 +28,8 @@ document.addEventListener("DOMContentLoaded", function() {
 
     // Define map center
     var MapOtions = {
-        center: [19.9162, 102.9560],
-        zoom: 5,
+        center: [16.9162, 102.9560],
+        zoom: 6,
         zoomControl: false,
         minZoom: 5,
         // maxZoom: 14
@@ -39,7 +39,7 @@ document.addEventListener("DOMContentLoaded", function() {
     var map = L.map('map', MapOtions);
 
     // Set default basemap
-    var basemap_layer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}', {
+    var basemap_layer = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
         tileSize: 256,
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">Mapbox| OpenStreetMap</a> contributors'
     }).addTo(map);
@@ -54,36 +54,14 @@ document.addEventListener("DOMContentLoaded", function() {
         position:'bottomright'
     }).addTo(map);
 
-    // fetch('/get-sld/')
-    // .then(response => response.text())
-    // .then(sldContent => {
-        
-    //     // Create a WMS layer with the dynamically generated SLD
-    //     // http://216.218.240.196:8080/geoserver/ffgs/wms?
-    //     // http://localhost:8080/geoserver/postgis/wms?
-    //     const wmsLayer = L.tileLayer.wms('http://localhost:8080/geoserver/postgis/wms?', {
-    //         // layers: 'ffgs:mrc_basin_v2',
-    //         layers: 'postgis:mrc_basin_v2',
-    //         format: 'image/png',
-    //         transparent: false,
-    //         sld_body: sldContent
-    //     });
-
-    //     // Add the WMS layer to the map
-    //     wmsLayer.addTo(map);
-    // })
-    // .catch(error => {
-    //     console.error('Error fetching SLD:', error);
-    // });
-
     var rightSidebarBtn = document.querySelector('#rightSidebar');
     var rightSidebarContent = document.querySelector('#rightSidebarContent');
     var rightSidebarCloseBtn  = document.querySelector('#close-sidebar-content-right');
-    var popContent = document.querySelector("#popContent");
-    var collapsePop = document.querySelector('#collapsePop');
-    var expandPop = document.querySelector('#expandPop');
-    var closePop = document.querySelector('#closePop');
-    var risk = document.querySelector('#riskList');
+    // var popContent = document.querySelector("#popContent");
+    // var collapsePop = document.querySelector('#collapsePop');
+    // var expandPop = document.querySelector('#expandPop');
+    // var closePop = document.querySelector('#closePop');
+    // var risk = document.querySelector('#riskList');
 
     rightSidebarBtn.onclick = function(){
         if (getComputedStyle(rightSidebarContent).display === "none"){
@@ -99,25 +77,25 @@ document.addEventListener("DOMContentLoaded", function() {
         rightSidebarBtn.style.display = "block";
     }
 
-    collapsePop.onclick = function(){
-        document.getElementById('riskInfo').style.display = 'none';
-        popContent.style.height = '50px';
-        collapsePop.style.display = 'none';
-        expandPop.style.display = 'block';
-    }
-    expandPop.onclick = function(){
-        popContent.style.height = 'calc(100% - 105px)';
-        collapsePop.style.display = 'block';
-        expandPop.style.display = 'none';
-        document.getElementById('riskInfo').style.display = 'block';
-    }
-    closePop.onclick = function(){
-        popContent.style.display = 'none';
-    }
+    // collapsePop.onclick = function(){
+    //     document.getElementById('riskInfo').style.display = 'none';
+    //     popContent.style.height = '50px';
+    //     collapsePop.style.display = 'none';
+    //     expandPop.style.display = 'block';
+    // }
+    // expandPop.onclick = function(){
+    //     popContent.style.height = 'calc(100% - 105px)';
+    //     collapsePop.style.display = 'block';
+    //     expandPop.style.display = 'none';
+    //     document.getElementById('riskInfo').style.display = 'block';
+    // }
+    // closePop.onclick = function(){
+    //     popContent.style.display = 'none';
+    // }
 
-    risk.onclick = function(){
-        popContent.style.display = 'block';
-    }
+    // risk.onclick = function(){
+    //     popContent.style.display = 'block';
+    // }
 
     function showBootstrapAlert(message) {
         const alertPlaceholder = document.getElementById('alert-placeholder');
@@ -135,16 +113,7 @@ document.addEventListener("DOMContentLoaded", function() {
         alertPlaceholder.innerHTML = '';
     }
 
-    var ffgsLayer = L.geoJSON();
-    var subProvinceLayer = L.geoJSON().addTo(map);
-
-    // Caches and URLs for data
-    const caches = {
-        '6hrs': {},
-        '12hrs': {},
-        '24hrs': {},
-        'dates': {}
-    };
+    var riskLayer = L.geoJSON().addTo(map);
 
     // Fetch URLs
     const urls = {
@@ -153,90 +122,6 @@ document.addEventListener("DOMContentLoaded", function() {
         '24hrs': '/get-risk-stat-24hrs/',
         'dates': '/get-datelist/'
     };
-
-    function displayDetail(entry){
-        const riskLavel = document.querySelector("#risk_level");
-        if (entry.length==0){
-            return;
-        } else {
-            if (entry.Level) {
-                riskLavel.innerHTML = entry.Level;
-            } else if (entry.Level) {
-                riskLavel.innerHTML = entry.Level;
-            } else if (entry.Level) {
-                riskLavel.innerHTML = entry.Level;
-            }
-        }
-
-        const dataKeyToElementIdMap = {
-            "NAME_1": "province_name",
-            "NAME_2": "subprovince_name",
-            "M1": "male_pop_m1_subprvnc",
-            "M2": "male_pop_m2_subprvnc",
-            "M3": "male_pop_m3_subprvnc",
-            "F1": "female_pop_f1_subprvnc",
-            "F2": "female_pop_f2_subprvnc",
-            "F3": "female_pop_f3_subprvnc",
-            "RTP1": "highwayRoad_subprvnc", 
-            "RTP2": "primaryRoad_subprvnc", 
-            "RTP3": "secondaryRoad_subprvnc", 
-            "RTP4": "tertiaryRoad_subprvnc", 
-            "Hospital": "hospital_subprvnc", 
-            "GDP": "gdp_subprvnc", 
-            "crop_sqm": "cropLands_subprvnc"
-        };
-        // console.log(entry)
-
-        const elements = ["province_name", "subprovince_name", "female_pop_f1_subprvnc", "female_pop_f2_subprvnc", 
-            "female_pop_f3_subprvnc", "male_pop_m1_subprvnc", "male_pop_m2_subprvnc", 
-            "male_pop_m3_subprvnc", "highwayRoad_subprvnc", "primaryRoad_subprvnc", "secondaryRoad_subprvnc", 
-            "tertiaryRoad_subprvnc", "hospital_subprvnc", "gdp_subprvnc", "cropLands_subprvnc"].map(id => document.querySelector(`#${id}`));
-
-        elements.forEach(el => el.innerHTML = '---');
-
-        if (!entry || Object.keys(entry).length === 0) {
-            return;
-        }
-
-        const totalMale = entry.M1 + entry.M2 + entry.M3;
-        const totalFemale = entry.F1 + entry.F2 + entry.F3;
-        const totalPop = totalMale + totalFemale;
-
-        document.querySelector('#total_male_pop_subprvnc').innerHTML = totalMale === 0 ? '---' : totalMale;
-        document.querySelector('#total_female_pop_subprvnc').innerHTML = totalFemale === 0 ? '---' : totalFemale;
-        document.querySelector('#total_pop_subprvnc').innerHTML = totalPop === 0 ? '---' : totalPop;
-
-        
-        elements.forEach(el => {
-            // Find corresponding data key from the mapping using the element's ID
-            const dataKey = Object.keys(dataKeyToElementIdMap).find(key => dataKeyToElementIdMap[key] === el.id);
-        
-            const value = entry[dataKey];
-        
-            if (value === undefined || value <= 0 || el.id.includes('total_')) {
-                el.innerHTML = '---';
-                return;
-            }
-        
-            el.innerHTML = value;
-        });
-
-        const isoToCountryMap = {
-            "THA": "Thailand",
-            "VNM": "Vietnam",
-            "KHM": "Cambodia",
-            "LAO": "Laos"
-        };
-        
-        const iso = entry.ISO;
-        
-        const country = isoToCountryMap[iso];
-        if (country) {
-            document.querySelector("#country_name").innerHTML = country;
-        } else {
-            document.querySelector("#country_name").innerHTML = "---";
-        }
-    }
 
     // Generic function to fetch data based on the provided param and selectedDate
     async function getStats(param, selectedDate = null, selectedHrs = null) {
@@ -323,106 +208,345 @@ document.addEventListener("DOMContentLoaded", function() {
         } else {
             document.documentElement.style.cursor = 'auto'; // Reset the cursor to default
             errorMessage.innerHTML = "";
-
-            const sortOrder = {
-                "High": 1,
-                "Moderate": 2,
-                "Low": 3
-            };
-
-            const alertColors = {
-                "High": "#FF0000",
-                "Moderate": "#FFA500",
-                "Low": "#FFFF00"
-            };
-            
-            const sortedData = parsed_data.sort((a, b) => {
-                let propToSortBy;
-
-                
-                if (param === "6hrs") {
-                    propToSortBy = "Level";
-                } else if (param === "12hrs") {
-                    propToSortBy = "Level";
-                } else if (param === "24hrs") {
-                    propToSortBy = "Level";
-                }
-
-                // Primary sorting by the selected property
-                if (sortOrder[a[propToSortBy]] !== sortOrder[b[propToSortBy]]) {
-                    return sortOrder[a[propToSortBy]] - sortOrder[b[propToSortBy]];
-                }
-                
-                // Secondary sorting by ISO
-                if (a.ISO < b.ISO) {
-                    return -1;
-                }
-                if (a.ISO > b.ISO) {
-                    return 1;
-                }
-                return 0;
-            });
-
-            sortedData.forEach(entry => {
-                let riskType;
-                
-                if (param === "6hrs") {
-                    riskType = entry.Level;
-                } else if (param === "12hrs") {
-                    riskType = entry.Level;
-                } else if (param === "24hrs") {
-                    riskType = entry.Level;
-                }
-
-                const rowDiv = document.createElement('div');
-                rowDiv.className = "row mb-2";
-            
-                const circleDiv = document.createElement('div');
-                circleDiv.className = "col-sm-3";
-                const circle = document.createElement('p');
-                circle.className = 'circle';
-                circle.style.backgroundColor = alertColors[riskType];
-                circleDiv.appendChild(circle);
-                
-                const detailsDiv = document.createElement('div');
-                detailsDiv.className = "col-sm-9";
-                const riskHeader = document.createElement('h5');
-                riskHeader.className = 'card-title fw-bold';
-                riskHeader.textContent = `${riskType} Risk`;
-                detailsDiv.appendChild(riskHeader);
-                const countryDetail = document.createElement('p');
-                countryDetail.innerHTML = `Country: <span>${entry.ISO}</span><br>Subprovince: <span>${entry.NAME_2}</span>`;
-                detailsDiv.appendChild(countryDetail);
-                
-                rowDiv.appendChild(circleDiv);
-                rowDiv.appendChild(detailsDiv);
-            
-                container.appendChild(rowDiv);
-
-                rowDiv.addEventListener('click', function() {
-                    displayDetail(entry);
-                });
-            });
         }
     }
 
-    // Subprovince map
-    const subProvinceCache = {};
-    const subprovince_url  = '/static/data/adm2_mekong.geojson';
-
-    async function getsubProvinceData() {
-        try {
-            if (subProvinceCache[subprovince_url]) {
-                return subProvinceCache[subprovince_url];
+    let caches = {};
+    
+    const countProvincesByCountryAndLevel = (data) => {
+        const countryLevelCounts = {};
+    
+        data.forEach(item => {
+            const { country, level, province } = item;
+    
+            if (!countryLevelCounts[country]) {
+                countryLevelCounts[country] = {
+                    Low: new Set(),
+                    Moderate: new Set(),
+                    High: new Set()
+                };
             }
-            const response = await fetch(subprovince_url);
-            const data = await response.json();
-            subProvinceCache[subprovince_url] = data;
+    
+            countryLevelCounts[country][level].add(province);
+        });
+    
+        const result = {};
+    
+        for (const [country, levels] of Object.entries(countryLevelCounts)) {
+            result[country] = {};
+            for (const [level, provinces] of Object.entries(levels)) {
+                result[country][level] = provinces.size;
+            }
+        }
+    
+        return result;
+    };
+
+    const countDistrictsByProvinceAndLevel = (data) => {
+        const provinceLevelCounts = {};
+
+        data.forEach(item => {
+            const { province, level, district } = item;
+
+            if (!provinceLevelCounts[province]) {
+                provinceLevelCounts[province] = {
+                    Low: new Set(),
+                    Moderate: new Set(),
+                    High: new Set()
+                };
+            }
+
+            provinceLevelCounts[province][level].add(district);
+        });
+
+        const result = {};
+
+        for (const [province, levels] of Object.entries(provinceLevelCounts)) {
+            result[province] = {};
+            for (const [level, districts] of Object.entries(levels)) {
+                result[province][level] = districts.size;
+            }
+        }
+
+        return result;
+    };
+
+    // Function to process data based on area type and name
+    function processDataByAreaType(data, areaType, areaName) {
+        console.log(areaType, areaName)
+        if (areaType === 'country') {
+            if (areaName === 'all') {
+                // const countryData = getUniqueCountriesByLevel(data)
+                const countryData = countProvincesByCountryAndLevel(data);
+                return countryData;
+            } else {
+                const filteredData = data.filter(item => item.country === areaName);
+                
+            }
+        }
+
+        if (areaType === 'adm1') {
+            const filteredData = data.filter(item => item.country === areaName);
+            return countDistrictsByProvinceAndLevel(data);
+        }
+    }
+
+    async function processData(geojsonData, areaType, areaName) {
+         
+        // Process the data based on the area type and name
+        const processedData = [];
+        
+        geojsonData.features.forEach(feature => {
+            const level = feature.properties.level;
+            const district = feature.properties.district;
+            const province = feature.properties.province;
+            const country = feature.properties.country;
+    
+            processedData.push({ level, district, province, country });
+        });
+
+        const result = processDataByAreaType(processedData, areaType, areaName);
+        
+        return result;
+    }
+
+    // Function to create the table
+    async function createTable(data, admin) {
+        var riskTitle;
+        if (admin == 'all'){
+            riskTitle = "Provinces";
+        } else if (admin == 'adm1') {
+            riskTitle = "Districts";
+        }
+        // Create a new table element with Bootstrap table classes
+        const table = document.createElement('table');
+        table.style.marginTop = '20px';
+        table.style.width = '100%';
+        table.style.borderTop = '1px solid #000';
+        table.style.borderBottom = '1px solid #000';
+
+        // Create table header
+        const thead = document.createElement('thead');
+        
+        // First header row
+        const headerRow1 = document.createElement('tr');
+        
+        // Empty cell for the 'Country' column that spans two rows
+        const countryHeader = document.createElement('th');
+        countryHeader.textContent = 'Country';
+        countryHeader.rowSpan = 2; 
+        countryHeader.style.textAlign = 'center'; // Center text horizontally
+        countryHeader.style.verticalAlign = 'middle'; // Center text vertically
+        headerRow1.appendChild(countryHeader);
+
+        // Header cell for the 'Risk Levels' column that spans three columns
+        const riskHeader = document.createElement('th');
+        riskHeader.textContent = `Risk Levels ( No. of ${riskTitle} )`;
+        riskHeader.colSpan = 3; // Span three columns
+        riskHeader.style.textAlign = 'center'; // Center text horizontally
+        riskHeader.style.verticalAlign = 'middle'; // Center text vertically
+        riskHeader.style.borderBottom = '1px solid #000';
+        riskHeader.style.paddingTop = '5px';
+        riskHeader.style.paddingBottom = '5px';
+        headerRow1.appendChild(riskHeader);
+        
+        thead.appendChild(headerRow1);
+
+        // Second header row for risk levels
+        const headerRow2 = document.createElement('tr');
+        headerRow2.style.borderBottom = '1px solid #000';
+        // Headers for 'Low', 'Moderate', and 'High' risk levels
+        ['Low', 'Moderate', 'High'].forEach(level => {
+            const th = document.createElement('th');
+            th.textContent = level;
+            th.style.textAlign = 'center';
+            th.style.paddingTop = '5px';
+            th.style.paddingBottom = '5px';
+            headerRow2.appendChild(th);
+        });
+
+        thead.appendChild(headerRow2);
+        table.appendChild(thead);
+
+        // Create table body
+        const tbody = document.createElement('tbody');
+        Object.entries(data).forEach(([country, levels]) => {
+            const row = document.createElement('tr');
+
+            // Country cell
+            const countryCell = document.createElement('td');
+            countryCell.textContent = country;
+            countryCell.style.paddingTop = '5px';
+            countryCell.style.paddingBottom = '5px';
+            row.appendChild(countryCell);
+
+            // Cells for 'Low', 'Moderate', and 'High' risk levels with numbers
+            ['Low', 'Moderate', 'High'].forEach(level => {
+                const levelCell = document.createElement('td');
+                levelCell.textContent = levels[level]; // Display the number directly
+                levelCell.style.textAlign = 'center';
+                levelCell.style.paddingTop = '5px';
+                levelCell.style.paddingBottom = '5px';
+                row.appendChild(levelCell);
+            });
+
+            tbody.appendChild(row);
+        });
+
+        table.appendChild(tbody);
+
+        // Append the table to the container with id 'riskTable'
+        const container = document.getElementById('riskTable');
+        container.innerHTML = ''; // Clear previous content
+        container.appendChild(table);
+    }
+
+    async function generateMap(data){
+        // Define function to get color by category
+        function getColorbyCategory(cat) {
+            switch (cat) {
+                case 'Low':
+                    return 'yellow';
+                case 'Moderate':
+                    return 'orange';
+                case 'High':
+                    return 'red';
+                default:
+                    return 'none';
+            }
+        }
+
+        // Define function to set style based on feature properties
+        function defineStyle(feature) {
+            const level = feature.properties.level;
+            const color = getColorbyCategory(level);
+            let defaultStyle = { color: "#000", weight: 1, opacity: 1, fillOpacity: 1 };
+
+            if (color === 'none') {
+                defaultStyle = { ...defaultStyle, fillOpacity: 0, opacity: 0 }; // Invisible style
+            }
+
+            return color ? { ...defaultStyle, color } : defaultStyle;
+        }
+
+        // Define function to create tooltip content
+        function createTooltipTable(feature) {
+            return (
+                '<div class="table-responsive">' +
+                '<table class="table">' +
+                '<thead>' +
+                '<tr>' +
+                '<th class="fw-bold">Basin ID</th>' +
+                '<th class="fw-bold">' + feature.properties.BASIN + '</th>' +
+                '</tr>' +
+                '</thead>' +
+                '<tbody>' +
+                '<tr>' +
+                '<td class="fw-bold">Risk Level</td>' +
+                '<td>' + feature.properties.level + '</td>' +
+                '</tr>' +
+                '<tr>' +
+                '<td class="fw-bold">District</td>' +
+                '<td>' + feature.properties.district + '</td>' +
+                '</tr>' +
+                '<tr>' +
+                '<td class="fw-bold">Province</td>' +
+                '<td>' + feature.properties.province + '</td>' +
+                '</tr>' +
+                '<tr>' +
+                '<td class="fw-bold">Country</td>' +
+                '<td>' + feature.properties.country + '</td>' +
+                '</tr>' +
+                '</tbody>' +
+                '</table>' +
+                '</div>'
+            );
+        }
+
+        // Function to handle layer addition and tooltips
+        riskLayer.on('layeradd', function (e) {
+            onEachFeature(e.layer.feature, e.layer);
+        });
+
+        // Function to bind tooltip to each feature
+        function onEachFeature(feature, layer) {
+            layer.bindTooltip(createTooltipTable(feature));
+        }
+
+        // Clear existing map layers and add new data with updated styles
+        riskLayer.clearLayers();
+        riskLayer.addData(data, {
+            onEachFeature: onEachFeature
+        });
+        riskLayer.setStyle(feature => defineStyle(feature));
+    }
+
+    async function createOrUpdateRiskMap(param, date, hr, areaType = 'country', areaName = 'all') {
+        try {
+            // Show loading indicator
+            document.getElementById('loader').style.display = 'block';
+    
+            // Initialize the cache for the specified param, date, and hr if it doesn't exist
+            if (!caches[param]) caches[param] = {};
+            if (!caches[param][date]) caches[param][date] = {};
+            if (!caches[param][date][hr]) caches[param][date][hr] = {};
+    
+            let data; // Declare data variable
+    
+            // Check if data is already in the cache for the specified param, date, and hr
+            if (Object.keys(caches[param][date][hr]).length !== 0) {
+                clearBootstrapAlert();
+                data = caches[param][date][hr]; // Assign cached data
+            } else {
+                // Construct the URL with the specified parameters
+                let url = '/get-risk-map';
+                if (param && date && hr) {
+                    url += `?param=${param}&date=${date}&hr=${hr}`;
+                }
+    
+                // Fetch the data from the server
+                const response = await fetch(url);
+    
+                // Handle different response statuses
+                if (!response.ok) {
+                    if (response.status === 404) {
+                        showBootstrapAlert("Oops! No data found for the selected date and hours. Please select a different date and try again.");
+                        throw new Error("Data not found for the selected date and hours");
+                    }
+                    throw new Error("Network response was not ok");
+                }
+    
+                // Clear any previous error alerts
+                clearBootstrapAlert();
+    
+                // Parse the response data
+                data = await response.json();
+    
+                // Cache the data based on param, date, and hr
+                caches[param][date][hr] = data;
+            }
+    
+            // Generate the map using the fetched data
+            await generateMap(data);
+            
+            // Process the fetched data for table creation or other purposes
+            const processedData = await processData(data, areaType, areaName);
+            await createTable(processedData, areaName);
+            
+            // Hide loading indicator
+            document.getElementById('loader').style.display = 'none';
+    
+            // Return the fetched data
             return data;
         } catch (error) {
             console.error('Error:', error);
+            // Hide loading indicator on error
+            document.getElementById('loader').style.display = 'none';
+            // Handle error further if needed
+            throw error; // Rethrow the error or handle as appropriate
         }
-    }
+    }    
+    
  
     function determineStatsParam(param) {
         switch (param) {
@@ -437,222 +561,28 @@ document.addEventListener("DOMContentLoaded", function() {
         }
     }
 
-    async function updateSubProvinceMap(param, parsedData){
-        // const parsedData = JSON.parse(dataToProcess);
-        const subProvinceData = await getsubProvinceData();
-
-        // console.log(subProvinceData);
-    
-        function getAlertValueById(param, fid) {
-            const filtered = parsedData.find(item => item.ID_2 === fid);
-            switch (param) {
-                case "FFG06":
-                    return filtered ? filtered.Level : null;
-                case "FFR12":
-                    return filtered ? filtered.Level : null;
-                case "FFR24":
-                    return filtered ? filtered.Level : null;
-                default:
-                    return null;  
-            }
-        }
-    
-        function getColorbyCategory(cat) {
-            // console.log(cat)
-            switch(cat) {
-                case 'Low':
-                    return 'yellow';
-                case 'Moderate':
-                    return 'orange';
-                case 'High':
-                    return 'red';
-                default:
-                    return 'none';
-            }
-        }
-    
-        function defineStyle(param, feature){
-            const fid = feature.properties.AREA_ID;
-            const cat = getAlertValueById(param, fid);
-            const color = getColorbyCategory(cat);
-            let defaultStyle = { color: "#000", weight: 1, opacity: 1, fillOpacity: 1 };
-
-            if (color === 'none') {
-                defaultStyle = { ...defaultStyle, fillOpacity: 0, opacity: 0 }; // this will make the feature invisible
-            }
-
-            // const defaultStyle = { color: colors.white, weight: 1, opacity: 1, fillOpacity: 0.5 };
-            return color ? {...defaultStyle, color} : defaultStyle; 
-        }  
-
-        // Add this in your updateSubProvinceMap function
-        subProvinceLayer.on('layeradd', function (e) {
-            onEachFeature(e.layer.feature, e.layer);
-        });
-
-        function onEachFeature(feature, layer) {
-            layer.on({
-                click: onSubProvinceClick
-            });
-            layer.bindTooltip('<h6 class="fw-bold p-2">'+feature.properties.NAME_2+', '+feature.properties.NAME_1+',<br>'+feature.properties.NAME_0+'</h6>');
-        }
-
-        async function onSubProvinceClick(e) {
-            const clickedFeature = e.target.feature;
-            const fid = clickedFeature.properties.AREA_ID;
-            const filteredData = parsedData.filter(item => item.ID_2 === fid);
-            const entry = filteredData[0]
-            displayDetail(entry);
-            popContent.style.display = 'block';
-        }
-    
-        subProvinceLayer.clearLayers(); 
-        subProvinceLayer.addData(subProvinceData, {
-            onEachFeature: onEachFeature
-        });
-        subProvinceLayer.setStyle(feature => defineStyle(param, feature)); 
-    }
-
     document.getElementById("btnradio06").addEventListener("click", async function() {
         var selectedDate = dateInput.value;
-        var selectedHrs = hourInput.value;
-        let param = '6hrs';
-        const dataToProcess = await getStats(param, selectedDate, selectedHrs);
-        let parsedData = JSON.parse(dataToProcess);
-        let selectedCountry = countryDropdown.value;
-        if (selectedCountry === "All"){
-            parsedData = parsedData;
-        } else {
-            parsedData =  parsedData.filter(item => item.ISO === selectedCountry); 
-        }
-        updateTable(param, parsedData);
-        updateSubProvinceMap("FFG06", parsedData);
+        var selectedHr = hourInput.value;
+        var selectedCountry = countryDropdown.value;
+        createOrUpdateRiskMap('FFG06', selectedDate, selectedHr, selectedCountry);
     });
 
     document.getElementById("btnradio12").addEventListener("click", async function() {
         var selectedDate = dateInput.value;
-        var selectedHrs = hourInput.value;
-        let param = '12hrs';
-        const dataToProcess = await getStats(param, selectedDate, selectedHrs)
-        let parsedData = JSON.parse(dataToProcess);
-        let selectedCountry = countryDropdown.value;
-        if (selectedCountry === "All"){
-            parsedData = parsedData;
-        } else {
-            parsedData =  parsedData.filter(item => item.ISO === selectedCountry); 
-        }
-        updateTable(param, parsedData);
-        updateSubProvinceMap("FFR12", parsedData);
+        var selectedHr = hourInput.value;
+        var selectedCountry = countryDropdown.value;
+        createOrUpdateRiskMap('FFR12', selectedDate, selectedHr, selectedCountry);
     });
 
     document.getElementById("btnradio24").addEventListener("click", async function() {
         var selectedDate = dateInput.value;
-        var selectedHrs = hourInput.value;
-        let param = '24hrs';
-        const dataToProcess = await getStats(param, selectedDate, selectedHrs);
-        let parsedData = JSON.parse(dataToProcess);
-        let selectedCountry = countryDropdown.value;
-        if (selectedCountry === "All"){
-            parsedData = parsedData;
-        } else {
-            parsedData =  parsedData.filter(item => item.ISO === selectedCountry); 
-        }
-        // console.log(parsedData);
-        updateTable(param, parsedData);
-        updateSubProvinceMap("FFR24", parsedData);
+        var selectedHr = hourInput.value;
+        var selectedCountry = countryDropdown.value;
+        createOrUpdateRiskMap('FFR24', selectedDate, selectedHr, selectedCountry);
     });
     
-    // Basin Map
-    // var mrcBasinDataCache = {};
-    // const basin_url = '/static/data/mrc_basin_simplified2.geojson';
-
-    // async function getMRCBasinData() {
-    //     try {
-    //         if (mrcBasinDataCache[basin_url]) {
-    //             return mrcBasinDataCache[basin_url];
-    //         }
-    //         const response = await fetch(basin_url);
-    //         const data = await response.json();
-    //         mrcBasinDataCache[basin_url] = data;
-    //         return data;
-    //     } catch (error) {
-    //         console.error('Error:', error);
-    //     }
-    // }
-
-    // var mrcBasinDataCache = {};
-    // const basin_url = 'http://216.218.240.196:8080/geoserver/wfs?service=WFS&version=1.0.0&request=GetFeature&typeName=ffgs:mrc_basin_v2&outputFormat=application/json';
-
-    // async function getMRCBasinData() {
-    //     try {
-    //         if (mrcBasinDataCache[basin_url]) {
-    //             return mrcBasinDataCache[basin_url];
-    //         }
-    //         const response = await fetch(basin_url);
-    //         const data = await response.json();
-    //         mrcBasinDataCache[basin_url] = data;
-    //         return data;
-    //     } catch (error) {
-    //         console.error('Error:', error);
-    //     }
-    // }
-
-    let mrcffgDataCache = {};
-
-    async function getMRCFFGData(param, selectedDate, selectedHrs) {
-        try {
-            const cacheKey = `${param}_${selectedDate}_${selectedHrs}`;
-            if (mrcffgDataCache[cacheKey]) {
-                clearBootstrapAlert();
-                return mrcffgDataCache[cacheKey];
-            }
-            const mrcffg_url = `/get-seaffgs-value/?param=${param}&date=${selectedDate}&hrs=${selectedHrs}`;
-            const response = await fetch(mrcffg_url);
-            if (!response.ok) {
-                if (response.status === 404) {
-                    showBootstrapAlert("Oops! No data found for the selected date and hours. Please select a different date and try again.");
-                    throw new Error("Data not found for the selected date and hours");
-                }
-                throw new Error("Network response was not ok");
-            } else {
-                clearBootstrapAlert();
-            }
-            const data = await response.json();
-            mrcffgDataCache[cacheKey] = data;
-            return data;
-        } catch (error) {
-            console.error('Error:', error);
-        }
-    }
-
-    let basinChartDataCache = {};
-
-    async function getBasinChartData(basin_id, selectedDate, selectedHrs) {
-        try {
-            const cacheKey = `${basin_id}_${selectedDate}_${selectedHrs}`;
-            if (basinChartDataCache[cacheKey]) {
-                clearBootstrapAlert();
-                return basinChartDataCache[cacheKey];
-            }
-            const chart_data_url = `/get-basin-chart-data/?basin_id=${basin_id}&date=${selectedDate}&hrs=${selectedHrs}`;
-            const response = await fetch(chart_data_url);
-            if (!response.ok) {
-                if (response.status === 404) {
-                    showBootstrapAlert("Oops! No data found for the selected date and hours. Please select a different date and try again.");
-                    throw new Error("Data not found for the selected date and hours");
-                }
-                throw new Error("Network response was not ok");
-            } else {
-                clearBootstrapAlert();
-            }
-            const data = await response.json();
-            basinChartDataCache[cacheKey] = data;
-            return data;
-        } catch (error) {
-            console.error('Error:', error);
-        }
-    }
-
+    
     const colors = {
         yellow: '#FFFF00',
         lightGreen: '#90EE90',
@@ -789,20 +719,6 @@ document.addEventListener("DOMContentLoaded", function() {
             legendElement.appendChild(div);
         });
     }
-    
-    // function getStyle(param, feature, data) {
-    //     const ffgVal = data.find(x => x && x.BASIN === feature.properties.ID_CAT)?.[param];
-    //     const defaultStyle = { color: colors.white, weight: 1, opacity: 0, fillOpacity: 0 };
-    //     const paramStyles = styles[param];
-    //     if (!paramStyles) return defaultStyle;
-    
-    //     for (let style of paramStyles) {
-    //         if (ffgVal > style.min && ffgVal <= style.max) {
-    //             return { ...defaultStyle, ...style, opacity: 1, fillOpacity: 0.8 };
-    //         }
-    //     }
-    //     return defaultStyle;
-    // }
 
     function changeIcon(isShown) {
         const iconElement = document.getElementById('toggleIcon');
@@ -824,120 +740,6 @@ document.addEventListener("DOMContentLoaded", function() {
         changeIcon(false);
     });
 
-    function cleanData(dataArray) {
-        return dataArray.map(item => {
-            ["FFG01", "FFG03", "FFG06"].forEach(key => {
-                if (item[key] === -999 || item[key] < -1 || item[key] === null) {
-                    item[key] = 0;
-                }
-            });
-            return item;
-        });
-    }
-
-    function generateChart(selectedDate, chartData){
-        // Given data
-        // var data = [{"BASIN":421366,"FFG01":1,"FFG03":2,"FFG06":1.5}];
-        const data = JSON.parse(chartData);
-        const cleanedData = cleanData(data);
-        // Extract data for chart
-        var categories = ['FFG01', 'FFG03', 'FFG06'];  // Define the x-axis labels
-        var values = categories.map(key => cleanedData[0][key] || null); // Retrieve values or default to null if key doesn't exist
-        let date = selectedDate;
-
-        Highcharts.chart('basinChart', {
-            chart: {
-                type: 'column'
-            },
-            title: {
-                text: 'Rainfall Forecast Basin ID: ' + data[0].BASIN,
-                style: {
-                    fontSize: '14px',
-                    fontWeight: 'bold',
-                    whiteSpace: 'nowrap'
-                }
-            },
-            subtitle: {
-                text: 'Date: ' + date,
-                style: {
-                    fontSize: '12px'
-                },
-            },
-            legend: false,
-            tooltip: false,
-            xAxis: {
-                categories: ["01", "03", "06"],
-                title: {
-                    text: 'Hour'
-                }
-            },
-            yAxis: {
-                title: {
-                    text: 'Rainfall (mm/h)'
-                }
-            },
-            plotOptions: {
-                column: {
-                    dataLabels: {
-                        enabled: true,
-                        color: '#000000'
-                    }
-                }
-            },
-            series: [{
-                name: 'BASIN ' + data[0].BASIN,
-                data: values,
-                color: 'darkblue'
-            }]
-        });
-    }
-    
-    // async function updateMap(param, selectedDate, selectedHrs, selectedCountry){
-    //     const ffgData = await getMRCFFGData(param, selectedDate, selectedHrs);
-    //     const parsed_data = JSON.parse(ffgData);
-    //     let basinData = await getMRCBasinData();
-
-    //     if (selectedCountry === "All") {
-    //         basinData = basinData; // This line is redundant, as basinData remains unchanged. You can remove it.
-    //     } else if (["KHM", "VNM", "THA", "LAO"].includes(selectedCountry)) {
-    //         basinData = {
-    //             ...basinData,
-    //             features: basinData.features.filter(feature => feature.properties.iso === selectedCountry)
-    //         };
-    //     }
-
-    //     ffgsLayer.on('layeradd', function (e) {
-    //         onEachFeature(e.layer.feature, e.layer);
-    //     });
-
-    //     function onEachFeature(feature, layer) {
-    //         layer.on({
-    //             click: onFFGSClick,
-    //         });
-    //     }
-
-    //     async function onFFGSClick(e) {
-    //         const clickedFeature = e.target.feature;
-    //         const basin_id = clickedFeature.properties.value;
-    //         let selectedDate = dateInput.value;
-    //         let selectedHrs = hourInput.value;
-    //         const chart_data = await getBasinChartData(basin_id, selectedDate, selectedHrs);
-    //         // console.log(chart_data);
-    //         let collapseElem = document.getElementById('collapseExample');
-    //         let btnElem = document.querySelector('a[data-bs-toggle="collapse"]');
-    //         let chartPanel = document.getElementById('chartPanel');
-    //         chartPanel.style.display = "block";
-    //         if (!collapseElem.classList.contains('show')) {
-    //             btnElem.click();
-    //         }
-    //         generateChart(selectedDate, chart_data);
-    //     }
-
-    //     ffgsLayer.clearLayers();
-    //     ffgsLayer.addData(basinData);
-    //     ffgsLayer.setStyle(feature => getStyle(param, feature, parsed_data)); 
-    // }
-
     // GeoServer URL
     const geoserver_url = 'http://119.15.81.22:8081/geoserver/';
 
@@ -945,9 +747,6 @@ document.addEventListener("DOMContentLoaded", function() {
     function generateWMSUrl(param, selectedDate, selectedHr) {
         return `${geoserver_url}wms?`;
     }
-
-    // // Initialize wmsLayer variable
-    // var wmsLayer = null;
 
     // Define an empty WMS layer
     var wmsLayer = L.tileLayer.wms('', {
@@ -1029,19 +828,6 @@ document.addEventListener("DOMContentLoaded", function() {
         wmsBasinLayer.setParams({ layers: newLayerName });
     }
 
-    // var param = "ASMT"
-    // var selectedDate = '2024-02-10';
-    // var selectedHr = '10';
-    // var dateWithoutHyphens = selectedDate.replace(/-/g, '');
-
-    // wmsLayer = L.tileLayer.wms('http://119.15.81.22:8081/geoserver/wms?', {
-    //     layers: `${param}:${param}_${dateWithoutHyphens}${selectedHr}`,
-    //     format: 'image/png',
-    //     // transparent: false,
-    //     version: '1.1.0'
-    //     // attribution: 'Your attribution here'
-    // }).addTo(map);
-
     document.querySelectorAll('input[name="ffpRadio"]').forEach((elem) => {
         elem.addEventListener("change", function() {
             var selectedDate = dateInput.value;
@@ -1051,8 +837,6 @@ document.addEventListener("DOMContentLoaded", function() {
             var dateWithoutHyphens = selectedDate.replace(/-/g, '');
             var selectedParam = this.id; 
             createOrUpdateBasinWMSLayer(selectedParam, dateWithoutHyphens, selectedHr)
-            // var selectedCountry = countryDropdown.value;
-            // updateMap(this.id, selectedDate, selectedHrs, selectedCountry);
             populateLegend(this.id);
         });
     });
@@ -1096,10 +880,10 @@ document.addEventListener("DOMContentLoaded", function() {
     });
 
     async function updateDataForSelectedDate(selectedDate) {
-        const radioButtons2 = document.getElementsByName("btnradio");
+        const radioButtons = document.getElementsByName("btnradio");
         let selectedRadioButton;
     
-        for(let radioButton of radioButtons2) {
+        for(let radioButton of radioButtons) {
             if (radioButton.checked) {
                 selectedRadioButton = radioButton;
                 break;
@@ -1112,39 +896,12 @@ document.addEventListener("DOMContentLoaded", function() {
             "btnradio24": "FFR24"
         };
     
-        const id = radioMapping[selectedRadioButton.id];
-    
-        let checkedValue;
-    
-        radioButtonsBasin.forEach((radio) => {
-            if (radio.checked) {
-                checkedValue = radio.id;
-            }
-        });
-    
-        try {
-            const statsParam = determineStatsParam(id);
-            if (!statsParam) {
-                console.error('Invalid param provided.');
-                return;
-            }
-            var selectedHrs = hourInput.value;
-            const dataToProcess = await getStats(statsParam, selectedDate, selectedHrs)
-            let parsedData = JSON.parse(dataToProcess);
+        const param = radioMapping[selectedRadioButton.id];
+        // let selectedDate = dateInput.value; 
+        const selectedHr = hourInput.value;
+        const selectedCountry = countryDropdown.value;
 
-            let selectedCountry = countryDropdown.value;
-            if (selectedCountry === "All"){
-                parsedData = parsedData;
-            } else {
-                parsedData =  parsedData.filter(item => item.ISO === selectedCountry); 
-            }
-
-            updateTable(statsParam, parsedData);
-            updateSubProvinceMap(id, parsedData);
-            // updateMap(checkedValue, selectedDate, selectedHrs, selectedCountry);
-        } catch (error) {
-            console.error("Failed to update data:", error);
-        }
+        createOrUpdateRiskMap(param, selectedDate, selectedHr, selectedCountry);
     }
 
     function handleDateItemClick(dateItem, currentDate) {
@@ -1244,10 +1001,10 @@ document.addEventListener("DOMContentLoaded", function() {
     }
 
     countryDropdown.addEventListener("change", async function () {
-        const radioButtons2 = document.getElementsByName("btnradio");
+        const radioButtons = document.getElementsByName("btnradio");
         let selectedRadioButton;
     
-        for(let radioButton of radioButtons2) {
+        for(let radioButton of radioButtons) {
             if (radioButton.checked) {
                 selectedRadioButton = radioButton;
                 break;
@@ -1260,35 +1017,18 @@ document.addEventListener("DOMContentLoaded", function() {
             "btnradio24": "FFR24"
         };
     
-        const id = radioMapping[selectedRadioButton.id];
-    
-        let checkedValue;
-    
-        radioButtonsBasin.forEach((radio) => {
-            if (radio.checked) {
-                checkedValue = radio.id;
-            }
-        });
-
-        const statsParam = determineStatsParam(id);
-        if (!statsParam) {
-            console.error('Invalid param provided.');
-            return;
-        }
-
-        let selectedDate = dateInput.value; 
-        let selectedHrs = hourInput.value;
-        let selectedCountry = countryDropdown.value;
-
-        const dataToProcess = await getStats(statsParam, selectedDate, selectedHrs)
-        let parsedData = JSON.parse(dataToProcess);
+        const param = radioMapping[selectedRadioButton.id];
+        const selectedDate = dateInput.value; 
+        const selectedHr = hourInput.value;
+        const selectedCountry = countryDropdown.value;
+        
+        createOrUpdateRiskMap(param, selectedDate, selectedHr, selectedCountry);
 
         // Construct CQL filter based on the selected country
         var cqlFilter = '';
 
         if (selectedCountry === "All"){
             updateBasinBoundaryWMSLayer('adm:basins_mekong')
-            parsedData = parsedData;
             map.removeLayer(wmsLayer2);
         } else {
             if (selectedCountry === 'KHM') {
@@ -1303,7 +1043,6 @@ document.addEventListener("DOMContentLoaded", function() {
                 // Handle other cases or provide a default behavior
                 console.log("Selected country not supported or no country selected.");
             }
-            parsedData =  parsedData.filter(item => item.ISO === selectedCountry); 
 
             // List of all countries
             const allCountries = ['KHM', 'THA', 'VNM', 'LAO'];
@@ -1325,17 +1064,13 @@ document.addEventListener("DOMContentLoaded", function() {
                 wmsLayer2.addTo(map);
             }
         }
-
-        updateTable(statsParam, parsedData); 
-        updateSubProvinceMap(id, parsedData);
-        // updateMap(checkedValue, selectedDate, selectedHrs, selectedCountry);
     });
 
     hourInput.addEventListener("change", async function () {
-        const radioButtons2 = document.getElementsByName("btnradio");
+        const radioButtons = document.getElementsByName("btnradio");
         let selectedRadioButton;
     
-        for(let radioButton of radioButtons2) {
+        for(let radioButton of radioButtons) {
             if (radioButton.checked) {
                 selectedRadioButton = radioButton;
                 break;
@@ -1348,38 +1083,12 @@ document.addEventListener("DOMContentLoaded", function() {
             "btnradio24": "FFR24"
         };
     
-        const id = radioMapping[selectedRadioButton.id];
-    
-        let checkedValue;
-    
-        radioButtonsBasin.forEach((radio) => {
-            if (radio.checked) {
-                checkedValue = radio.id;
-            }
-        });
+        const param = radioMapping[selectedRadioButton.id];
+        const selectedDate = dateInput.value; 
+        const selectedHr = hourInput.value;
+        const selectedCountry = countryDropdown.value;
 
-        const statsParam = determineStatsParam(id);
-        if (!statsParam) {
-            console.error('Invalid param provided.');
-            return;
-        }
-
-        let selectedDate = dateInput.value; 
-        let selectedHrs = hourInput.value;
-        let selectedCountry = countryDropdown.value;
-
-        const dataToProcess = await getStats(statsParam, selectedDate, selectedHrs)
-        let parsedData = JSON.parse(dataToProcess);
-
-        if (selectedCountry === "All"){
-            parsedData = parsedData;
-        } else {
-            parsedData =  parsedData.filter(item => item.ISO === selectedCountry); 
-        }
-
-        updateTable(statsParam, parsedData); 
-        updateSubProvinceMap(id, parsedData);
-        // updateMap(checkedValue, selectedDate, selectedHrs, selectedCountry);
+        createOrUpdateRiskMap(param, selectedDate, selectedHr, selectedCountry);
     });
 
     //////////////////////////
@@ -1421,15 +1130,72 @@ document.addEventListener("DOMContentLoaded", function() {
         hourInput.value = latestHour;
         let selectedHrs = latestHour;
         let selectedCountry = countryDropdown.value;
-        const dataToProcess = await getStats('6hrs', selectedDate, selectedHrs);
-        const parsedData = JSON.parse(dataToProcess);
-
-        updateTable('6hrs', parsedData);
-        updateSubProvinceMap("FFG06", parsedData);
-        // createOrUpdateBasinWMSLayer('MAP06', selectedDate, selectedHrs)
-        // updateMap('MAP06', selectedDate, selectedHrs, selectedCountry);
-        populateLegend('MAP06');
+        createOrUpdateRiskMap('FFG06', selectedDate, selectedHrs);
     })();
+
+    // Function to create Highcharts bar chart
+    function createHighchartsColumnChart(containerId, categories, data) {
+        // Define a color mapping for specific categories
+        const colorMapping = {
+            "low": "yellow",
+            "moderate": "orange",
+            "high": "red"
+        };
+    
+        Highcharts.chart(containerId, {
+            chart: {
+                type: 'column',
+                backgroundColor: 'transparent',
+                height: '250px'
+            },
+            title: {
+                text: 'Number of Districts Exposed',
+                style: {
+                    fontSize: '12px'
+                }
+            },
+            xAxis: {
+                categories: categories,
+                title: {
+                    text: 'Level'
+                }
+            },
+            yAxis: {
+                min: 0,
+                title: {
+                    text: 'Number of Districts',
+                    align: 'high'
+                },
+                labels: {
+                    overflow: 'justify'
+                }
+            },
+            tooltip: {
+                enabled: false
+            },
+            legend: {
+                enabled: false
+            },
+            plotOptions: {
+                column: {
+                    dataLabels: {
+                        enabled: true
+                    }
+                }
+            },
+            credits: {
+                enabled: false
+            },
+            series: [{
+                name: 'Level',
+                data: data.map((value, index) => ({
+                    y: value,
+                    color: colorMapping[categories[index].toLowerCase()] || Highcharts.getOptions().colors[index]
+                })),
+                colorByPoint: true
+            }]
+        });
+    }
 
     // // Keep this layer always on bottom
     // map.on('layeradd', function() {
@@ -1439,10 +1205,10 @@ document.addEventListener("DOMContentLoaded", function() {
     const subp_check = document.querySelector("#ffwSubp");
     subp_check.addEventListener("click", ()=> {
         if(subp_check.checked){
-            map.addLayer(subProvinceLayer);
+            map.addLayer(riskLayer);
             document.getElementById("ffwLegend").style.display = "block";
         } else {
-            map.removeLayer(subProvinceLayer);
+            map.removeLayer(riskLayer);
             document.getElementById("ffwLegend").style.display = "none";
         }
     });
@@ -1471,22 +1237,109 @@ document.addEventListener("DOMContentLoaded", function() {
 
     const staticCache = {};
 
-    async function fetchData(url) {
+    async function fetchData(url, params = {}) {
         try {
-            if (staticCache[url]) {
-                return staticCache[url]; // Return cached data if available
+            // Construct query string from params object
+            const queryString = new URLSearchParams(params).toString();
+            const fullUrl = queryString ? `${url}?${queryString}` : url;
+    
+            if (staticCache[fullUrl]) {
+                return staticCache[fullUrl]; // Return cached data if available
             }
-
-            const response = await fetch(url);
+    
+            const response = await fetch(fullUrl);
             if (!response.ok) {
                 throw new Error(`HTTP error! Status: ${response.status}`);
             }
             const data = await response.json();
-            staticCache[url] = data; 
+            staticCache[fullUrl] = data; 
             return data;
         } catch (error) {
             console.error('Fetch error:', error);
             throw error;
+        }
+    }
+
+
+    // Function to set the default style
+    function style(feature) {
+        return {
+            fillColor: '#9999ff',
+            weight: 1,
+            opacity: 1,
+            color: 'white',
+            fillOpacity: 0.0,
+        };
+    }
+
+    // Function to handle mouseover event
+    function highlightFeature(e) {
+        const layer = e.target;
+
+        layer.setStyle({
+            fillColor: '#fde047',
+            weight: 2,
+            color: '#fde047',
+            fillOpacity: 0.2,
+        });
+
+        if (!L.Browser.ie && !L.Browser.opera && !L.Browser.edge) {
+            layer.bringToBack();
+        }
+
+        // Show the name of the feature in a popup or tooltip
+        layer.bindTooltip(layer.feature.properties.NAME_0 || layer.feature.properties.province || layer.feature.properties.District).openTooltip();
+    }
+
+    // Function to handle mouseout event
+    function resetHighlight(e) {
+        adm0.resetStyle(e.target);
+    }
+
+    // Function to attach event listeners to each feature
+    function onEachFeature(feature, layer) {
+        layer.on({
+            mouseover: highlightFeature,
+            mouseout: resetHighlight,
+            click: zoomToFeature,
+        });
+    }
+
+    // Function to handle click event
+    async function zoomToFeature(e) {
+        const layer = e.target;
+        const clickedFeature = layer.feature;
+
+        let admType = 'adm1'; // Default value
+        let name = clickedFeature.properties.NAME_0
+        
+        // Check if clickedFeature has the property 'Name_1'
+        if (clickedFeature.properties && clickedFeature.properties.province) {
+            admType = 'adm2';
+            name = clickedFeature.properties.province
+        }
+
+        // Prepare parameters based on the condition
+        const params = { name: name, adm_type: admType };
+
+        // Check if clickedFeature has the property 'District'
+        if (clickedFeature.properties && clickedFeature.properties.District) {
+            // If it has District property, just zoom to the feature
+            map.fitBounds(layer.getBounds(), { minZoom: 7 });
+        } else {
+            // Fetch Thailand province data if no District property
+            const data = await fetchData('/get-admin-boundary/', params);
+
+            // Clear existing layers (if needed) and add new data
+            adm0.clearLayers();
+            adm0.addData(data);
+            map.fitBounds(layer.getBounds(), { minZoom: 7 });
+            
+            const selectedDate = dateInput.value; 
+            const selectedHr = hourInput.value;
+            const selectedParam = 'FFG06';
+            
+            createOrUpdateRiskMap(selectedParam, selectedDate, selectedHr, admType, name);
         }
     }
 
@@ -1495,43 +1348,38 @@ document.addEventListener("DOMContentLoaded", function() {
             // Load adm0 data
             const adm0Data = await fetchData('/static/data/adm0.geojson');
             adm0 = L.geoJSON(adm0Data, {
-                style: {
-                    fillColor: '#9999ff',
-                    weight: 1,
-                    opacity: 0.5,
-                    color: 'gray',
-                    fillOpacity: 0.0,
-                },
+                style: style,
+                onEachFeature: onEachFeature
             }).addTo(map);
 
-            // Load subprovince map data
-            const subprovinceData = await getsubProvinceData();
-            subprovince_map = L.geoJSON(subprovinceData, {
-                style: {
-                    fillColor: '#9999ff',
-                    weight: 1,
-                    opacity: 1,
-                    color: 'gray',
-                    dashArray: '3',
-                    fillOpacity: 0.5,
-                },
-                onEachFeature: function(feature, layer){
-                    layer.bindTooltip('<h6 class="fw-bold p-2">'+feature.properties.NAME_2+', '+feature.properties.NAME_1+',<br>'+feature.properties.NAME_0+'</h6>');
-                }
-            });
+            // // Load subprovince map data
+            // const subprovinceData = await getsubProvinceData();
+            // subprovince_map = L.geoJSON(subprovinceData, {
+            //     style: {
+            //         fillColor: '#9999ff',
+            //         weight: 1,
+            //         opacity: 1,
+            //         color: 'gray',
+            //         dashArray: '3',
+            //         fillOpacity: 0.5,
+            //     },
+            //     onEachFeature: function(feature, layer){
+            //         layer.bindTooltip('<h6 class="fw-bold p-2">'+feature.properties.NAME_2+', '+feature.properties.NAME_1+',<br>'+feature.properties.NAME_0+'</h6>');
+            //     }
+            // });
 
             // Load main lakes data
-            const mainLakesData = await fetchData('/static/data/mainlakes_FFGS.geojson');
-            mainlakes = L.geoJSON(mainLakesData, {
-                style: {
-                    fillColor: 'darkgray',
-                    weight: 0,
-                    opacity: 0.1,
-                    color: 'white',
-                    dashArray: '3',
-                    fillOpacity: 1,
-                },
-            }).addTo(map);
+            // const mainLakesData = await fetchData('/static/data/mainlakes_FFGS.geojson');
+            // mainlakes = L.geoJSON(mainLakesData, {
+            //     style: {
+            //         fillColor: 'darkgray',
+            //         weight: 0,
+            //         opacity: 0.1,
+            //         color: 'white',
+            //         dashArray: '3',
+            //         fillOpacity: 1,
+            //     },
+            // }).addTo(map);
 
             // Load river data
             const riverData = await fetchData('/static/data/riverMK_FFGS.geojson');
@@ -1546,22 +1394,22 @@ document.addEventListener("DOMContentLoaded", function() {
             }).addTo(map);
 
             // Load mekong basin data
-            const mekongBasinData = await fetchData('/static/data/mekong_basin_area.geojson');
-            mekong_basin = L.geoJSON(mekongBasinData, {
-                style: {
-                    fillColor: '#2E86C1',
-                    weight: 3,
-                    opacity: 0.5,
-                    color: '#000',
-                    fillOpacity: 0.0,
-                },
-            }).addTo(map);
-            map.on('layeradd', function(event) {
-                adm0.bringToBack();           // Ensure admin layer is at the bottom
-                mekong_basin.bringToBack();
-                // subProvinceLayer.bringToBack();   // Ensure sub-province layer is above admin and mekong_basin layers
-                river.bringToFront();         // Ensure river layer is on top of all layers
-            });
+            // const mekongBasinData = await fetchData('/static/data/mekong_basin_area.geojson');
+            // mekong_basin = L.geoJSON(mekongBasinData, {
+            //     style: {
+            //         fillColor: '#2E86C1',
+            //         weight: 2,
+            //         opacity: 0.5,
+            //         color: '#dbeafe',
+            //         fillOpacity: 0.0,
+            //     },
+            // }).addTo(map);
+            // map.on('layeradd', function(event) {
+            //     adm0.bringToBack();           // Ensure admin layer is at the bottom
+            //     mekong_basin.bringToBack();
+            //     // subProvinceLayer.bringToBack();   // Ensure sub-province layer is above admin and mekong_basin layers
+            //     river.bringToFront();         // Ensure river layer is on top of all layers
+            // });
         } catch (error) {
             console.error('Layer loading error:', error);
         }
@@ -1569,6 +1417,8 @@ document.addEventListener("DOMContentLoaded", function() {
 
     // Call the loadLayers function to load the layers asynchronously.
     loadLayers();
+
+    riskLayer.bringToFront();
 
     var rainfall_cb = document.querySelector('#rainfallCB');
     var mlakes_cb = document.querySelector('#lakesCB');
@@ -1599,27 +1449,13 @@ document.addEventListener("DOMContentLoaded", function() {
                 opacity:1,
                 version:'1.3.0',
                 zIndex:100,
-                colorscalerange:'0,150',
+                colorscalerange:'0,300',
                 bounds: [[0, 90], [22, 120]],
                 logscale: false,
                 abovemaxcolor:'extend',
                 belowmincolor:'extend',
-                numcolorbands: 150,
+                numcolorbands: 300,
             });
-
-            // var tdWmsRainLayer = L.tileLayer.wms("https://thredds-servir.adpc.net/thredds/wms/RAINSTORM/operational/MCS_2024-05-03_230000_ID8.nc?", {
-            //     service:'WMS',
-            //     layers:'rain',
-            //     styles:'boxfill/rainbow',
-            //     format:'image/png',
-            //     transparent:true,
-            //     version:'1.3.0',
-            //     time:'2024-05-04T00:00:00.000Z',
-            //     colorscalerange:'0,150',
-            //     logscale:false,
-            //     abovemaxcolor:'extend',
-            //     belowmincolor:'extend',
-            //     numcolorbands:"150"})
 
             var timeDimension = new L.TimeDimension();
             map.timeDimension = timeDimension;
