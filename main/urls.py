@@ -20,4 +20,5 @@ urlpatterns = [
     path('pdf-template/', views.pdf_template_view, name='pdf-template'),  
     path('get-risk-map/', views.get_risk_map),
     path('get-admin-boundary/', views.get_admin_boundary),
+    path('get-basin-details/', views.get_basin_details)
 ]

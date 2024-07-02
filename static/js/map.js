@@ -271,9 +271,30 @@ document.addEventListener("DOMContentLoaded", function() {
         return result;
     };
 
+    const percentOfDistrictsByProvince = (data) =>{
+        // Initialize counters
+        const riskLevels = { Low: 0, Moderate: 0, High: 0 };
+
+        // Count occurrences of each risk level
+        data.forEach(item => {
+        if (item.level in riskLevels) {
+            riskLevels[item.level]++;
+        }
+        });
+
+        // Calculate percentages
+        const totalDistricts = data.length;
+        const riskPercentages = {
+            Low: (riskLevels.Low / totalDistricts) * 100,
+            Moderate: (riskLevels.Moderate / totalDistricts) * 100,
+            High: (riskLevels.High / totalDistricts) * 100
+        };
+        return riskPercentages
+    }
+
     // Function to process data based on area type and name
     function processDataByAreaType(data, areaType, areaName) {
-        console.log(areaType, areaName)
+        // console.log(areaType, areaName)
         if (areaType === 'country') {
             if (areaName === 'all') {
                 // const countryData = getUniqueCountriesByLevel(data)
@@ -287,7 +308,12 @@ document.addEventListener("DOMContentLoaded", function() {
 
         if (areaType === 'adm1') {
             const filteredData = data.filter(item => item.country === areaName);
-            return countDistrictsByProvinceAndLevel(data);
+            return countDistrictsByProvinceAndLevel(filteredData);
+        }
+
+        if (areaType === 'adm2') {
+            const filteredData = data.filter(item => item.province === areaName);
+            return percentOfDistrictsByProvince(filteredData);
         }
     }
 
@@ -310,20 +336,96 @@ document.addEventListener("DOMContentLoaded", function() {
         return result;
     }
 
+    async function createChart(data){
+        const container = document.getElementById('riskTable');
+        container.innerHTML = ''; // Clear previous content
+        container.style.marginTop = '10px';
+        
+        // Create the Highcharts pie chart
+        Highcharts.chart(container, {
+            chart: {
+                type: 'pie',
+                backgroundColor: 'transparent',
+                marginTop: 10
+            },
+            title: {
+                text: 'Risk Levels ( % of District)',
+                style: {
+                    fontSize: '14px' 
+                }
+            },
+            tooltip: {
+                pointFormat: '{series.name}: <b>{point.percentage:.1f}%</b>'
+            },
+            accessibility: {
+                point: {
+                    valueSuffix: '%'
+                }
+            },
+            plotOptions: {
+                pie: {
+                    allowPointSelect: true,
+                    cursor: 'pointer',
+                    dataLabels: {
+                        enabled: true,
+                        format: '{point.percentage:.1f} %'
+                    }
+                }
+            },
+            series: [{
+                name: 'Risk Levels',
+                colorByPoint: true,
+                data: [{
+                    name: 'Low',
+                    y: data.Low,
+                    color: 'yellow'
+                }, {
+                    name: 'Moderate',
+                    y: data.Moderate,
+                    color: 'orange'
+                }, {
+                    name: 'High',
+                    y: data.High,
+                    color: 'red'
+                }]
+            }],
+            legend: {
+                enabled: true,
+                layout: 'horizontal',
+                align: 'center',
+                verticalAlign: 'top'
+            }
+        });
+    }
+
     // Function to create the table
     async function createTable(data, admin) {
+        // console.log(admin)
         var riskTitle;
-        if (admin == 'all'){
+        if (admin == 'country'){
             riskTitle = "Provinces";
         } else if (admin == 'adm1') {
             riskTitle = "Districts";
         }
+        
         // Create a new table element with Bootstrap table classes
         const table = document.createElement('table');
         table.style.marginTop = '20px';
+        table.style.paddingRight = '20px';
         table.style.width = '100%';
         table.style.borderTop = '1px solid #000';
         table.style.borderBottom = '1px solid #000';
+
+        // Create a wrapper div for the table
+        const tableWrapper = document.createElement('div');
+        tableWrapper.style.overflowY = 'scroll';
+        tableWrapper.style.maxHeight = '520px';
+        tableWrapper.style.marginTop = '20px';
+        tableWrapper.style.marginRight = '20px';
+        tableWrapper.style.width = '100%';
+
+        // Append the table to the wrapper
+        tableWrapper.appendChild(table);
 
         // Create table header
         const thead = document.createElement('thead');
@@ -398,7 +500,8 @@ document.addEventListener("DOMContentLoaded", function() {
         // Append the table to the container with id 'riskTable'
         const container = document.getElementById('riskTable');
         container.innerHTML = ''; // Clear previous content
-        container.appendChild(table);
+        // container.appendChild(table);
+        container.appendChild(tableWrapper);
     }
 
     async function generateMap(data){
@@ -471,14 +574,33 @@ document.addEventListener("DOMContentLoaded", function() {
         // Function to bind tooltip to each feature
         function onEachFeature(feature, layer) {
             layer.bindTooltip(createTooltipTable(feature));
+            layer.on({
+                click: getFeatureDetails,
+            });
         }
 
+        function getFeatureDetails(e) {
+            const layer = e.target;
+            const clickedFeature = layer.feature;
+            const basin_id = clickedFeature.properties.BASIN;
+            // console.log(basin_id);
+            const fetchedData = getBasinData(basin_id);
+        }
         // Clear existing map layers and add new data with updated styles
         riskLayer.clearLayers();
         riskLayer.addData(data, {
             onEachFeature: onEachFeature
         });
         riskLayer.setStyle(feature => defineStyle(feature));
+    }
+
+    async function getBasinData(basin_id) {
+        const response = await fetch(`/api/get_basin_data?basin=${basin_id}`);
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const data = await response.json();
+        return data;
     }
 
     async function createOrUpdateRiskMap(param, date, hr, areaType = 'country', areaName = 'all') {
@@ -531,8 +653,14 @@ document.addEventListener("DOMContentLoaded", function() {
             
             // Process the fetched data for table creation or other purposes
             const processedData = await processData(data, areaType, areaName);
-            await createTable(processedData, areaName);
+            // await createTable(processedData, areaType);
             
+            if (areaType == 'adm2') {
+                await createChart(processedData);
+            } else {
+                await createTable(processedData, areaType);
+            }
+
             // Hide loading indicator
             document.getElementById('loader').style.display = 'none';
     

@@ -423,19 +423,6 @@ def pdf_template_view(request):
     }
     return render(request, "pdf_template.html", context)
 
-# def ensure_right_hand_rule(geom):
-#     def reverse_polygon(polygon):
-#         if not polygon.exterior.is_ccw:
-#             polygon = Polygon(polygon.exterior.coords[::-1], [interior.coords[::-1] for interior in polygon.interiors])
-#         return polygon
-
-#     if isinstance(geom, Polygon):
-#         return reverse_polygon(geom)
-#     elif isinstance(geom, MultiPolygon):
-#         new_polygons = [reverse_polygon(polygon) for polygon in geom.geoms]
-#         return MultiPolygon(new_polygons)
-#     return geom
-
 def get_risk_map(request):
     static_data_path = 'static/data/basins_with_attr.gpkg'
     param = request.GET.get("param")
@@ -497,4 +484,17 @@ def get_admin_boundary(request):
     
     # Return the GeoJSON response
     return JsonResponse(json.loads(geojson), safe=False)
+
+def get_basin_details(request):
+    basin_id = request.GET.get("basin")
+    data = 'static/data/seaffgs/SEAFFGS_Mekong_XRay_v6.csv'
+    df = pd.read_csv()
+
+    # Filter the DataFrame by basin_id
+    filtered_df = df[df['ID_CAT'] == basin_id]
+    
+    # Convert the filtered DataFrame to a dictionary or JSON response
+    filtered_data = filtered_df.to_dict(orient='records')
+    
+    return JsonResponse(filtered_data, safe=False)
 

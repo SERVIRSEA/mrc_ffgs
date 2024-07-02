@@ -1859,7 +1859,7 @@ document.addEventListener("DOMContentLoaded", function() {
                 modalHeader.innerHTML = " " + sc +" , with the date set to " + sd;
             }
 
-            const response = await fetch(`http://127.0.0.1:3000/generate-pdf/?selectedDate=${selected_date}&selectedHr=${selected_hour}&selectedCountry=${selected_country}`);
+            const response = await fetch(`http://119.15.81.22:8000/generate-pdf/?selectedDate=${selected_date}&selectedHr=${selected_hour}&selectedCountry=${selected_country}`);
 
             if (!response.ok) {
                 throw new Error('Network response was not ok');
