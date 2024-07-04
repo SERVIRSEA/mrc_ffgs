@@ -372,31 +372,74 @@ document.addEventListener("DOMContentLoaded", function() {
         opacity:1,
         version:'1.3.0',
         zIndex:100,
-        colorscalerange:'0,150',
+        colorscalerange:'0,300',
         bounds: [[0, 90], [22, 120]],
         logscale: false,
         abovemaxcolor:'extend',
         belowmincolor:'extend',
-        numcolorbands: 150,
+        numcolorbands: 300,
+        pane: 'droughtLayer'
     });
     
+        
     const rfMapOptions = {
         center: [15.9162, 102.9560],
         zoom: 5,
         zoomControl: false,
         scrollWheelZoom: false,
-        minZoom: 5,
+        minZoom: 0,
     }
     var rfmap = L.map('rfmap', rfMapOptions);
+    rfmap.createPane('basemap');
+    rfmap.getPane('basemap').style.zIndex = 1;
+    rfmap.createPane('droughtLayer');
+    rfmap.getPane('droughtLayer').style.zIndex = 20;
+    rfmap.createPane('basinLayer');
+    rfmap.getPane('basinLayer').style.zIndex = 500;
+
     // Add the basemap layer
     var rfbasemap = L.tileLayer(basemapUrl, {
-        attribution: attribution
+        attribution: attribution,
+        pane: 'basemap'
     }).addTo(rfmap);
     rfmap.addLayer(tdWmsRainLayer);
+    rfmap.addLayer(mekongCountryLayer);
+    // rfmap.addLayer(mekongBasinLayer);
 
+    async function get_storm_location() {
+        const apiUrl = 'https://rainstorms-servir.adpc.net/action=get-operational-events'; 
+        try {
+            const response = await fetch(apiUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({})
+            });
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            const data = await response.json();
+            // Add circle markers to the map
+            data.forEach(item => {
+                L.circle([item.center_lat, item.center_lng], {
+                    color: 'white',
+                    fillColor: '#f03',
+                    fillOpacity: 0.6,
+                    radius: 20000, // Adjust the radius as needed
+                    weight: 1 // Stroke line weight
+                }).addTo(rfmap);
+            });
+        } catch (error) {
+            console.error('Error fetching data:', error);
+        }
+    }
+    // Call the fetchData function when the page loads
+    window.onload = get_storm_location;
 
     const bulletincache = {};
-
     async function fetchData(url) {
         if (bulletincache[url]) {
             return bulletincache[url];
@@ -502,7 +545,7 @@ document.addEventListener("DOMContentLoaded", function() {
             {min: 0, max: 10, color: colors.lightBlue},
             {min: 10, max: 50, color: colors.blue},
             {min: 50, max: 100, color: colors.deepSkyBlue},
-            {min: 100, color: colors.lightGreen},
+            {min: 100, max: 200, color: colors.lightGreen},
         ],
         FFG01: [
             {min: 0, max: 10, color: colors.red},
@@ -566,7 +609,34 @@ document.addEventListener("DOMContentLoaded", function() {
     // Define a function to create map instances
     function createMapInstance(id) {
         const map = L.map(id, MapOptions);
-        L.tileLayer(basemapUrl, { tileSize: 256, attribution: attribution }).addTo(map);
+        map.createPane('basemap');
+        map.getPane('basemap').style.zIndex = 1;
+        map.createPane('droughtLayer');
+        map.getPane('droughtLayer').style.zIndex = 20;
+        map.createPane('basinLayer');
+        map.getPane('basinLayer').style.zIndex = 500;
+        L.tileLayer(basemapUrl, { tileSize: 256, attribution: attribution, pane: 'basemap' }).addTo(map);
+        const mekongCountryLayer = L.tileLayer.wms("http://119.15.81.22:8081/geoserver/adm/wms?service=WMS&request=GetMap", {
+            layers: 'adm:mekong_country',
+            format: 'image/png',
+            version: '1.1.0',
+            transparent: true,
+            styles: 'mekong_country_style',
+            pane: 'basinLayer'
+        });
+    
+        const mekongBasinLayer = L.tileLayer.wms("http://119.15.81.22:8081/geoserver/adm/wms?service=WMS&request=GetMap", {
+            layers: 'adm:mekong_river_basin',
+            format: 'image/png',
+            version: '1.1.0',
+            transparent: true,
+            styles: 'mekong_basin_style',
+            pane: 'basinLayer'
+        });
+    
+        map.addLayer(mekongCountryLayer);
+        map.addLayer(mekongBasinLayer);
+
         return map;
     }
 
@@ -651,7 +721,8 @@ document.addEventListener("DOMContentLoaded", function() {
             mapInstance.wmsLayer = L.tileLayer.wms('', {
                 format: 'image/png',
                 version: '1.1.0',
-                transparent: true
+                transparent: true,
+                pane: 'droughtLayer'
             });
         }
         var wmsLayer = mapInstance.wmsLayer;
