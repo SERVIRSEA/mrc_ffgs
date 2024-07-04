@@ -750,7 +750,7 @@ document.addEventListener("DOMContentLoaded", function() {
         }
         wmsLayer.setUrl(wmsUrl);
         wmsLayer.setParams({
-            layers: `${param}:${param}_${selectedDate}${selectedHr}`,
+            layers: `ffgs:${param}_${selectedDate}${selectedHr}`,
             styles: getStyleName(param)
         });
         if (!mapInstance.hasLayer(wmsLayer)) {
