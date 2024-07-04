@@ -380,6 +380,24 @@ document.addEventListener("DOMContentLoaded", function() {
         numcolorbands: 300,
         pane: 'droughtLayer'
     });
+
+    var mekongCountryLayer = L.tileLayer.wms("http://119.15.81.22:8081/geoserver/adm/wms?service=WMS&request=GetMap", {
+        layers: 'adm:mekong_country',
+        format: 'image/png',
+        version: '1.1.0',
+        transparent: true,
+        styles: 'mekong_country_style',
+        pane: 'basinLayer'
+    });
+
+    var mekongBasinLayer = L.tileLayer.wms("http://119.15.81.22:8081/geoserver/adm/wms?service=WMS&request=GetMap", {
+        layers: 'adm:mekong_river_basin',
+        format: 'image/png',
+        version: '1.1.0',
+        transparent: true,
+        styles: 'mekong_basin_style',
+        pane: 'basinLayer'
+    });
     
         
     const rfMapOptions = {
