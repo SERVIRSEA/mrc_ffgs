@@ -1,5 +1,11 @@
 
 document.addEventListener("DOMContentLoaded", function () {
+
+
+    // GeoServer URL
+    // http://203.146.112.243:8080/geoserver/
+    const geoserver_endpoint = 'http://119.15.81.22:8081'
+
     const dateInput = document.getElementById("dateInput");
     let hourInput = document.getElementById("hrSelection");
     const countryInput = document.getElementById("countryBulletin");
@@ -520,7 +526,6 @@ document.addEventListener("DOMContentLoaded", function () {
         // center: [15.9162, 102.9560],
         defaultCenter: [15.9162, 102.9560],
         khmCenter: [12.56, 104.2],
-        // zoom: 5,
         defaultZoom: 5,
         khmZoom: 6,
         zoomControl: false,
@@ -530,17 +535,21 @@ document.addEventListener("DOMContentLoaded", function () {
 
     const basemapUrl = 'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}';
     const attribution = '&copy; <a href="https://www.openstreetmap.org/copyright">Esri | OpenStreetMap</a> contributors';
+    //// List of all countries
+    const allCountries = ['KHM', 'THA', 'VNM', 'LAO'];
 
-    var mekongCountryLayer = L.tileLayer.wms("http://119.15.81.22:8081/geoserver/adm/wms?service=WMS&request=GetMap", {
+    var mekongCountryLayer = L.tileLayer.wms(geoserver_endpoint + "/geoserver/adm/wms?service=WMS&request=GetMap", {
         layers: 'adm:mekong_country',
         format: 'image/png',
         version: '1.1.0',
         transparent: true,
         styles: 'mekong_country_style',
-        pane: 'basinLayer'
+        pane: 'basinLayer',
+        CQL_FILTER: `ISO IN ('${allCountries.join("', '")}')`
+
     });
 
-    var mekongBasinLayer = L.tileLayer.wms("http://119.15.81.22:8081/geoserver/adm/wms?service=WMS&request=GetMap", {
+    var mekongBasinLayer = L.tileLayer.wms(geoserver_endpoint + "/geoserver/adm/wms?service=WMS&request=GetMap", {
         layers: 'adm:mekong_river_basin',
         format: 'image/png',
         version: '1.1.0',
@@ -842,7 +851,7 @@ document.addEventListener("DOMContentLoaded", function () {
             {min: 0, max: 5, color: colors.lightBlue},
             {min: 5, max: 25, color: colors.blue},
             {min: 25, max: 50, color: colors.deepSkyBlue},
-            {min: 50, color: colors.lightGreen},
+            {min: 50, max: 200, color: colors.lightGreen},
         ],
         FMAP06: [
             {min: 0, max: 7.5, color: colors.lightBlue},
@@ -924,23 +933,32 @@ document.addEventListener("DOMContentLoaded", function () {
         map.getPane('droughtLayer').style.zIndex = 20;
         map.createPane('basinLayer');
         map.getPane('basinLayer').style.zIndex = 500;
+        // basemap
         L.tileLayer(basemapUrl, { tileSize: 256, attribution: attribution, pane: 'basemap' }).addTo(map);
-        const mekongCountryLayer = L.tileLayer.wms("http://119.15.81.22:8081/geoserver/adm/wms?service=WMS&request=GetMap", {
+
+        //// List of all countries
+        const allCountries = ['KHM', 'THA', 'VNM', 'LAO'];
+        // Construct CQL filter
+        cqlFilter = `ISO IN ('${allCountries.join("', '")}')`;
+
+        const mekongCountryLayer = L.tileLayer.wms(geoserver_endpoint + "/geoserver/adm/wms?service=WMS&request=GetMap", {
             layers: 'adm:mekong_country',
             format: 'image/png',
             version: '1.1.0',
             transparent: true,
             styles: 'mekong_country_style',
-            pane: 'basinLayer'
+            pane: 'basinLayer',
+            CQL_FILTER: cqlFilter
         });
     
-        const mekongBasinLayer = L.tileLayer.wms("http://119.15.81.22:8081/geoserver/adm/wms?service=WMS&request=GetMap", {
+        const mekongBasinLayer = L.tileLayer.wms(geoserver_endpoint + "/geoserver/adm/wms?service=WMS&request=GetMap", {
             layers: 'adm:mekong_river_basin',
             format: 'image/png',
             version: '1.1.0',
             transparent: true,
             styles: 'mekong_basin_style',
-            pane: 'basinLayer'
+            pane: 'basinLayer',
+            CQL_FILTER: cqlFilter
         });
     
         map.addLayer(mekongCountryLayer);
@@ -998,7 +1016,7 @@ document.addEventListener("DOMContentLoaded", function () {
     //     // Clear the layer before adding new data
     //     ffgsLayer.clearLayers();
     //     ffgsLayer.addData(basinData);
-    //     ffgsLayer.setStyle(feature => getStyle(param, feature, dataArray)); 
+    //     ffgsLayer.setStyle(feature => getStyle(param, feature, dataArray));
         
     //     // Add the layer to the corresponding map instance
     //     mapInstances[param].addLayer(ffgsLayer);
@@ -1009,10 +1027,7 @@ document.addEventListener("DOMContentLoaded", function () {
     //     const legendContent = createLegend(param);
     //     addLegendToMap(mapInstances[param], legendContent);
     // }
-
-    // GeoServer URL
-    // http://203.146.112.243:8080/geoserver/
-    const geoserver_url = 'http://119.15.81.22:8081/geoserver/ffgs/';
+    const geoserver_url = geoserver_endpoint+ '/geoserver/ffgs/';
 
     // Create a function to generate WMS URL
     function generateWMSUrl(param, selectedDate, selectedHr) {
@@ -1059,7 +1074,7 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     // Basin boundary layer
-    var wmsBasinUrl = 'http://119.15.81.22:8081/geoserver/adm/wms?';
+    var wmsBasinUrl = `${geoserver_endpoint}/geoserver/adm/wms?`;
     async function createMap(param, selectedDate, selectedHr) {
         var wmsUrl = generateWMSUrl(param, selectedDate, selectedHr);
         const mapInstance = mapInstances[param];
@@ -1139,12 +1154,13 @@ document.addEventListener("DOMContentLoaded", function () {
             cqlFilter = `ISO IN ('${filteredCountries.join("', '")}')`;
             
             // Add wmsLayer2 with the constructed CQL filter
-            var wmsLayer2 = L.tileLayer.wms('http://119.15.81.22:8081/geoserver/adm/wms?', {
-                layers: 'adm:adm0',
+            var wmsLayer2 = L.tileLayer.wms(`${geoserver_endpoint}/geoserver/adm/wms?`, {
+                layers: 'adm:mekong_country',
                 format: 'image/png',
                 version: '1.1.0',
                 transparent: true,
-                CQL_FILTER: cqlFilter
+                CQL_FILTER: cqlFilter,
+                styles: 'adm0_filter_style'
             }).addTo(mapInstance);
             mapInstance.wmsLayer2 = wmsLayer2; // Store reference to wmsLayer2
 
