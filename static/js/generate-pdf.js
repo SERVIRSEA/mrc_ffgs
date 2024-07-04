@@ -681,7 +681,7 @@ document.addEventListener("DOMContentLoaded", function() {
     };
 
     // GeoServer URL
-    const geoserver_url = 'http://203.146.112.243:8080/geoserver/';
+    const geoserver_url = 'http://119.15.81.22:8081/geoserver/ffgs/';
 
     // Create a function to generate WMS URL
     function generateWMSUrl(param, selectedDate, selectedHr) {
@@ -778,7 +778,7 @@ document.addEventListener("DOMContentLoaded", function() {
             cqlFilter = `ISO IN ('${filteredCountries.join("', '")}')`;
             
             // Add wmsLayer2 with the constructed CQL filter
-            var wmsLayer2 = L.tileLayer.wms('http://203.146.112.243:8080/geoserver/adm/wms?', {
+            var wmsLayer2 = L.tileLayer.wms('http://119.15.81.22:8081/geoserver/adm/wms?', {
                 layers: 'adm:adm0',
                 format: 'image/png',
                 version: '1.1.0',
