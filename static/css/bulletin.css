@@ -118,3 +118,8 @@ select.form-control > option {
     border: 1px solid #ccc;
     z-index: 1000;
 }
+.label-icon{
+    color: #FFF;
+    font-size: 12px;
+    font-weight: 400;
+}

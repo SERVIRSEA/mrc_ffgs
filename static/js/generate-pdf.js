@@ -449,11 +449,21 @@ document.addEventListener("DOMContentLoaded", function () {
             data.forEach(item => {
                 L.circle([item.center_lat, item.center_lng], {
                     color: 'white',
-                    fillColor: '#f03',
+                    fillColor: 'red',
                     fillOpacity: 0.6,
                     radius: 20000, // Adjust the radius as needed
                     weight: 1 // Stroke line weight
                 }).addTo(rfmap);
+
+                //  Add label
+                L.marker([item.center_lat, item.center_lng], {
+                    icon: L.divIcon({
+                        className: 'label-icon',
+                        html: `<div>${item.date.split(" ")[1].replace(":00", '')}</div>`,
+                        iconSize: [20, 20]
+                    })
+                }).addTo(rfmap);
+
             });
         } catch (error) {
             console.error('Error fetching data:', error);
@@ -733,11 +743,14 @@ document.addEventListener("DOMContentLoaded", function () {
     function updateMapCenter(mapInstance, selectedCountry) {
         if (selectedCountry === 'KHM') {
             mapInstance.setView(MapOptions.khmCenter, MapOptions.khmZoom);
+            rfmap.setView(MapOptions.khmCenter, MapOptions.khmZoom);
         } else {
             mapInstance.setView(MapOptions.defaultCenter, MapOptions.defaultZoom);
+            rfmap.setView(MapOptions.defaultCenter, MapOptions.defaultZoom);
         }
     }
 
+    var wmsLayer2;
     async function createMap(param, selectedDate, selectedHr) {
         var wmsUrl = generateWMSUrl(param, selectedDate, selectedHr);
         const mapInstance = mapInstances[param];
@@ -789,7 +802,7 @@ document.addEventListener("DOMContentLoaded", function () {
             cqlFilter = `ISO IN ('${filteredCountries.join("', '")}')`;
             
             // Add wmsLayer2 with the constructed CQL filter
-            var wmsLayer2 = L.tileLayer.wms(`${geoserver_endpoint}/geoserver/adm/wms?`, {
+            wmsLayer2 = L.tileLayer.wms(`${geoserver_endpoint}/geoserver/adm/wms?`, {
                 layers: 'adm:mekong_country',
                 format: 'image/png',
                 version: '1.1.0',

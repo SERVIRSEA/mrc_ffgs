@@ -585,26 +585,25 @@ document.addEventListener("DOMContentLoaded", function () {
             
             const data = await response.json();
             // add marker on rfMap
-
             // Add circle markers to the map
             data.forEach(item => {
                 L.circle([item.center_lat, item.center_lng], {
                     color: 'white',
-                    fillColor: '#f03',
+                    fillColor: 'red',
                     fillOpacity: 0.6,
                     radius: 20000, // Adjust the radius as needed
                     weight: 1 // Stroke line weight
                 }).addTo(rfmap)
                     .bindPopup(`<b>ID:</b> ${item.id}<br><b>Date:</b> ${item.date}<br><b>Speed:</b> ${item.speed}`);
                 
-                 // Add label
-                // L.marker([item.center_lat, item.center_lng], {
-                //     icon: L.divIcon({
-                //         className: 'label-icon',
-                //         html: `<div>${item.speed}</div>`,
-                //         iconSize: [20, 20]
-                //     })
-                // }).addTo(rfmap);
+                //  Add label
+                L.marker([item.center_lat, item.center_lng], {
+                    icon: L.divIcon({
+                        className: 'label-icon',
+                        html: `<div>${item.date.split(" ")[1].replace(":00", '')}</div>`,
+                        iconSize: [20, 20]
+                    })
+                }).addTo(rfmap);
             });
         } catch (error) {
             console.error('Error fetching data:', error);
@@ -839,13 +838,13 @@ document.addEventListener("DOMContentLoaded", function () {
             {min: 0, max: 10, color: colors.lightBlue},
             {min: 10, max: 50, color: colors.blue},
             {min: 50, max: 100, color: colors.deepSkyBlue},
-            {min: 100, color: colors.lightGreen}
+            {min: 100, max: 200, color: colors.lightGreen}
         ],
         FMAP01: [
             {min: 0, max: 2.5, color: colors.lightBlue},
             {min: 2.5, max: 15, color: colors.blue},
             {min: 15, max: 30, color: colors.deepSkyBlue},
-            {min: 30, color: colors.lightGreen},
+            {min: 30, max: 100, color: colors.lightGreen},
         ],   
         FMAP03: [
             {min: 0, max: 5, color: colors.lightBlue},
@@ -857,7 +856,7 @@ document.addEventListener("DOMContentLoaded", function () {
             {min: 0, max: 7.5, color: colors.lightBlue},
             {min: 7.5, max: 35, color: colors.blue},
             {min: 35, max: 70, color: colors.deepSkyBlue},
-            {min: 70, color: colors.lightGreen},
+            {min: 70, max: 200, color: colors.lightGreen},
         ],
         FMAP24: [
             {min: 0, max: 10, color: colors.lightBlue},
@@ -1068,13 +1067,16 @@ document.addEventListener("DOMContentLoaded", function () {
     function updateMapCenter(mapInstance, selectedCountry) {
         if (selectedCountry === 'KHM') {
             mapInstance.setView(MapOptions.khmCenter, MapOptions.khmZoom);
+            rfmap.setView(MapOptions.khmCenter, MapOptions.khmZoom);
         } else {
             mapInstance.setView(MapOptions.defaultCenter, MapOptions.defaultZoom);
+            rfmap.setView(MapOptions.defaultCenter, MapOptions.defaultZoom);
         }
     }
 
     // Basin boundary layer
     var wmsBasinUrl = `${geoserver_endpoint}/geoserver/adm/wms?`;
+    var wmsLayer2;
     async function createMap(param, selectedDate, selectedHr) {
         var wmsUrl = generateWMSUrl(param, selectedDate, selectedHr);
         const mapInstance = mapInstances[param];
@@ -1152,9 +1154,12 @@ document.addEventListener("DOMContentLoaded", function () {
             const filteredCountries = allCountries.filter(country => country !== selectedCountry);
             // Construct CQL filter
             cqlFilter = `ISO IN ('${filteredCountries.join("', '")}')`;
-            
             // Add wmsLayer2 with the constructed CQL filter
-            var wmsLayer2 = L.tileLayer.wms(`${geoserver_endpoint}/geoserver/adm/wms?`, {
+            if (mapInstance.wmsLayer2) {
+                mapInstance.removeLayer(mapInstance.wmsLayer2);
+            }
+           
+            wmsLayer2 = L.tileLayer.wms(`${geoserver_endpoint}/geoserver/adm/wms?`, {
                 layers: 'adm:mekong_country',
                 format: 'image/png',
                 version: '1.1.0',
@@ -1333,7 +1338,6 @@ document.addEventListener("DOMContentLoaded", function () {
                 const countryName = countryMapping[selectedCountry];
                 generateGraph(countryName);
             }
-
             // const insTab = document.getElementById('insTab'); // Critical infrastructure tab
             // const activeButton = insTab.querySelector('.nav-link.active');
 
