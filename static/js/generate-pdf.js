@@ -430,7 +430,7 @@ document.addEventListener("DOMContentLoaded", function () {
     // rfmap.addLayer(mekongBasinLayer);
 
     async function get_storm_location() {
-        const apiUrl = 'https://rainstorms-servir.adpc.net/action=get-operational-events'; 
+        const apiUrl = 'https://rainstorms-servir.adpc.net/action=get-realtime-events'; 
         try {
             const response = await fetch(apiUrl, {
                 method: 'POST',
