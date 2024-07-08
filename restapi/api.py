@@ -183,16 +183,30 @@ def get_seaffgs_value(request):
             "message": str(e)
         }, status=500)
 
-# Function to assign alert
+# # Function to assign alert
+# def assign_alert(row):
+#     if (60 < row['FFG06'] <= 100) or (0.01 < row['FFFT06'] < 10):
+#         return 'Low'
+#     elif (30 < row['FFG06'] <= 60) or (10 < row['FFFT06'] < 40):
+#         return 'Moderate'
+#     elif (0.01 < row['FFG06'] <= 15) or (40 < row['FFFT06'] < 100):
+#         return 'High'
+#     else:
+#         return np.nan
+    
+
+    # Function to assign alert
 def assign_alert(row):
-    if (60 < row['FFG06'] <= 100) or (0.01 < row['FFFT06'] < 10):
+
+    if ((row['FFG06'] > 30 and row['FFG06'] <= 60 )) or (0.01 < row['FFFT06'] < 10):
         return 'Low'
-    elif (30 < row['FFG06'] <= 60) or (10 < row['FFFT06'] < 40):
+    elif ((row['FFG06'] > 15 and row['FFG06'] <= 30 )) or (10 < row['FFFT06'] < 40):
         return 'Moderate'
-    elif (0.01 < row['FFG06'] <= 30) or (40 < row['FFFT06'] < 100):
+    elif ((row['FFG06'] <= 15 )) or (40 < row['FFFT06'] < 100):
         return 'High'
     else:
         return np.nan
+    
 
 int_columns = ['ID_2', 'M1', 'M2', 'M3', 'F1', 'F2', 'F3', 'Hospital']
 float_columns = ['RTP1', 'RTP2', 'RTP3', 'RTP4', 'GDP', 'crop_sqm']
