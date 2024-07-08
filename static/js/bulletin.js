@@ -679,8 +679,6 @@ document.addEventListener("DOMContentLoaded", function () {
                         layer.bindPopup(feature.properties.iso);
                     }
                 }
-        ,
-                
             });
     
             // Load main lakes data
@@ -1069,6 +1067,7 @@ document.addEventListener("DOMContentLoaded", function () {
     // Basin boundary layer
     var wmsBasinUrl = `${geoserver_endpoint}/geoserver/adm/wms?`;
     var wmsLayer2;
+    var wmsLayerAdm2;
     async function createMap(param, selectedDate, selectedHr) {
         var wmsUrl = generateWMSUrl(param, selectedDate, selectedHr);
         const mapInstance = mapInstances[param];
@@ -1136,6 +1135,11 @@ document.addEventListener("DOMContentLoaded", function () {
                 mapInstance.removeLayer(mapInstance.wmsLayer2);
                 mapInstance.wmsLayer2 = null; // Remove reference to wmsLayer2
             }
+            if (mapInstance.wmsLayerAdm2 && mapInstance.hasLayer(mapInstance.wmsLayerAdm2)) {
+                mapInstance.removeLayer(mapInstance.wmsLayerAdm2);
+                mapInstance.wmsLayerAdm2 = null; // Remove reference to wmsLayer2
+            }
+
             // wmsBasinLayer.setParams({
             //     layers:'adm:basins_mekong'
             // })
@@ -1151,6 +1155,11 @@ document.addEventListener("DOMContentLoaded", function () {
                 mapInstance.removeLayer(mapInstance.wmsLayer2);
             }
            
+            if (mapInstance.wmsLayerAdm2) {
+                mapInstance.removeLayer(mapInstance.wmsLayerAdm2);
+            }
+            
+
             wmsLayer2 = L.tileLayer.wms(`${geoserver_endpoint}/geoserver/adm/wms?`, {
                 layers: 'adm:mekong_country',
                 format: 'image/png',
@@ -1160,6 +1169,17 @@ document.addEventListener("DOMContentLoaded", function () {
                 styles: 'adm0_filter_style'
             }).addTo(mapInstance);
             mapInstance.wmsLayer2 = wmsLayer2; // Store reference to wmsLayer2
+
+            // const cqlAdm2Filter = `ISO IN ('${selectedCountry}')`;
+            // wmsLayerAdm2 = L.tileLayer.wms(`${geoserver_endpoint}/geoserver/adm/wms?`, {
+            //     layers: 'adm:Adm2',
+            //     format: 'image/png',
+            //     version: '1.1.0',
+            //     transparent: true,
+            //     CQL_FILTER: cqlAdm2Filter,
+            //     styles: 'adm0'
+            // }).addTo(mapInstance);
+            // mapInstance.wmsLayerAdm2 = wmsLayerAdm2; 
 
             // if (selectedCountry === 'KHM') {
             //     wmsBasinLayer.setParams({layers:'adm:basins_cambodia'})
