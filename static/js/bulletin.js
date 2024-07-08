@@ -504,20 +504,12 @@ document.addEventListener("DOMContentLoaded", function () {
     rfmap.createPane('basinLayer');
     rfmap.getPane('basinLayer').style.zIndex = 21;
 
-    var tdWmsRainLayer = L.tileLayer.wms("https://thredds-servir.adpc.net/thredds/wms/RAINSTORM/rainacc/Rain_accumulation_GSMAP_NOW.nc", {
-        layers: 'rain',
+
+    var tdWmsRainLayer = L.tileLayer.wms(geoserver_endpoint+ '/geoserver/ffgs/wms?', {
+        layers: 'ffgs:rainacc_gsmap_now',
         format: 'image/png',
         transparent: true,
-        styles: 'boxfill/rainbow',
-        opacity:1,
-        version:'1.3.0',
-        zIndex:100,
-        colorscalerange:'0,300',
-        bounds: [[0, 90], [22, 120]],
-        logscale: false,
-        abovemaxcolor:'extend',
-        belowmincolor:'extend',
-        numcolorbands: 300,
+        styles: 'rainacc',
         pane: 'droughtLayer'
     });
     tdWmsRainLayer.setOpacity(1);

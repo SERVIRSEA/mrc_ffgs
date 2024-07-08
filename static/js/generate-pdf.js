@@ -366,20 +366,27 @@ document.addEventListener("DOMContentLoaded", function () {
     const basemapUrl = 'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}';
     const attribution = '&copy; <a href="https://www.openstreetmap.org/copyright">Esri | OpenStreetMap</a> contributors';
 
-    var tdWmsRainLayer = L.tileLayer.wms("https://thredds-servir.adpc.net/thredds/wms/RAINSTORM/rainacc/Rain_accumulation_GSMAP_NOW.nc", {
-        layers: 'rain',
+    // var tdWmsRainLayer = L.tileLayer.wms("https://thredds-servir.adpc.net/thredds/wms/RAINSTORM/rainacc/Rain_accumulation_GSMAP_NOW.nc", {
+    //     layers: 'rain',
+    //     format: 'image/png',
+    //     transparent: true,
+    //     styles: 'boxfill/rainbow',
+    //     opacity:1,
+    //     version:'1.3.0',
+    //     zIndex:100,
+    //     colorscalerange:'0,300',
+    //     bounds: [[0, 90], [22, 120]],
+    //     logscale: false,
+    //     abovemaxcolor:'extend',
+    //     belowmincolor:'extend',
+    //     numcolorbands: 300,
+    //     pane: 'droughtLayer'
+    // });
+    var tdWmsRainLayer = L.tileLayer.wms(geoserver_endpoint+ '/geoserver/ffgs/wms?', {
+        layers: 'ffgs:rainacc_gsmap_now',
         format: 'image/png',
         transparent: true,
-        styles: 'boxfill/rainbow',
-        opacity:1,
-        version:'1.3.0',
-        zIndex:100,
-        colorscalerange:'0,300',
-        bounds: [[0, 90], [22, 120]],
-        logscale: false,
-        abovemaxcolor:'extend',
-        belowmincolor:'extend',
-        numcolorbands: 300,
+        styles: 'rainacc',
         pane: 'droughtLayer'
     });
 
