@@ -471,14 +471,8 @@ def get_risk_map(request):
     final_df = join_df.dropna(subset=['level'], how='all')
     final_df['level'] = final_df['level'].astype(str)
     final_df = final_df[['BASIN', 'province', 'district', 'country', 'level', 'geometry']]
-    # geojson = final_df.to_json()
-
-    # Return as JsonResponse
-    # return JsonResponse(json.loads(geojson), safe=False)
-    
     geojson = final_df.to_json()
-
-    # Return as JsonResponse
+    # return JsonResponse(json.loads(geojson), safe=False)
     return JsonResponse(orjson.loads(geojson), safe=False)
 
 def get_admin_boundary(request):
