@@ -1,4 +1,8 @@
-document.addEventListener("DOMContentLoaded", function() {
+document.addEventListener("DOMContentLoaded", function () {
+    
+    // GeoServer URL
+    const geoserver_endpoint = 'http://119.15.81.22:8081'
+
     const scriptTag = document.getElementById("script-data");
     const selectedDate = scriptTag.getAttribute("data-date");
     const selectedHour = scriptTag.getAttribute("data-hour");
@@ -65,9 +69,7 @@ document.addEventListener("DOMContentLoaded", function() {
                 const button = getButtonByCountry(country);
                 button.style.display = 'block'; // Ensure it's displayed
             });
-
             stormsData = parsedData;
-
         } else {
             // Hide all country buttons first
             const allCountries = ["Cambodia", "Laos", "Thailand", "Vietnam"];
@@ -364,39 +366,120 @@ document.addEventListener("DOMContentLoaded", function() {
     const basemapUrl = 'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}';
     const attribution = '&copy; <a href="https://www.openstreetmap.org/copyright">Esri | OpenStreetMap</a> contributors';
 
-    var tdWmsRainLayer = L.tileLayer.wms("https://thredds-servir.adpc.net/thredds/wms/RAINSTORM/rainacc/Rain_accumulation_GSMAP_NOW.nc", {
-        layers: 'rain',
+    // var tdWmsRainLayer = L.tileLayer.wms("https://thredds-servir.adpc.net/thredds/wms/RAINSTORM/rainacc/Rain_accumulation_GSMAP_NOW.nc", {
+    //     layers: 'rain',
+    //     format: 'image/png',
+    //     transparent: true,
+    //     styles: 'boxfill/rainbow',
+    //     opacity:1,
+    //     version:'1.3.0',
+    //     zIndex:100,
+    //     colorscalerange:'0,300',
+    //     bounds: [[0, 90], [22, 120]],
+    //     logscale: false,
+    //     abovemaxcolor:'extend',
+    //     belowmincolor:'extend',
+    //     numcolorbands: 300,
+    //     pane: 'droughtLayer'
+    // });
+    var tdWmsRainLayer = L.tileLayer.wms(geoserver_endpoint+ '/geoserver/ffgs/wms?', {
+        layers: 'ffgs:rainacc_gsmap_now',
         format: 'image/png',
         transparent: true,
-        styles: 'boxfill/rainbow',
-        opacity:1,
-        version:'1.3.0',
-        zIndex:100,
-        colorscalerange:'0,150',
-        bounds: [[0, 90], [22, 120]],
-        logscale: false,
-        abovemaxcolor:'extend',
-        belowmincolor:'extend',
-        numcolorbands: 150,
+        styles: 'rainacc',
+        pane: 'droughtLayer'
+    });
+
+    //// List of all countries
+    const allCountries = ['KHM', 'THA', 'VNM', 'LAO'];
+    var mekongCountryLayer = L.tileLayer.wms(geoserver_endpoint + "/geoserver/adm/wms?service=WMS&request=GetMap", {
+        layers: 'adm:mekong_country',
+        format: 'image/png',
+        version: '1.1.0',
+        transparent: true,
+        styles: 'mekong_country_style',
+        pane: 'basinLayer',
+        CQL_FILTER: `ISO IN ('${allCountries.join("', '")}')`
+    });
+
+    var mekongBasinLayer = L.tileLayer.wms(geoserver_endpoint + "/geoserver/adm/wms?service=WMS&request=GetMap", {
+        layers: 'adm:mekong_river_basin',
+        format: 'image/png',
+        version: '1.1.0',
+        transparent: true,
+        styles: 'mekong_basin_style',
+        pane: 'basinLayer'
     });
     
+        
     const rfMapOptions = {
         center: [15.9162, 102.9560],
         zoom: 5,
         zoomControl: false,
         scrollWheelZoom: false,
-        minZoom: 5,
+        minZoom: 0,
     }
     var rfmap = L.map('rfmap', rfMapOptions);
+    rfmap.createPane('basemap');
+    rfmap.getPane('basemap').style.zIndex = 1;
+    rfmap.createPane('droughtLayer');
+    rfmap.getPane('droughtLayer').style.zIndex = 20;
+    rfmap.createPane('basinLayer');
+    rfmap.getPane('basinLayer').style.zIndex = 500;
+
     // Add the basemap layer
     var rfbasemap = L.tileLayer(basemapUrl, {
-        attribution: attribution
+        attribution: attribution,
+        pane: 'basemap'
     }).addTo(rfmap);
     rfmap.addLayer(tdWmsRainLayer);
+    rfmap.addLayer(mekongCountryLayer);
+    // rfmap.addLayer(mekongBasinLayer);
 
+    async function get_storm_location() {
+        const apiUrl = 'https://rainstorms-servir.adpc.net/action=get-realtime-events'; 
+        try {
+            const response = await fetch(apiUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({})
+            });
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            const data = await response.json();
+            // Add circle markers to the map
+            data.forEach(item => {
+                L.circle([item.center_lat, item.center_lng], {
+                    color: 'white',
+                    fillColor: 'red',
+                    fillOpacity: 0.6,
+                    radius: 20000, // Adjust the radius as needed
+                    weight: 1 // Stroke line weight
+                }).addTo(rfmap);
+
+                //  Add label
+                L.marker([item.center_lat, item.center_lng], {
+                    icon: L.divIcon({
+                        className: 'label-icon',
+                        html: `<div>${item.date.split(" ")[1].replace(":00", '')}</div>`,
+                        iconSize: [20, 20]
+                    })
+                }).addTo(rfmap);
+
+            });
+        } catch (error) {
+            console.error('Error fetching data:', error);
+        }
+    }
+    // Call the fetchData function when the page loads
+    window.onload = get_storm_location;
 
     const bulletincache = {};
-
     async function fetchData(url) {
         if (bulletincache[url]) {
             return bulletincache[url];
@@ -502,7 +585,7 @@ document.addEventListener("DOMContentLoaded", function() {
             {min: 0, max: 10, color: colors.lightBlue},
             {min: 10, max: 50, color: colors.blue},
             {min: 50, max: 100, color: colors.deepSkyBlue},
-            {min: 100, color: colors.lightGreen},
+            {min: 100, max: 200, color: colors.lightGreen},
         ],
         FFG01: [
             {min: 0, max: 10, color: colors.red},
@@ -566,7 +649,41 @@ document.addEventListener("DOMContentLoaded", function() {
     // Define a function to create map instances
     function createMapInstance(id) {
         const map = L.map(id, MapOptions);
-        L.tileLayer(basemapUrl, { tileSize: 256, attribution: attribution }).addTo(map);
+        map.createPane('basemap');
+        map.getPane('basemap').style.zIndex = 1;
+        map.createPane('droughtLayer');
+        map.getPane('droughtLayer').style.zIndex = 20;
+        map.createPane('basinLayer');
+        map.getPane('basinLayer').style.zIndex = 500;
+        L.tileLayer(basemapUrl, { tileSize: 256, attribution: attribution, pane: 'basemap' }).addTo(map);
+
+         //// List of all countries
+         const allCountries = ['KHM', 'THA', 'VNM', 'LAO'];
+         // Construct CQL filter
+         cqlFilter = `ISO IN ('${allCountries.join("', '")}')`;
+ 
+         const mekongCountryLayer = L.tileLayer.wms(geoserver_endpoint + "/geoserver/adm/wms?service=WMS&request=GetMap", {
+             layers: 'adm:mekong_country',
+             format: 'image/png',
+             version: '1.1.0',
+             transparent: true,
+             styles: 'mekong_country_style',
+             pane: 'basinLayer',
+             CQL_FILTER: cqlFilter
+        });
+    
+        const mekongBasinLayer = L.tileLayer.wms(geoserver_endpoint + "/geoserver/adm/wms?service=WMS&request=GetMap", {
+            layers: 'adm:mekong_river_basin',
+            format: 'image/png',
+            version: '1.1.0',
+            transparent: true,
+            styles: 'mekong_basin_style',
+            pane: 'basinLayer'
+        });
+    
+        map.addLayer(mekongCountryLayer);
+        map.addLayer(mekongBasinLayer);
+
         return map;
     }
 
@@ -592,8 +709,7 @@ document.addEventListener("DOMContentLoaded", function() {
         FFR24: ffr24hrMap
     };
 
-    // GeoServer URL
-    const geoserver_url = 'http://203.146.112.243:8080/geoserver/';
+    const geoserver_url = `${geoserver_endpoint}/geoserver/ffgs/`;
 
     // Create a function to generate WMS URL
     function generateWMSUrl(param, selectedDate, selectedHr) {
@@ -634,11 +750,14 @@ document.addEventListener("DOMContentLoaded", function() {
     function updateMapCenter(mapInstance, selectedCountry) {
         if (selectedCountry === 'KHM') {
             mapInstance.setView(MapOptions.khmCenter, MapOptions.khmZoom);
+            rfmap.setView(MapOptions.khmCenter, MapOptions.khmZoom);
         } else {
             mapInstance.setView(MapOptions.defaultCenter, MapOptions.defaultZoom);
+            rfmap.setView(MapOptions.defaultCenter, MapOptions.defaultZoom);
         }
     }
 
+    var wmsLayer2;
     async function createMap(param, selectedDate, selectedHr) {
         var wmsUrl = generateWMSUrl(param, selectedDate, selectedHr);
         const mapInstance = mapInstances[param];
@@ -651,7 +770,8 @@ document.addEventListener("DOMContentLoaded", function() {
             mapInstance.wmsLayer = L.tileLayer.wms('', {
                 format: 'image/png',
                 version: '1.1.0',
-                transparent: true
+                transparent: true,
+                pane: 'droughtLayer'
             });
         }
         var wmsLayer = mapInstance.wmsLayer;
@@ -661,7 +781,7 @@ document.addEventListener("DOMContentLoaded", function() {
         }
         wmsLayer.setUrl(wmsUrl);
         wmsLayer.setParams({
-            layers: `${param}:${param}_${selectedDate}${selectedHr}`,
+            layers: `ffgs:${param}_${selectedDate}${selectedHr}`,
             styles: getStyleName(param)
         });
         if (!mapInstance.hasLayer(wmsLayer)) {
@@ -689,12 +809,13 @@ document.addEventListener("DOMContentLoaded", function() {
             cqlFilter = `ISO IN ('${filteredCountries.join("', '")}')`;
             
             // Add wmsLayer2 with the constructed CQL filter
-            var wmsLayer2 = L.tileLayer.wms('http://203.146.112.243:8080/geoserver/adm/wms?', {
-                layers: 'adm:adm0',
+            wmsLayer2 = L.tileLayer.wms(`${geoserver_endpoint}/geoserver/adm/wms?`, {
+                layers: 'adm:mekong_country',
                 format: 'image/png',
                 version: '1.1.0',
                 transparent: true,
-                CQL_FILTER: cqlFilter
+                CQL_FILTER: cqlFilter,
+                styles: 'adm0_filter_style'
             }).addTo(mapInstance);
             mapInstance.wmsLayer2 = wmsLayer2; // Store reference to wmsLayer2
         }  

@@ -131,14 +131,15 @@ def get_seaffgs_bulletin_data(request):
     data = selected_col.to_json(orient='records')
     return JsonResponse(data, safe=False)
 
-# Function to assign alert
+
+
 def assign_alert(row):
-    if (60 < row['FFG06'] <= 100) or (0.01 < row['FFFT06'] < 10):
-        return 'Low'
-    elif (30 < row['FFG06'] <= 60) or (10 < row['FFFT06'] < 40):
-        return 'Moderate'
-    elif (0.01 < row['FFG06'] <= 30) or (40 < row['FFFT06'] < 100):
+    if (row['FFG06'] > 0 and row['FFG06'] <= 15 ) or ((row['FFFT06'] > 0 and row['FFFT06'] < 10 )):
         return 'High'
+    elif row['FFG06'] <= 30 or ((row['FFFT06'] > 10 and row['FFFT06'] < 40 )):
+        return 'Moderate'
+    elif row['FFG06'] <= 60 or ((row['FFFT06'] > 40 and row['FFFT06'] < 100 )):
+        return 'Low'
     else:
         return np.nan
 
@@ -148,22 +149,22 @@ float_round_0_cols = ['GDP', 'crop_sqm']
 float_round_2_cols = ['RTP1', 'RTP2', 'RTP3', 'RTP4']
 
 def assign_alert_1hrs(row):
-    if (40 < row['FFG01'] <= 60):
-        return 'Low'
-    elif (25 < row['FFG01'] <= 40):
-        return 'Moderate'
-    elif (0.01 < row['FFG01'] <= 25):
+    if (row['FFG01'] > 0 and row['FFG01'] <= 10 ):
         return 'High'
+    elif row['FFG01'] <= 25:
+        return 'Moderate'
+    elif row['FFG01'] <= 40:
+        return 'Low'
     else:
         return np.nan
 
 def assign_alert_3hrs(row):
-    if (40 < row['FFG03'] <= 70):
-        return 'Low'
-    elif (25 < row['FFG03'] <= 40):
-        return 'Moderate'
-    elif (0.01 < row['FFG03'] <= 25):
+    if (row['FFG03'] > 0 and row['FFG03'] <= 10 ):
         return 'High'
+    elif row['FFG03'] <= 25:
+        return 'Moderate'
+    elif row['FFG03'] <= 40:
+        return 'Low'
     else:
         return np.nan
 
@@ -180,19 +181,24 @@ def get_alert_stat_1hrs(request):
         df1 = pd.read_csv(static_data_path)
         df1.rename(columns={'bid': 'BASIN', 'iso': 'ISO', 'province': 'NAME_1', 'district': 'NAME_2'}, inplace=True)
         df2 = pd.read_csv(seaffgs_data_path)
+
         filtered_df2 = df2[selected_columns] 
         renamed_cols2 = filtered_df2.rename(columns=rename_mapping)
         s_df2 = renamed_cols2[["BASIN", "FFG01"]]
         join_df = df1.merge(s_df2, on='BASIN', how='inner')
+
         scols_ffg = join_df[['ISO', 'NAME_1', 'NAME_2', 'FFG01']]
         grouped_max_FFG = scols_ffg.groupby(['NAME_2']).agg({
             'ISO': 'first',
             'NAME_1': 'first',
-            'FFG01': 'median',
+            'FFG01': 'min',# 'median', #
         }).reset_index()
+
+        
         grouped_max_FFG['Alert_1Hrs'] = grouped_max_FFG.apply(lambda row: assign_alert_1hrs(row), axis=1)
         final_df = grouped_max_FFG.dropna(subset=['Alert_1Hrs'], how='all')
         final_df = final_df.rename(columns={'Alert_1Hrs': 'Level'})
+      
         json = final_df.to_json(orient='records')
         return JsonResponse(json, safe=False)
     except FileNotFoundError:
@@ -220,7 +226,7 @@ def get_alert_stat_3hrs(request):
         grouped_max_FFG = scols_ffg.groupby(['NAME_2']).agg({
             'ISO': 'first',
             'NAME_1': 'first',
-            'FFG03': 'max',
+            'FFG03': 'min',
         }).reset_index()
         grouped_max_FFG['Alert_3Hrs'] = grouped_max_FFG.apply(lambda row: assign_alert_3hrs(row), axis=1)
         final_df = grouped_max_FFG.dropna(subset=['Alert_3Hrs'], how='all')
@@ -267,7 +273,7 @@ def get_alert_stat_6hrs(request):
         grouped_max_FFG = scols_ffg.groupby(['NAME_2']).agg({
             'ISO': 'first',
             'NAME_1': 'first',
-            'FFG06': 'max',
+            'FFG06': 'min',
         }).reset_index()
         grouped_max_FFFT = scols_ffft.groupby(['NAME_2']).agg({'FFFT06': 'max'})
         join_max = grouped_max_FFG.merge(grouped_max_FFFT, on="NAME_2")

@@ -91,7 +91,7 @@
                     <img src="/static/img/MRC-logo-white.svg" width="120px" alt="MRC">
                 </div>
                 <div class="col-11 ps-5">
-                    <h2 style="font-size: 50px; font-weight: 900; padding-top: 30px; font-family: 'Arial'; padding-left: 30px;">MEKONG FLASH FLOOD GUIDANCE BULLETIN</h2>
+                    <h2 style="font-size: 50px; font-weight: 900; padding-top: 30px; font-family: 'Arial'; padding-left: 30px;">FLASH FLOOD GUIDANCE BULLETIN</h2>
                 </div>
             </div>
     </div>
@@ -111,7 +111,7 @@
         <div class="row ms-5 me-5 mb-5 pb-5">
             <div class="col-md-6 text-center">
                 <h4 class="fw-bold fs-4 text-center">RAINSTORMS TRACKER</h4>
-                <p class="text-center">(In the last 24-48 hours)</p>
+                <p class="text-center">(In the last 24)</p>
                 <ul class="nav nav-pills mb-3 justify-content-center" id="pills-tab" role="tablist">
                     <li class="nav-item" role="presentation">
                         <button class="nav-link active" id="pills-home-tab" data-bs-toggle="pill" data-bs-target="#pills-home" type="button" role="tab" aria-controls="pills-home" aria-selected="true">real-time (GSMaP NOW)</button>
@@ -142,7 +142,15 @@
             </div>
             <div class="col-md-6">
                 <div class="rmap" id="rfmap"></div>
-                <p>Source: GSMaP NOW</p>
+                
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <div style="flex-grow: 1;">
+                        <p>Source: GSMaP NOW</p>
+                    </div>
+                    <div style="flex-shrink: 0; text-align: right;">
+                        <img src="/static/img/rainacc_legend.png" alt="Rain Storm Legend" style="height: 45px;">
+                    </div>
+                </div>
                 <p>This map shows the 24-hour rainfall accumulation using GSMaP NOW satellite-based precipitation estimates.</p>
                 <!-- <h4 class="fw-bold fs-4 text-center">CRITICAL INFRASTRUCTURE</h4>
                 <p class="text-center">(Details in the table below)</p>
@@ -327,7 +335,7 @@
                         </div>
                     </div> -->
                 </div>
-                <p class="fw-bold text-center">* Mekong Xray provide multidimensional vulnerability data for the flash flood risk areas in the Lower Mekong Basin by Big Earth Data including Earth Observation, Social Networks, IoT and Miscellaneous data.</p>
+                {% comment %} <p class="fw-bold text-center">* Mekong Xray provide multidimensional vulnerability data for the flash flood risk areas in the Lower Mekong Basin by Big Earth Data including Earth Observation, Social Networks, IoT and Miscellaneous data.</p> {% endcomment %}
             </div>
         </div>
     </div>
@@ -639,7 +647,7 @@
         <div class="modal-content">
             <!-- Modal Header with Title -->
             <div class="modal-header">
-                <h5 class="modal-title text-center">Generating a PDF for Mekong Flash Flood Guidance for <span id="modalHeader"></span></h5>
+                <h5 class="modal-title text-center">Generating a PDF for Flash Flood Guidance for <span id="modalHeader"></span></h5>
                 <!-- Close button (X) to close the modal -->
                 <!-- <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button> -->
             </div>
