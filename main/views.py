@@ -14,6 +14,9 @@ import os, json
 import subprocess
 from django.http import FileResponse, HttpResponse
 from django.http import HttpResponse
+import dask_geopandas as dgpd
+import orjson
+from shapely.geometry import mapping
 
 datelist = settings.DATELIST_PATH
 seaffgs = settings.SEAFFGS_DATA_PATH
@@ -424,7 +427,7 @@ def pdf_template_view(request):
     return render(request, "pdf_template.html", context)
 
 def get_risk_map(request):
-    static_data_path = 'static/data/basins_with_attr.gpkg'
+    static_data_path = 'static/data/basins_with_attr.parquet'
     param = request.GET.get("param")
     date_str = request.GET.get("date")
     formatted_date = date_str.replace("-", "")
@@ -432,8 +435,13 @@ def get_risk_map(request):
     get_data_path = get_seaffgs_data_path(date_str)
     seaffgs_data_path = f'{get_data_path}/{formatted_date}{hr}.csv.gz'
 
-    # Read the static GeoJSON data
-    df1 = gpd.read_file(static_data_path)
+    # Read the static data
+    # df1 = gpd.read_file(static_data_path)
+
+    # Read the static data using Dask GeoPandas
+    df1 = dgpd.read_parquet(static_data_path).compute()
+
+
     # df1['geometry'] = df1['geometry'].apply(ensure_right_hand_rule)
     # df1 = df1[['bid', 'ISO_2', 'Province', 'District', 'Country', 'geometry']]
     # df1.rename(columns={'bid': 'BASIN', 'ISO_2': 'iso', 'Province': 'province', 'District': 'district', 'Country': 'country'}, inplace=True)
@@ -457,10 +465,15 @@ def get_risk_map(request):
     final_df = join_df.dropna(subset=['level'], how='all')
     final_df['level'] = final_df['level'].astype(str)
     final_df = final_df[['BASIN', 'province', 'district', 'country', 'level', 'geometry']]
+    # geojson = final_df.to_json()
+
+    # Return as JsonResponse
+    # return JsonResponse(json.loads(geojson), safe=False)
+    
     geojson = final_df.to_json()
 
     # Return as JsonResponse
-    return JsonResponse(json.loads(geojson), safe=False)
+    return JsonResponse(orjson.loads(geojson), safe=False)
 
 def get_admin_boundary(request):
     name = request.GET.get("name")
