@@ -539,25 +539,16 @@
             </div>
         </div>
     </section>
-
-    <section class="table-section" id="KHMTableSection"></section>
-    <section class="table-section" id="LAOTableSection"></section>
-    <section class="table-section" id="THATableSection"></section>
-    <section class="table-section" id="VNMTableSection"></section>
-    
     
     <script src="https://code.highcharts.com/highcharts.js"></script>
 	<script src="{% static 'vendor/bootstrap/dist/js/bootstrap.bundle.min.js'  %}"></script>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    
     <!-- Define data attributes on a script tag or any HTML element -->
     <script id="script-data" 
         data-date="{{ selectedDate }}" 
         data-hour="{{ selectedHr }}" 
         data-country="{{ selectedCountry }}">
-
-        // const param1 = "{{ param1|escapejs }}";
-        // const param2 = "{{ param2|escapejs }}";
-        // const param3 = "{{ param3|escapejs }}";
     </script>
     
     <script src="{% static 'js/generate-pdf.js'  %}"></script>

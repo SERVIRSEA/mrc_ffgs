@@ -433,6 +433,11 @@ def pdf_template_view(request):
     return render(request, "pdf_template.html", context)
 
 def get_risk_map(request):
+    # static_data_path = '/home/asus/Desktop/servir/ffgs/ffgs/static/data/risk_map_FFG06_20240711_10.parquet'
+    # df = dgpd.read_parquet(static_data_path).compute()
+    # geojson = df.to_json()
+    # return JsonResponse(orjson.loads(geojson), safe=False)
+
     static_data_path = 'static/data/basins_with_attr.parquet'
     param = request.GET.get("param")
     date_str = request.GET.get("date")
