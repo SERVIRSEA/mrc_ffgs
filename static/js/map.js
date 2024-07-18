@@ -5,6 +5,9 @@ document.addEventListener("DOMContentLoaded", function() {
     var openContentPanel = document.querySelector("#home");
     var closeContentPanel = document.querySelector("#close-home-content" );
     var sidebarContent = document.querySelector('#sidebar-content');
+    let bcAll = document.querySelector('#allCountries');
+    let bcCountry = document.querySelector('#bcCountry');
+    let breadcrumb = document.querySelector('#breadcrumb');
 
     // Onlick expand home sidebar content area
     openContentPanel.onclick = function(){
@@ -57,10 +60,10 @@ document.addEventListener("DOMContentLoaded", function() {
     var rightSidebarBtn = document.querySelector('#rightSidebar');
     var rightSidebarContent = document.querySelector('#rightSidebarContent');
     var rightSidebarCloseBtn  = document.querySelector('#close-sidebar-content-right');
-    // var popContent = document.querySelector("#popContent");
-    // var collapsePop = document.querySelector('#collapsePop');
-    // var expandPop = document.querySelector('#expandPop');
-    // var closePop = document.querySelector('#closePop');
+    var popContent = document.querySelector("#popContent");
+    var collapsePop = document.querySelector('#collapsePop');
+    var expandPop = document.querySelector('#expandPop');
+    var closePop = document.querySelector('#closePop');
     // var risk = document.querySelector('#riskList');
 
     rightSidebarBtn.onclick = function(){
@@ -77,21 +80,21 @@ document.addEventListener("DOMContentLoaded", function() {
         rightSidebarBtn.style.display = "block";
     }
 
-    // collapsePop.onclick = function(){
-    //     document.getElementById('riskInfo').style.display = 'none';
-    //     popContent.style.height = '50px';
-    //     collapsePop.style.display = 'none';
-    //     expandPop.style.display = 'block';
-    // }
-    // expandPop.onclick = function(){
-    //     popContent.style.height = 'calc(100% - 105px)';
-    //     collapsePop.style.display = 'block';
-    //     expandPop.style.display = 'none';
-    //     document.getElementById('riskInfo').style.display = 'block';
-    // }
-    // closePop.onclick = function(){
-    //     popContent.style.display = 'none';
-    // }
+    collapsePop.onclick = function(){
+        document.getElementById('riskInfo').style.display = 'none';
+        popContent.style.height = '50px';
+        collapsePop.style.display = 'none';
+        expandPop.style.display = 'block';
+    }
+    expandPop.onclick = function(){
+        popContent.style.height = 'calc(100% - 105px)';
+        collapsePop.style.display = 'block';
+        expandPop.style.display = 'none';
+        document.getElementById('riskInfo').style.display = 'block';
+    }
+    closePop.onclick = function(){
+        popContent.style.display = 'none';
+    }
 
     // risk.onclick = function(){
     //     popContent.style.display = 'block';
@@ -170,44 +173,6 @@ document.addEventListener("DOMContentLoaded", function() {
             return data;
         } catch (error) {
             console.error('Error:', error);
-        }
-    }
-
-    // Update the table with statistical data
-    async function updateTable(param, parsed_data) { // param, dataToProcess
-        // // const dataToProcess = await getStats(param, selectedDate);
-        // const parsed_data = JSON.parse(dataToProcess);
-        // console.log(parsed_data);
-        const rightSidebar = document.querySelector("#rightSidebarContent");
-
-        let container = document.getElementById('riskList');
-    
-        // If container doesn't exist, recreate it
-        if (!container) {
-            container = document.createElement('div');
-            container.id = 'riskList';
-            rightSidebar.appendChild(container);  // Append to appropriate parent element
-        }
-        
-        while (container.firstChild) {
-            container.removeChild(container.lastChild);
-        }
-
-        const errorMessage = document.querySelectorAll('#dataMsg');
-    
-        // If the array is empty or no data available
-        if(!parsed_data || parsed_data.length === 0) {
-            const errorMessage = document.createElement('p'); // Create an error message element
-            errorMessage.id = 'dataMsg'; // Assign an id if needed
-            errorMessage.innerHTML = "No alerts/risks found.";
-            container.appendChild(errorMessage); 
-    
-            // Setting the cursor to not-allowed
-            document.documentElement.style.cursor = 'not-allowed';
-            return;
-        } else {
-            document.documentElement.style.cursor = 'auto'; // Reset the cursor to default
-            errorMessage.innerHTML = "";
         }
     }
 
@@ -579,12 +544,38 @@ document.addEventListener("DOMContentLoaded", function() {
             });
         }
 
+        async function useBasinData(feature) {
+            try {
+                const basin_id = feature.properties.BASIN;
+                const country = feature.properties.country;
+                const district = feature.properties.district;
+                const province = feature.properties.province;
+                const level = feature.properties.level;
+        
+                // Fetch data and handle potential errors
+                const data = await getBasinData(basin_id);
+                const parsedData = JSON.parse(data);
+                
+                const jsonData = {
+                    ...parsedData[0],
+                    level: level,
+                    country: country,
+                    province: province,
+                    district: district
+                };
+                displayDetail(jsonData); 
+            } catch (error) {
+                console.error('Error:', error);
+                // Handle the error appropriately, such as displaying an error message
+            }
+        }        
+
         function getFeatureDetails(e) {
             const layer = e.target;
             const clickedFeature = layer.feature;
-            const basin_id = clickedFeature.properties.BASIN;
-            // console.log(basin_id);
-            const fetchedData = getBasinData(basin_id);
+            // const basin_id = clickedFeature.properties.BASIN;
+            useBasinData(clickedFeature);
+            popContent.style.display = 'block'; 
         }
         // Clear existing map layers and add new data with updated styles
         riskLayer.clearLayers();
@@ -595,7 +586,7 @@ document.addEventListener("DOMContentLoaded", function() {
     }
 
     async function getBasinData(basin_id) {
-        const response = await fetch(`/api/get_basin_data?basin=${basin_id}`);
+        const response = await fetch(`/get-basin-details?basin=${basin_id}`);
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
@@ -1439,12 +1430,16 @@ document.addEventListener("DOMContentLoaded", function() {
         const clickedFeature = layer.feature;
 
         let admType = 'adm1'; // Default value
-        let name = clickedFeature.properties.NAME_0
+        let name = clickedFeature.properties.NAME_0;
+        updateBreadcrumb('country', name);
         
         // Check if clickedFeature has the property 'Name_1'
         if (clickedFeature.properties && clickedFeature.properties.province) {
             admType = 'adm2';
-            name = clickedFeature.properties.province
+            name = clickedFeature.properties.province;
+            let selectedCountry = clickedFeature.properties.country;
+            // console.log(clickedFeature.properties)
+            updateBreadcrumb('province', name, selectedCountry);
         }
 
         // Prepare parameters based on the condition
@@ -1452,6 +1447,11 @@ document.addEventListener("DOMContentLoaded", function() {
 
         // Check if clickedFeature has the property 'District'
         if (clickedFeature.properties && clickedFeature.properties.District) {
+            name = clickedFeature.properties.District;
+            let selectedCountry = clickedFeature.properties.Country;
+            let selectedProvince = clickedFeature.properties.Province;
+            // console.log(clickedFeature.properties)
+            updateBreadcrumb('district', name, selectedCountry, selectedProvince);
             // If it has District property, just zoom to the feature
             map.fitBounds(layer.getBounds(), { minZoom: 7 });
         } else {
@@ -1480,35 +1480,6 @@ document.addEventListener("DOMContentLoaded", function() {
                 onEachFeature: onEachFeature
             }).addTo(map);
 
-            // // Load subprovince map data
-            // const subprovinceData = await getsubProvinceData();
-            // subprovince_map = L.geoJSON(subprovinceData, {
-            //     style: {
-            //         fillColor: '#9999ff',
-            //         weight: 1,
-            //         opacity: 1,
-            //         color: 'gray',
-            //         dashArray: '3',
-            //         fillOpacity: 0.5,
-            //     },
-            //     onEachFeature: function(feature, layer){
-            //         layer.bindTooltip('<h6 class="fw-bold p-2">'+feature.properties.NAME_2+', '+feature.properties.NAME_1+',<br>'+feature.properties.NAME_0+'</h6>');
-            //     }
-            // });
-
-            // Load main lakes data
-            // const mainLakesData = await fetchData('/static/data/mainlakes_FFGS.geojson');
-            // mainlakes = L.geoJSON(mainLakesData, {
-            //     style: {
-            //         fillColor: 'darkgray',
-            //         weight: 0,
-            //         opacity: 0.1,
-            //         color: 'white',
-            //         dashArray: '3',
-            //         fillOpacity: 1,
-            //     },
-            // }).addTo(map);
-
             // Load river data
             const riverData = await fetchData('/static/data/riverMK_FFGS.geojson');
             river = L.geoJSON(riverData, {
@@ -1521,23 +1492,6 @@ document.addEventListener("DOMContentLoaded", function() {
                 },
             }).addTo(map);
 
-            // Load mekong basin data
-            // const mekongBasinData = await fetchData('/static/data/mekong_basin_area.geojson');
-            // mekong_basin = L.geoJSON(mekongBasinData, {
-            //     style: {
-            //         fillColor: '#2E86C1',
-            //         weight: 2,
-            //         opacity: 0.5,
-            //         color: '#dbeafe',
-            //         fillOpacity: 0.0,
-            //     },
-            // }).addTo(map);
-            // map.on('layeradd', function(event) {
-            //     adm0.bringToBack();           // Ensure admin layer is at the bottom
-            //     mekong_basin.bringToBack();
-            //     // subProvinceLayer.bringToBack();   // Ensure sub-province layer is above admin and mekong_basin layers
-            //     river.bringToFront();         // Ensure river layer is on top of all layers
-            // });
         } catch (error) {
             console.error('Layer loading error:', error);
         }
@@ -1545,6 +1499,143 @@ document.addEventListener("DOMContentLoaded", function() {
 
     // Call the loadLayers function to load the layers asynchronously.
     loadLayers();
+
+    // Function to update breadcrumb based on selected country
+    function updateBreadcrumb(areaType, areaName, country='All', province='All') {
+        if (areaType == 'All'){
+            loadLayers();
+        } else if (areaType == 'country'){
+            bcCountry.innerHTML = areaName;
+        } else if (areaType == 'province'){
+            // Clear existing content
+            bcCountry.innerHTML = '';
+            // Update for province
+            bcCountry.textContent = country;
+            bcCountry.href = '#';
+
+            // Create a new list item
+            const newList = document.createElement('li');
+            newList.classList.add('breadcrumb-item');
+            
+
+            const bcProvince = document.createElement('a');
+            bcProvince.textContent = areaName;
+            bcProvince.id = 'bcProvince';
+
+            newList.appendChild(bcProvince);
+            breadcrumb.appendChild(newList);
+        } else if (areaType == 'district'){
+            let bcProvince = document.querySelector('#bcProvince');
+            // Clear existing content
+            bcCountry.innerHTML = '';
+            // Update for province
+            bcCountry.textContent = country;
+            bcCountry.href = '#';
+
+            // // Create a new list item
+            // const newList1 = document.createElement('li');
+            // newList1.classList.add('breadcrumb-item');
+
+            // const bcProvince = document.createElement('a');
+            bcProvince.textContent = province;
+            bcProvince.href = '#';
+
+            // Create a new list item
+            const newList2 = document.createElement('li');
+            newList2.classList.add('breadcrumb-item');
+
+            // Create a new list item
+            let bcDistrict = document.getElementById('bcDistrict');
+            
+            if (bcDistrict) {
+                bcDistrict.textContent = '';
+                bcDistrict.textContent = areaName;
+                // bcDistrict.id = 'bcDistrict';
+            } else {
+                bcDistrict = document.createElement('a');
+                bcDistrict.textContent = areaName;
+                bcDistrict.id = 'bcDistrict';
+            }
+            // bcDistrict.textContent = '';
+            // const bcDistrict = document.createElement('a');
+            // bcDistrict.textContent = areaName;
+            // bcDistrict.id = 'bcDistrict';
+
+            // newList1.appendChild(bcProvince);
+            newList2.appendChild(bcDistrict);
+            // breadcrumb.appendChild(newList1);
+            breadcrumb.appendChild(newList2);
+        }
+    }
+
+    function displayDetail(entry){
+        // console.log(entry);
+        const riskLavel = document.querySelector("#risk_level");
+        if (entry.length==0){
+            return;
+        } else {
+            riskLavel.innerHTML = entry.level;
+        }
+
+        const dataKeyToElementIdMap = {
+            "province": "province_name",
+            "district": "subprovince_name",
+            "M1": "male_pop_m1_subprvnc",
+            "M2": "male_pop_m2_subprvnc",
+            "M3": "male_pop_m3_subprvnc",
+            "F1": "female_pop_f1_subprvnc",
+            "F2": "female_pop_f2_subprvnc",
+            "F3": "female_pop_f3_subprvnc",
+            "RTP1": "highwayRoad_subprvnc", 
+            "RTP2": "primaryRoad_subprvnc", 
+            "RTP3": "secondaryRoad_subprvnc", 
+            "RTP4": "tertiaryRoad_subprvnc", 
+            "Hospital": "hospital_subprvnc", 
+            "GDP": "gdp_subprvnc", 
+            "crop_sqm": "cropLands_subprvnc"
+        };
+        // console.log(entry)
+
+        const elements = ["province_name", "subprovince_name", "female_pop_f1_subprvnc", "female_pop_f2_subprvnc", 
+            "female_pop_f3_subprvnc", "male_pop_m1_subprvnc", "male_pop_m2_subprvnc", 
+            "male_pop_m3_subprvnc", "highwayRoad_subprvnc", "primaryRoad_subprvnc", "secondaryRoad_subprvnc", 
+            "tertiaryRoad_subprvnc", "hospital_subprvnc", "gdp_subprvnc", "cropLands_subprvnc"].map(id => document.querySelector(`#${id}`));
+
+        elements.forEach(el => el.innerHTML = '---');
+
+        if (!entry || Object.keys(entry).length === 0) {
+            return;
+        }
+
+        const totalMale = entry.M1 + entry.M2 + entry.M3;
+        const totalFemale = entry.F1 + entry.F2 + entry.F3;
+        const totalPop = totalMale + totalFemale;
+
+        document.querySelector('#total_male_pop_subprvnc').innerHTML = totalMale === 0 ? '---' : totalMale;
+        document.querySelector('#total_female_pop_subprvnc').innerHTML = totalFemale === 0 ? '---' : totalFemale;
+        document.querySelector('#total_pop_subprvnc').innerHTML = totalPop === 0 ? '---' : totalPop;
+
+        
+        elements.forEach(el => {
+            // Find corresponding data key from the mapping using the element's ID
+            const dataKey = Object.keys(dataKeyToElementIdMap).find(key => dataKeyToElementIdMap[key] === el.id);
+        
+            const value = entry[dataKey];
+        
+            if (value === undefined || value <= 0 || el.id.includes('total_')) {
+                el.innerHTML = '---';
+                return;
+            }
+        
+            el.innerHTML = value;
+        });
+        const country = entry.country;
+        if (country) {
+            document.querySelector("#country_name").innerHTML = country;
+        } else {
+            document.querySelector("#country_name").innerHTML = "---";
+        }
+    }
 
     riskLayer.bringToFront();
 

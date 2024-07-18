@@ -35,9 +35,25 @@
     background-color: #303235;
     position: fixed;
 }
+.topPanel {
+    margin-top: 12px;
+    position: fixed;
+    margin-left: 30%;
+    z-index: 999;
+}
+.topPanel .dateCard {
+    margin-top: 5px;
+    margin-left: -10px;
+    min-width: 361px;
+}
+.select-container {
+    position: relative;
+    display: inline-block;
+    width: 100%; /* Adjust as needed */
+}
 .map .btn-group{
-    top: 0;
-    margin-left: 460px;
+    top: 90%;
+    margin-left: 40%;
     z-index: 999;
 }
 @media only screen and (max-width: 600px) {
@@ -238,9 +254,9 @@
 #popContent {
     position: fixed;
     height: calc(100% - 105px);
-    width: 350px;
+    width: 320px;
     top: 40;
-    right: 260px;
+    right: 355px;
     background-color: #e9ecef;
     display: none;
     z-index: 400;
@@ -347,7 +363,9 @@
     height: 250px;
     width: 280px;
 }
-
+.leaflet-left {
+    margin-left: 300px;
+}
 /* #calendar {
     gap: 8px;
 }

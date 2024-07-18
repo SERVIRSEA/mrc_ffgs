@@ -886,7 +886,7 @@ document.addEventListener("DOMContentLoaded", function () {
             } else {
                 const startIdx = pageNum * rowsPerPage;
                 const endIdx = Math.min(startIdx + rowsPerPage, totalLength);
-                populateTable(table, data, intervalsGroup1, startIdx, endIdx);
+                populateTable(table, data, intervalsGroup2, startIdx, endIdx);
             }
     
             body.appendChild(section);

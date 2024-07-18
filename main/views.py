@@ -133,13 +133,49 @@ def get_seaffgs_bulletin_data(request):
 
 
 
+# def assign_alert(row):
+#     if (row['FFG06'] > 0 and row['FFG06'] <= 15 ) or ((row['FFFT06'] > 0 and row['FFFT06'] < 10 )):
+#         return 'High'
+#     elif row['FFG06'] <= 30 or ((row['FFFT06'] > 10 and row['FFFT06'] < 40 )):
+#         return 'Moderate'
+#     elif row['FFG06'] <= 60 or ((row['FFFT06'] > 40 and row['FFFT06'] < 100 )):
+#         return 'Low'
+#     else:
+#         return np.nan
+
+# def assign_alert(row):
+#     # Check for invalid values
+#     if row['FFG06'] < 0 or row['FFFT06'] < 0:
+#         return np.nan
+
+#     # High alert
+#     if (0 < row['FFG06'] <= 15) or (0 < row['FFFT06'] < 10):
+#         return 'High'
+#     # Moderate alert
+#     elif (15 < row['FFG06'] <= 30) or (10 <= row['FFFT06'] < 40):
+#         return 'Moderate'
+#     # Low alert
+#     elif (30 < row['FFG06'] <= 60) or (40 <= row['FFFT06'] < 100):
+#         return 'Low'
+#     # Anything else
+#     else:
+#         return np.nan
+
 def assign_alert(row):
-    if (row['FFG06'] > 0 and row['FFG06'] <= 15 ) or ((row['FFFT06'] > 0 and row['FFFT06'] < 10 )):
+    # Check for invalid values
+    if row['FFG06'] < 0:
+        return np.nan
+
+    # High alert
+    if 0 < row['FFG06'] <= 15:
         return 'High'
-    elif row['FFG06'] <= 30 or ((row['FFFT06'] > 10 and row['FFFT06'] < 40 )):
+    # Moderate alert
+    elif 15 < row['FFG06'] <= 30:
         return 'Moderate'
-    elif row['FFG06'] <= 60 or ((row['FFFT06'] > 40 and row['FFFT06'] < 100 )):
+    # Low alert
+    elif 30 < row['FFG06'] <= 60:
         return 'Low'
+    # Anything else
     else:
         return np.nan
 
@@ -149,7 +185,9 @@ float_round_0_cols = ['GDP', 'crop_sqm']
 float_round_2_cols = ['RTP1', 'RTP2', 'RTP3', 'RTP4']
 
 def assign_alert_1hrs(row):
-    if (row['FFG01'] > 0 and row['FFG01'] <= 10 ):
+    if row['FFG01'] < 0:
+        return np.nan
+    elif 0 < row['FFG01'] <= 10:
         return 'High'
     elif row['FFG01'] <= 25:
         return 'Moderate'
@@ -159,7 +197,9 @@ def assign_alert_1hrs(row):
         return np.nan
 
 def assign_alert_3hrs(row):
-    if (row['FFG03'] > 0 and row['FFG03'] <= 10 ):
+    if row['FFG03'] < 0:
+        return np.nan
+    elif 0 < row['FFG03'] <= 10:
         return 'High'
     elif row['FFG03'] <= 25:
         return 'Moderate'
@@ -198,7 +238,6 @@ def get_alert_stat_1hrs(request):
         grouped_max_FFG['Alert_1Hrs'] = grouped_max_FFG.apply(lambda row: assign_alert_1hrs(row), axis=1)
         final_df = grouped_max_FFG.dropna(subset=['Alert_1Hrs'], how='all')
         final_df = final_df.rename(columns={'Alert_1Hrs': 'Level'})
-      
         json = final_df.to_json(orient='records')
         return JsonResponse(json, safe=False)
     except FileNotFoundError:
@@ -417,6 +456,8 @@ def get_basin_chart(request):
     json = selected_basin.to_json(orient='records')
     return JsonResponse(json, safe=False)
 
+@csrf_exempt
+@xframe_options_exempt
 def pdf_template_view(request):
     # Create an instance of the BulletinPage view to access the get_context_data method
     bulletin_page = BulletinPage()
@@ -432,6 +473,8 @@ def pdf_template_view(request):
     }
     return render(request, "pdf_template.html", context)
 
+@csrf_exempt
+@xframe_options_exempt
 def get_risk_map(request):
     # static_data_path = '/home/asus/Desktop/servir/ffgs/ffgs/static/data/risk_map_FFG06_20240711_10.parquet'
     # df = dgpd.read_parquet(static_data_path).compute()
@@ -480,6 +523,8 @@ def get_risk_map(request):
     # return JsonResponse(json.loads(geojson), safe=False)
     return JsonResponse(orjson.loads(geojson), safe=False)
 
+@csrf_exempt
+@xframe_options_exempt
 def get_admin_boundary(request):
     name = request.GET.get("name")
     adm_type = request.GET.get("adm_type")
@@ -503,16 +548,17 @@ def get_admin_boundary(request):
     # Return the GeoJSON response
     return JsonResponse(json.loads(geojson), safe=False)
 
+@csrf_exempt
+@xframe_options_exempt
 def get_basin_details(request):
     basin_id = request.GET.get("basin")
-    data = 'static/data/seaffgs/SEAFFGS_Mekong_XRay_v6.csv'
-    df = pd.read_csv()
+    data = 'static/data/seaffgs/SEAFFGS_Mekong_XRay_v7.csv'
+    df = pd.read_csv(data)
 
     # Filter the DataFrame by basin_id
-    filtered_df = df[df['ID_CAT'] == basin_id]
+    filtered_df = df[df['ID_CAT'] == int(basin_id)]
     
     # Convert the filtered DataFrame to a dictionary or JSON response
-    filtered_data = filtered_df.to_dict(orient='records')
-    
+    filtered_data = filtered_df.to_json(orient='records')
     return JsonResponse(filtered_data, safe=False)
 
