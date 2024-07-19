@@ -494,49 +494,30 @@ document.addEventListener("DOMContentLoaded", function() {
 
     async function createOrUpdateRiskMap(param, date, hr, areaType = 'country', areaName = 'all') {
         try {
-            // Initialize the cache for the specified param, date, and hr if it doesn't exist
-            if (!caches[param]) caches[param] = {};
-            if (!caches[param][date]) caches[param][date] = {};
-            if (!caches[param][date][hr]) caches[param][date][hr] = {};
-    
             let data; 
     
-            // Check if data is already in the cache for the specified param, date, and hr
-            if (Object.keys(caches[param][date][hr]).length !== 0) {
-                clearBootstrapAlert();
-                data = caches[param][date][hr]; // Assign cached data
-            } else {
-                // Construct the URL with the specified parameters
-                let url = '/get-risk-map';
-                if (param && date && hr) {
-                    url += `?param=${param}&date=${date}&hr=${hr}`;
-                }
-    
-                // Fetch the data from the server
-                const response = await fetch(url);
-    
-                // Handle different response statuses
-                if (!response.ok) {
-                    if (response.status === 404) {
-                        showBootstrapAlert("Oops! No data found for the selected date and hours. Please select a different date and try again.");
-                        throw new Error("Data not found for the selected date and hours");
-                    }
-                    throw new Error("Network response was not ok");
-                }
-    
-                // Clear any previous error alerts
-                clearBootstrapAlert();
-    
-                // Parse the response data
-                data = await response.json();
-    
-                // Cache the data based on param, date, and hr
-                caches[param][date][hr] = data;
+            // Construct the URL with the specified parameters
+            let url = '/get-risk-map';
+            if (param && date && hr) {
+                url += `?param=${param}&date=${date}&hr=${hr}`;
             }
+    
+            // Fetch the data from the server
+            const response = await fetch(url);
+
+            // Handle different response statuses
+            if (!response.ok) {
+                if (response.status === 404) {
+                    throw new Error("Data not found for the selected date and hours");
+                }
+                throw new Error("Network response was not ok");
+            }
+    
+            // Parse the response data
+            data = await response.json();
     
             // Generate the map using the fetched data
             await generateMap(data);
-            // console.log(data)
             return data;
         } catch (error) {
             console.error('Error:', error);
