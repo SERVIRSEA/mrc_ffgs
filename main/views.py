@@ -131,36 +131,6 @@ def get_seaffgs_bulletin_data(request):
     data = selected_col.to_json(orient='records')
     return JsonResponse(data, safe=False)
 
-
-
-# def assign_alert(row):
-#     if (row['FFG06'] > 0 and row['FFG06'] <= 15 ) or ((row['FFFT06'] > 0 and row['FFFT06'] < 10 )):
-#         return 'High'
-#     elif row['FFG06'] <= 30 or ((row['FFFT06'] > 10 and row['FFFT06'] < 40 )):
-#         return 'Moderate'
-#     elif row['FFG06'] <= 60 or ((row['FFFT06'] > 40 and row['FFFT06'] < 100 )):
-#         return 'Low'
-#     else:
-#         return np.nan
-
-# def assign_alert(row):
-#     # Check for invalid values
-#     if row['FFG06'] < 0 or row['FFFT06'] < 0:
-#         return np.nan
-
-#     # High alert
-#     if (0 < row['FFG06'] <= 15) or (0 < row['FFFT06'] < 10):
-#         return 'High'
-#     # Moderate alert
-#     elif (15 < row['FFG06'] <= 30) or (10 <= row['FFFT06'] < 40):
-#         return 'Moderate'
-#     # Low alert
-#     elif (30 < row['FFG06'] <= 60) or (40 <= row['FFFT06'] < 100):
-#         return 'Low'
-#     # Anything else
-#     else:
-#         return np.nan
-
 def assign_alert(row):
     # Check for invalid values
     if row['FFG06'] < 0:

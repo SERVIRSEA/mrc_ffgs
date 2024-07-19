@@ -491,7 +491,91 @@ document.addEventListener("DOMContentLoaded", function() {
     
         return String.fromCodePoint(...codePoints.split('-'));
     }
+
+    async function createOrUpdateRiskMap(param, date, hr, areaType = 'country', areaName = 'all') {
+        try {
+            // Initialize the cache for the specified param, date, and hr if it doesn't exist
+            if (!caches[param]) caches[param] = {};
+            if (!caches[param][date]) caches[param][date] = {};
+            if (!caches[param][date][hr]) caches[param][date][hr] = {};
     
+            let data; 
+    
+            // Check if data is already in the cache for the specified param, date, and hr
+            if (Object.keys(caches[param][date][hr]).length !== 0) {
+                clearBootstrapAlert();
+                data = caches[param][date][hr]; // Assign cached data
+            } else {
+                // Construct the URL with the specified parameters
+                let url = '/get-risk-map';
+                if (param && date && hr) {
+                    url += `?param=${param}&date=${date}&hr=${hr}`;
+                }
+    
+                // Fetch the data from the server
+                const response = await fetch(url);
+    
+                // Handle different response statuses
+                if (!response.ok) {
+                    if (response.status === 404) {
+                        showBootstrapAlert("Oops! No data found for the selected date and hours. Please select a different date and try again.");
+                        throw new Error("Data not found for the selected date and hours");
+                    }
+                    throw new Error("Network response was not ok");
+                }
+    
+                // Clear any previous error alerts
+                clearBootstrapAlert();
+    
+                // Parse the response data
+                data = await response.json();
+    
+                // Cache the data based on param, date, and hr
+                caches[param][date][hr] = data;
+            }
+    
+            // Generate the map using the fetched data
+            await generateMap(data);
+            // console.log(data)
+            return data;
+        } catch (error) {
+            console.error('Error:', error);
+            throw error; 
+        }
+    }   
+    
+    async function generateMap(data){
+        // Define function to get color by category
+        function getColorbyCategory(cat) {
+            switch (cat) {
+                case 'Low':
+                    return 'yellow';
+                case 'Moderate':
+                    return 'orange';
+                case 'High':
+                    return 'red';
+                default:
+                    return 'none';
+            }
+        }
+
+        // Define function to set style based on feature properties
+        function defineStyle(feature) {
+            const level = feature.properties.level;
+            const color = getColorbyCategory(level);
+            let defaultStyle = { color: "#000", weight: 1, opacity: 1, fillOpacity: 1 };
+
+            if (color === 'none') {
+                defaultStyle = { ...defaultStyle, fillOpacity: 0, opacity: 0 }; // Invisible style
+            }
+
+            return color ? { ...defaultStyle, color } : defaultStyle;
+        }
+
+        var riskLayer = L.geoJSON(data).addTo(hmap);
+        // riskLayer.addData(data, {});
+        riskLayer.setStyle(feature => defineStyle(feature));
+    }
       
     async function init() {
         try {
@@ -508,7 +592,6 @@ document.addEventListener("DOMContentLoaded", function() {
                     return b.localeCompare(a);
                 });
                 latestHour = hours[0];
-                console.log(latestHour);
             } else {
                 console.log("No data available.");
             }
@@ -521,6 +604,7 @@ document.addEventListener("DOMContentLoaded", function() {
             document.querySelector('.datePlaceholder').innerHTML = selected_date + " " + selected_hrs + ":00 (UTC+7)"
             
             generateGraph("All");
+            createOrUpdateRiskMap('FFG06', selected_date, selected_hrs, selected_country);
             
             const data_6hrs = await getStatsBulletin('6hrs', selected_date, selected_hrs);
             const parsed_data_6hrs = JSON.parse(data_6hrs);

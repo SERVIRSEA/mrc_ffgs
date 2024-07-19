@@ -277,6 +277,7 @@ document.addEventListener("DOMContentLoaded", function() {
         }
 
         if (areaType === 'adm2') {
+            console.log(areaName)
             const filteredData = data.filter(item => item.province === areaName);
             return percentOfDistrictsByProvince(filteredData);
         }
@@ -295,13 +296,15 @@ document.addEventListener("DOMContentLoaded", function() {
     
             processedData.push({ level, district, province, country });
         });
-
+        
         const result = processDataByAreaType(processedData, areaType, areaName);
         
         return result;
     }
 
     async function createChart(data){
+        // const table = document.getElementById('riskTable');
+        // table.style.display = 'None';
         const container = document.getElementById('riskTable');
         container.innerHTML = ''; // Clear previous content
         container.style.marginTop = '10px';
@@ -311,7 +314,7 @@ document.addEventListener("DOMContentLoaded", function() {
             chart: {
                 type: 'pie',
                 backgroundColor: 'transparent',
-                marginTop: 10
+                // marginTop: 20
             },
             title: {
                 text: 'Risk Levels ( % of District)',
@@ -332,9 +335,28 @@ document.addEventListener("DOMContentLoaded", function() {
                     allowPointSelect: true,
                     cursor: 'pointer',
                     dataLabels: {
-                        enabled: true,
+                        enabled: false,
                         format: '{point.percentage:.1f} %'
-                    }
+                    },
+                    showInLegend: true,
+                }
+            },
+            legend: {
+                layout: 'horizontal',
+                align: 'left',
+                verticalAlign: 'bottom',
+                itemMarginTop: 3,
+                itemMarginBottom: 3,
+                itemStyle: {
+                    color: '#666666',
+                    fontWeight: 'normal',
+                    fontSize: '12px',
+                    align: 'center',  
+                    verticalAlign: 'middle',
+                    layout: 'vertical'     
+                },
+                labelFormatter: function() {
+                    return this.name + " (" + this.percentage.toFixed(2) + "%)";
                 }
             },
             series: [{
@@ -353,13 +375,7 @@ document.addEventListener("DOMContentLoaded", function() {
                     y: data.High,
                     color: 'red'
                 }]
-            }],
-            legend: {
-                enabled: true,
-                layout: 'horizontal',
-                align: 'center',
-                verticalAlign: 'top'
-            }
+            }]
         });
     }
 
@@ -1438,7 +1454,6 @@ document.addEventListener("DOMContentLoaded", function() {
             admType = 'adm2';
             name = clickedFeature.properties.province;
             let selectedCountry = clickedFeature.properties.country;
-            // console.log(clickedFeature.properties)
             updateBreadcrumb('province', name, selectedCountry);
         }
 
@@ -1455,20 +1470,25 @@ document.addEventListener("DOMContentLoaded", function() {
             // If it has District property, just zoom to the feature
             map.fitBounds(layer.getBounds(), { minZoom: 7 });
         } else {
-            // Fetch Thailand province data if no District property
-            const data = await fetchData('/get-admin-boundary/', params);
-
-            // Clear existing layers (if needed) and add new data
-            adm0.clearLayers();
-            adm0.addData(data);
-            map.fitBounds(layer.getBounds(), { minZoom: 7 });
-            
-            const selectedDate = dateInput.value; 
-            const selectedHr = hourInput.value;
-            const selectedParam = 'FFG06';
-            
-            createOrUpdateRiskMap(selectedParam, selectedDate, selectedHr, admType, name);
+            await updateMapData(params);
         }
+    }
+
+    async function updateMapData(params) {
+         
+        // Fetch Thailand province data
+        const data = await fetchData('/get-admin-boundary/', params);
+    
+        // Clear existing layers (if needed) and add new data
+        adm0.clearLayers();
+        adm0.addData(data);
+        map.fitBounds(adm0.getBounds(), { minZoom: 7 });
+    
+        const selectedDate = dateInput.value;
+        const selectedHr = hourInput.value;
+        const selectedParam = 'FFG06';
+    
+        createOrUpdateRiskMap(selectedParam, selectedDate, selectedHr, params.adm_type, params.name);
     }
 
     async function loadLayers() {
@@ -1491,6 +1511,7 @@ document.addEventListener("DOMContentLoaded", function() {
                     fillOpacity: 0.8,
                 },
             }).addTo(map);
+            map.fitBounds(adm0.getBounds(), { minZoom: 7 });
 
         } catch (error) {
             console.error('Layer loading error:', error);
@@ -1500,43 +1521,60 @@ document.addEventListener("DOMContentLoaded", function() {
     // Call the loadLayers function to load the layers asynchronously.
     loadLayers();
 
+    bcAll.onclick = function(){
+        loadLayers();
+        updateBreadcrumb('All', null);
+        const selectedDate = dateInput.value;
+        const selectedHr = hourInput.value;
+        const selectedParam = 'FFG06';
+        createOrUpdateRiskMap(selectedParam, selectedDate, selectedHr);
+        
+    }
+
     // Function to update breadcrumb based on selected country
     function updateBreadcrumb(areaType, areaName, country='All', province='All') {
         if (areaType == 'All'){
-            loadLayers();
+            bcCountry.innerHTML = 'All';
+            removeBreadcrumbItem('bcProvince');
+            removeBreadcrumbItem('bcDistrict');
         } else if (areaType == 'country'){
             bcCountry.innerHTML = areaName;
         } else if (areaType == 'province'){
-            // Clear existing content
             bcCountry.innerHTML = '';
-            // Update for province
             bcCountry.textContent = country;
             bcCountry.href = '#';
-
-            // Create a new list item
+            
             const newList = document.createElement('li');
             newList.classList.add('breadcrumb-item');
             
-
             const bcProvince = document.createElement('a');
             bcProvince.textContent = areaName;
             bcProvince.id = 'bcProvince';
-
             newList.appendChild(bcProvince);
             breadcrumb.appendChild(newList);
+
+            bcCountry.onclick = async function() {
+                const params = { name: country, adm_type: 'adm1' };
+                await updateMapData(params);
+                if (newList.parentNode) {
+                    breadcrumb.removeChild(newList); 
+                }
+            };
+
+            // Remove the district breadcrumb if it exists
+            const bcDistrict = document.getElementById('bcDistrict');
+            if (bcDistrict) {
+                const districtListItem = bcDistrict.parentNode;
+                if (districtListItem && districtListItem.parentNode) {
+                    districtListItem.parentNode.removeChild(districtListItem);
+                }
+            }
+
         } else if (areaType == 'district'){
             let bcProvince = document.querySelector('#bcProvince');
-            // Clear existing content
             bcCountry.innerHTML = '';
-            // Update for province
             bcCountry.textContent = country;
             bcCountry.href = '#';
-
-            // // Create a new list item
-            // const newList1 = document.createElement('li');
-            // newList1.classList.add('breadcrumb-item');
-
-            // const bcProvince = document.createElement('a');
             bcProvince.textContent = province;
             bcProvince.href = '#';
 
@@ -1548,23 +1586,34 @@ document.addEventListener("DOMContentLoaded", function() {
             let bcDistrict = document.getElementById('bcDistrict');
             
             if (bcDistrict) {
-                bcDistrict.textContent = '';
+                // bcDistrict.textContent = '';
                 bcDistrict.textContent = areaName;
-                // bcDistrict.id = 'bcDistrict';
             } else {
                 bcDistrict = document.createElement('a');
                 bcDistrict.textContent = areaName;
                 bcDistrict.id = 'bcDistrict';
+                newList2.appendChild(bcDistrict);
+                breadcrumb.appendChild(newList2);
             }
-            // bcDistrict.textContent = '';
-            // const bcDistrict = document.createElement('a');
-            // bcDistrict.textContent = areaName;
-            // bcDistrict.id = 'bcDistrict';
 
-            // newList1.appendChild(bcProvince);
-            newList2.appendChild(bcDistrict);
-            // breadcrumb.appendChild(newList1);
-            breadcrumb.appendChild(newList2);
+            bcProvince.onclick = async function() {
+                const params = { name: province, adm_type: 'adm2' };
+                await updateMapData(params);
+                if (newList2.parentNode) {
+                    breadcrumb.removeChild(newList2);
+                }
+            };
+        }
+    }
+
+    // Helper function to remove a breadcrumb item by ID
+    function removeBreadcrumbItem(itemId) {
+        const item = document.getElementById(itemId);
+        if (item) {
+            const listItem = item.parentNode;
+            if (listItem && listItem.parentNode) {
+                listItem.parentNode.removeChild(listItem);
+            }
         }
     }
 
@@ -1614,7 +1663,6 @@ document.addEventListener("DOMContentLoaded", function() {
         document.querySelector('#total_male_pop_subprvnc').innerHTML = totalMale === 0 ? '---' : totalMale;
         document.querySelector('#total_female_pop_subprvnc').innerHTML = totalFemale === 0 ? '---' : totalFemale;
         document.querySelector('#total_pop_subprvnc').innerHTML = totalPop === 0 ? '---' : totalPop;
-
         
         elements.forEach(el => {
             // Find corresponding data key from the mapping using the element's ID
@@ -1629,6 +1677,7 @@ document.addEventListener("DOMContentLoaded", function() {
         
             el.innerHTML = value;
         });
+
         const country = entry.country;
         if (country) {
             document.querySelector("#country_name").innerHTML = country;
