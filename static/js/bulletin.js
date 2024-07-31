@@ -1608,6 +1608,7 @@ document.addEventListener("DOMContentLoaded", function () {
             // combinedData[interval] = data;
             combinedData[interval] = data.filter(item => item.Level.toLowerCase() !== 'low');
         }
+        // console.log(combinedData);
 
         if (intervals.includes('1hrs') || intervals.includes('3hrs') || intervals.includes('6hrs')) {
             // Check for group 1 (1, 3, and 6 hours)

@@ -201,13 +201,14 @@ def get_alert_stat_1hrs(request):
         grouped_max_FFG = scols_ffg.groupby(['NAME_2']).agg({
             'ISO': 'first',
             'NAME_1': 'first',
-            'FFG01': 'min',# 'median', #
+            'FFG01': 'min', # 'median', #
         }).reset_index()
-
         
         grouped_max_FFG['Alert_1Hrs'] = grouped_max_FFG.apply(lambda row: assign_alert_1hrs(row), axis=1)
         final_df = grouped_max_FFG.dropna(subset=['Alert_1Hrs'], how='all')
         final_df = final_df.rename(columns={'Alert_1Hrs': 'Level'})
+        # Sort by 'NAME_1' and then 'NAME_2'
+        final_df = final_df.sort_values(by=['NAME_1', 'NAME_2', 'Level'])
         json = final_df.to_json(orient='records')
         return JsonResponse(json, safe=False)
     except FileNotFoundError:
@@ -240,6 +241,8 @@ def get_alert_stat_3hrs(request):
         grouped_max_FFG['Alert_3Hrs'] = grouped_max_FFG.apply(lambda row: assign_alert_3hrs(row), axis=1)
         final_df = grouped_max_FFG.dropna(subset=['Alert_3Hrs'], how='all')
         final_df = final_df.rename(columns={'Alert_3Hrs': 'Level'})
+        # Sort by 'NAME_1' and then 'NAME_2'
+        final_df = final_df.sort_values(by=['NAME_1', 'NAME_2', 'Level'])
         json = final_df.to_json(orient='records')
         return JsonResponse(json, safe=False)
     except FileNotFoundError:
@@ -289,6 +292,8 @@ def get_alert_stat_6hrs(request):
         join_max['Alert_6Hrs'] = join_max.apply(lambda row: assign_alert(row), axis=1)
         final_df = join_max.dropna(subset=['Alert_6Hrs'], how='all')
         final_df = final_df.rename(columns={'Alert_6Hrs': 'Level'})
+        # Sort by 'NAME_1' and then 'NAME_2'
+        final_df = final_df.sort_values(by=['NAME_1', 'NAME_2', 'Level'])
         json = final_df.to_json(orient='records')
         return JsonResponse(json, safe=False)
     except FileNotFoundError:
@@ -338,6 +343,8 @@ def get_risk_stat_12hrs(request):
     grouped_max = grouped_max.replace('Invalid', np.nan)
     final_df = grouped_max.dropna(subset=['Risk_12Hrs'], how='all')
     final_df = final_df.rename(columns={'Risk_12Hrs': 'Level'})
+    # Sort by 'NAME_1' and then 'NAME_2'
+    final_df = final_df.sort_values(by=['NAME_1', 'NAME_2', 'Level'])
     json = final_df.to_json(orient='records')
     return JsonResponse(json, safe=False)
 
@@ -387,6 +394,8 @@ def get_risk_stat_24hrs(request):
     final_df = grouped_max.dropna(subset=['Risk_24Hrs'], how='all')
     
     final_df = final_df.rename(columns={'Risk_24Hrs': 'Level'})
+    # Sort by 'NAME_1' and then 'NAME_2'
+    final_df = final_df.sort_values(by=['NAME_1', 'NAME_2', 'Level'])
     jsonData = final_df.to_json(orient='records')
     return JsonResponse(jsonData, safe=False)
 
