@@ -2001,7 +2001,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 modalHeader.innerHTML = " " + sc +" , with the date set to " + sd;
             }
 
-            // const response = await fetch(`http://127.0.0.1:8081/generate-pdf/?selectedDate=${selected_date}&selectedHr=${selected_hour}&selectedCountry=${selected_country}`);
+            // const response = await fetch(`http://127.0.0.1:3000/generate-pdf/?selectedDate=${selected_date}&selectedHr=${selected_hour}&selectedCountry=${selected_country}`);
             const response = await fetch(`http://119.15.81.22:8000/generate-pdf/?selectedDate=${selected_date}&selectedHr=${selected_hour}&selectedCountry=${selected_country}`);
 
             if (!response.ok) {
@@ -2009,8 +2009,16 @@ document.addEventListener("DOMContentLoaded", function () {
             }
 
             const data = await response.json();
-            const pdfPath = data.pdfURL;
+            // const pdfPath = data.pdfURL;
+            const pdfURL = data.pdfURL;
             const dwnldPath = data.pdfDwnld;
+            
+            // Extract the filename using URL object
+            const urlObject = new URL(pdfURL);
+            const pathname = urlObject.pathname; // Get the path part of the URL
+            const filename = pathname.substring(pathname.lastIndexOf('/') + 1); 
+            const pdfPath = `http://119.15.81.22:8000/generate-pdf/pdf/${filename}`
+            // const pdfPath = `http://localhost:3000/pdf/${filename}`
 
             // Hide loading content and show finished content
             loadingContent.classList.add('d-none');
