@@ -277,7 +277,6 @@ document.addEventListener("DOMContentLoaded", function() {
         }
 
         if (areaType === 'adm2') {
-            console.log(areaName)
             const filteredData = data.filter(item => item.province === areaName);
             return percentOfDistrictsByProvince(filteredData);
         }
@@ -682,20 +681,6 @@ document.addEventListener("DOMContentLoaded", function() {
         }
     }    
     
- 
-    function determineStatsParam(param) {
-        switch (param) {
-            case "FFG06":
-                return '6hrs';
-            case "FFR12":
-                return '12hrs';
-            case "FFR24":
-                return '24hrs';
-            default:
-                return null;  
-        }
-    }
-
     document.getElementById("btnradio06").addEventListener("click", async function() {
         var selectedDate = dateInput.value;
         var selectedHr = hourInput.value;
@@ -707,14 +692,14 @@ document.addEventListener("DOMContentLoaded", function() {
         var selectedDate = dateInput.value;
         var selectedHr = hourInput.value;
         var selectedCountry = countryDropdown.value;
-        createOrUpdateRiskMap('FFR12', selectedDate, selectedHr, selectedCountry);
+        createOrUpdateRiskMap('FFR12', selectedDate, selectedHr);
     });
 
     document.getElementById("btnradio24").addEventListener("click", async function() {
         var selectedDate = dateInput.value;
         var selectedHr = hourInput.value;
         var selectedCountry = countryDropdown.value;
-        createOrUpdateRiskMap('FFR24', selectedDate, selectedHr, selectedCountry);
+        createOrUpdateRiskMap('FFR24', selectedDate, selectedHr);
     });
     
     
@@ -1036,7 +1021,7 @@ document.addEventListener("DOMContentLoaded", function() {
         const selectedHr = hourInput.value;
         const selectedCountry = countryDropdown.value;
 
-        createOrUpdateRiskMap(param, selectedDate, selectedHr, selectedCountry);
+        createOrUpdateRiskMap(param, selectedDate, selectedHr);
     }
 
     function handleDateItemClick(dateItem, currentDate) {
@@ -1223,7 +1208,7 @@ document.addEventListener("DOMContentLoaded", function() {
         const selectedHr = hourInput.value;
         const selectedCountry = countryDropdown.value;
 
-        createOrUpdateRiskMap(param, selectedDate, selectedHr, selectedCountry);
+        createOrUpdateRiskMap(param, selectedDate, selectedHr);
     });
 
     //////////////////////////
@@ -1265,7 +1250,7 @@ document.addEventListener("DOMContentLoaded", function() {
         hourInput.value = latestHour;
         let selectedHrs = latestHour;
         let selectedCountry = countryDropdown.value;
-        createOrUpdateRiskMap('FFG06', selectedDate, selectedHrs);
+        createOrUpdateRiskMap('FFR12', selectedDate, selectedHrs);
     })();
 
     // Function to create Highcharts bar chart
@@ -1483,11 +1468,29 @@ document.addEventListener("DOMContentLoaded", function() {
         adm0.clearLayers();
         adm0.addData(data);
         map.fitBounds(adm0.getBounds(), { minZoom: 7 });
+        
+        const radioButtons = document.getElementsByName("btnradio");
+        let selectedRadioButton;
+    
+        for(let radioButton of radioButtons) {
+            if (radioButton.checked) {
+                selectedRadioButton = radioButton;
+                break;
+            }
+        }
+    
+        const radioMapping = {
+            "btnradio06": "FFG06",
+            "btnradio12": "FFR12",
+            "btnradio24": "FFR24"
+        };
+    
+        const selectedParam = radioMapping[selectedRadioButton.id];
     
         const selectedDate = dateInput.value;
         const selectedHr = hourInput.value;
-        const selectedParam = 'FFG06';
-    
+        // const selectedParam = 'FFG06';
+        console.log(params)
         createOrUpdateRiskMap(selectedParam, selectedDate, selectedHr, params.adm_type, params.name);
     }
 
@@ -1524,9 +1527,25 @@ document.addEventListener("DOMContentLoaded", function() {
     bcAll.onclick = function(){
         loadLayers();
         updateBreadcrumb('All', null);
+        const radioButtons = document.getElementsByName("btnradio");
+        let selectedRadioButton;
+    
+        for(let radioButton of radioButtons) {
+            if (radioButton.checked) {
+                selectedRadioButton = radioButton;
+                break;
+            }
+        }
+    
+        const radioMapping = {
+            "btnradio06": "FFG06",
+            "btnradio12": "FFR12",
+            "btnradio24": "FFR24"
+        };
+    
+        const selectedParam = radioMapping[selectedRadioButton.id];
         const selectedDate = dateInput.value;
         const selectedHr = hourInput.value;
-        const selectedParam = 'FFG06';
         createOrUpdateRiskMap(selectedParam, selectedDate, selectedHr);
         
     }

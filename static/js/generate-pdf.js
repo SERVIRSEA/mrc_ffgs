@@ -897,7 +897,8 @@ document.addEventListener("DOMContentLoaded", function () {
         const combinedData = {};
         for (const interval of intervals) {
             const data = await fetchDataForInterval(iso, interval, selected_date, selected_hr);
-            combinedData[interval] = data;
+            // combinedData[interval] = data;
+            combinedData[interval] = data.filter(item => item.Level.toLowerCase() !== 'low');
         }
         return combinedData;
     }

@@ -1605,7 +1605,8 @@ document.addEventListener("DOMContentLoaded", function () {
         
         for (const interval of intervals) {
             const data = await fetchDataForInterval(iso, interval, selected_date, selected_hrs);
-            combinedData[interval] = data;
+            // combinedData[interval] = data;
+            combinedData[interval] = data.filter(item => item.Level.toLowerCase() !== 'low');
         }
 
         if (intervals.includes('1hrs') || intervals.includes('3hrs') || intervals.includes('6hrs')) {
@@ -1679,6 +1680,7 @@ document.addEventListener("DOMContentLoaded", function () {
     
         if (level === 'Low') {
             cell.style.backgroundColor = lowColor;
+            // cell.style.display = 'none';
         } else if (level === 'Moderate') {
             cell.style.backgroundColor = moderateColor;
         } else if (level === 'High') {

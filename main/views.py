@@ -531,4 +531,3 @@ def get_basin_details(request):
     # Convert the filtered DataFrame to a dictionary or JSON response
     filtered_data = filtered_df.to_json(orient='records')
     return JsonResponse(filtered_data, safe=False)
-
