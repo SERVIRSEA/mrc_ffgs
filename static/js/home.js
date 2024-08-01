@@ -1,4 +1,8 @@
 document.addEventListener("DOMContentLoaded", function() {
+    
+    var homeModal = new bootstrap.Modal(document.getElementById('homeModal'));
+    homeModal.show();
+
     function showBootstrapAlert(message) {
         const alertPlaceholder = document.getElementById('alert-placeholder');
         const alertHTML = `
@@ -585,7 +589,7 @@ document.addEventListener("DOMContentLoaded", function() {
             document.querySelector('.datePlaceholder').innerHTML = selected_date + " " + selected_hrs + ":00 (UTC+7)"
             
             generateGraph("All");
-            createOrUpdateRiskMap('FFG06', selected_date, selected_hrs, selected_country);
+            createOrUpdateRiskMap('FFR24', selected_date, selected_hrs, selected_country);
             
             const data_6hrs = await getStatsBulletin('6hrs', selected_date, selected_hrs);
             const parsed_data_6hrs = JSON.parse(data_6hrs);

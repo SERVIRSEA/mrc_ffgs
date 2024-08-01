@@ -9,7 +9,37 @@
     <div class="loader"></div>
 </div>
 
-<div class="banner">
+<!-- Modal Structure -->
+<div class="modal fade" id="homeModal" tabindex="-1" aria-labelledby="homeModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header pe-4">
+                <h5 class="modal-title fw-bold" id="homeModalLabel">MEKONG FFGS</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row ps-3 pe-5">
+                    <div class="col-12">
+                        <!-- <h2 class="h1 fw-bolder">MEKONG FFGS</h2> -->
+                        <h5 class="pt-3 fw-bold lh-base">MEKONG FFGS provide Automatic Flash Flood Guidance and Bulletins for the Lower Mekong Basin, aimed at improving flash flood warnings.</h5>
+                        <p class="pt-3 fs-4 text-danger fw-bold">Please note, this isn't the primary early warning platform.</p>
+                    </div>
+                </div>
+                <div class="row ps-3 pe-5">
+                    <div class="col-12">
+                        <p class="pt-3 fs-5">For official early warning products, kindly refer to the Meterology Agency of each respective country.</p>
+                        <h5 class="pt-4 pb-3 fw-bold lh-base text-success">Stay Safe!</h5>
+                    </div>
+                </div>
+            </div>
+            <!-- <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Close</button>
+            </div> -->
+        </div>
+    </div>
+</div>
+
+<!-- <div class="banner">
     <img class="img-fluid" src="/static/img/flashflood.jpg" alt="banner">
     <div class="overlay-text">
         <div class="container-fluid m-5">
@@ -35,7 +65,7 @@
             </div>
         </div>
     </div>
-</div>
+</div> -->
 
 <div class="container-fluid m-5">
     <div id="alert-placeholder"></div>
@@ -180,12 +210,14 @@ under SERVIR SEA, a joint initiative of USAID and the National Aeronautics and S
 
 <div class="footer bg-secondary mt-5">
     <div class="text-center py-4 text-white">
-        &copy; 2023 MRC | SERVIR SEA | ADPC. All Rights Reserved.
+        &copy; 2023-2024 MRC | SERVIR SEA | ADPC. All Rights Reserved.
     </div>
 </div>
 
 {% endblock container %}
-
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'css/home.css' %}">
+{% endblock %}
 {% block extra_script %}
     <script src="{% static 'js/home.js'  %}"></script>
 {% endblock %}
