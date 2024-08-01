@@ -42,7 +42,7 @@ document.addEventListener("DOMContentLoaded", function() {
     var map = L.map('map', MapOtions);
 
     // Set default basemap
-    var basemap_layer = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+    var basemap_layer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}', {
         tileSize: 256,
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">Mapbox| OpenStreetMap</a> contributors'
     }).addTo(map);
@@ -526,7 +526,7 @@ document.addEventListener("DOMContentLoaded", function() {
                 '<tbody>' +
                 '<tr>' +
                 '<td class="fw-bold">Risk Level</td>' +
-                '<td>' + feature.properties.level + '</td>' +
+                '<td>' + feature.properties.level + ' (' + feature.properties.value + ')'+'</td>' +
                 '</tr>' +
                 '<tr>' +
                 '<td class="fw-bold">District</td>' +
@@ -1353,7 +1353,7 @@ document.addEventListener("DOMContentLoaded", function() {
     let subprovince_map;
     let mainlakes;
     let river;
-    let mekong_basin;
+    // let mekong_basin;
 
     const staticCache = {};
 
@@ -1387,8 +1387,9 @@ document.addEventListener("DOMContentLoaded", function() {
             fillColor: '#9999ff',
             weight: 1,
             opacity: 1,
-            color: 'white',
+            color: '#000', //'white',
             fillOpacity: 0.0,
+            dashArray: '4, 2'
         };
     }
 
@@ -1397,10 +1398,10 @@ document.addEventListener("DOMContentLoaded", function() {
         const layer = e.target;
 
         layer.setStyle({
-            fillColor: '#fde047',
+            fillColor: 'orange', //'#fde047',
             weight: 2,
-            color: '#fde047',
-            fillOpacity: 0.2,
+            color: '#000', // '#fde047',
+            fillOpacity: 0.5,
         });
 
         if (!L.Browser.ie && !L.Browser.opera && !L.Browser.edge) {
@@ -1490,7 +1491,7 @@ document.addEventListener("DOMContentLoaded", function() {
         const selectedDate = dateInput.value;
         const selectedHr = hourInput.value;
         // const selectedParam = 'FFG06';
-        console.log(params)
+        // console.log(params)
         createOrUpdateRiskMap(selectedParam, selectedDate, selectedHr, params.adm_type, params.name);
     }
 
@@ -1514,8 +1515,9 @@ document.addEventListener("DOMContentLoaded", function() {
                     fillOpacity: 0.8,
                 },
             }).addTo(map);
+            
             map.fitBounds(adm0.getBounds(), { minZoom: 7 });
-
+            
         } catch (error) {
             console.error('Layer loading error:', error);
         }
@@ -1523,6 +1525,13 @@ document.addEventListener("DOMContentLoaded", function() {
 
     // Call the loadLayers function to load the layers asynchronously.
     loadLayers();
+
+    var mekong_basin  = L.tileLayer.wms('http://119.15.81.22:8081/geoserver/wms?', {
+        layers: 'ffgs:lmb_basin',
+        format: 'image/png',
+        version: '1.1.0',
+        transparent: true
+    }).addTo(map);
 
     bcAll.onclick = function(){
         loadLayers();
@@ -1549,7 +1558,7 @@ document.addEventListener("DOMContentLoaded", function() {
         createOrUpdateRiskMap(selectedParam, selectedDate, selectedHr);
         
     }
-
+    
     // Function to update breadcrumb based on selected country
     function updateBreadcrumb(areaType, areaName, country='All', province='All') {
         if (areaType == 'All'){

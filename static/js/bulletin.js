@@ -1201,11 +1201,28 @@ document.addEventListener("DOMContentLoaded", function () {
         const paramStyles = styles[param];
         let legendHTML = '<div class="legend" style="background-color: white; padding: 10px;">';
         
-        for (const style of paramStyles) {
-            const { color, min, max } = style;
-            const label = `${min} - ${max}`;
-            legendHTML += `<div><span class="legend-color p-2" style="background-color: ${color}; display: inline-block; margin-right: 5px;"></span>${label}</div>`;
-        }
+        // for (const style of paramStyles) {
+        //     const { color, min, max } = style;
+        //     const label = `${min} - ${max}`;
+        //     legendHTML += `<div><span class="legend-color p-2" style="background-color: ${color}; display: inline-block; margin-right: 5px;"></span>${label}</div>`;
+        // }
+
+        if (param === 'FFR12' || param === 'FFR24') {
+            const labels = ['Low', 'Moderate', 'High'];
+
+            for (const style of paramStyles) {
+                const { color, min, max } = style;
+                const label = labels.shift(); 
+                legendHTML += `<div><span class="legend-color p-2" style="background-color: ${color}; display: inline-block; margin-right: 5px;"></span>${label}</div>`;
+            }  
+        } else {
+            // Default min-max labels for other parameters
+            for (const style of paramStyles) {
+                const { color, min, max } = style;
+                const label = `${min} - ${max}`;
+                legendHTML += `<div><span class="legend-color p-2" style="background-color: ${color}; display: inline-block; margin-right: 5px;"></span>${label}</div>`;
+            }
+        }    
         
         legendHTML += '</div>';
         
