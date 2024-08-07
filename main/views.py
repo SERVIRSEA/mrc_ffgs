@@ -337,7 +337,7 @@ def get_risk_stat_12hrs(request):
         'FFR12': 'max',
     }).reset_index()
     
-    bins = [-np.inf, 0.01, 0.3, 0.6, 1, np.inf]
+    bins = [-np.inf, 0.01, 0.35, 0.75, 1, np.inf]
     labels = ['Invalid', 'Low', 'Moderate', 'High', 'Invalid']
     grouped_max['Risk_12Hrs'] = pd.cut(grouped_max["FFR12"], bins=bins, labels=labels, right=True, ordered=False)
     grouped_max = grouped_max.replace('Invalid', np.nan)
@@ -385,7 +385,7 @@ def get_risk_stat_24hrs(request):
         'FFR24': 'max',
     }).reset_index()
     
-    bins = [-np.inf, 0.01, 0.3, 0.6, 1, np.inf]
+    bins = [-np.inf, 0.01, 0.35, 0.75, 1, np.inf]
     labels = ['Invalid', 'Low', 'Moderate', 'High', 'Invalid']
     grouped_max['Risk_24Hrs'] = pd.cut(grouped_max["FFR24"], bins=bins, labels=labels, right=True, ordered=False)
     
@@ -490,7 +490,7 @@ def get_risk_map(request):
     else:
         s_df2 = renamed_cols2[["BASIN", param]]
         join_df = df1.merge(s_df2, on='BASIN', how='inner')
-        bins = [-np.inf, 0.01, 0.3, 0.6, 1, np.inf]
+        bins = [-np.inf, 0.01, 0.35, 0.75, 1, np.inf]
         labels = ['Invalid', 'Low', 'Moderate', 'High', 'Invalid']
         join_df['level'] = pd.cut(join_df[param], bins=bins, labels=labels, right=True, ordered=False)
         join_df = join_df.replace('Invalid', np.nan)
