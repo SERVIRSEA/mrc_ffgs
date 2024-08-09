@@ -132,8 +132,13 @@ def get_date_list(request):
         # Sort the DataFrame by the date column in descending order
         df = df.sort_values(by=0, ascending=False)
         json = df.to_json(orient='values')
+        
+        # Get current time for returned_time
+        returned_time = datetime.utcnow().isoformat()
+
         return Response({
             "status": "success",
+            "returned_time": returned_time,
             "data": json
         })
     except Exception as e:
@@ -177,8 +182,16 @@ def get_seaffgs_value(request):
         selected_col = renamed_cols[["BASIN", param]]
         # json_data = selected_col.to_json(orient='records')
         dict_data = selected_col.to_dict(orient='records')
+        
+        # Get current time for returned_time
+        returned_time = datetime.utcnow().isoformat()
+
         return Response({
             "status": "success",
+            "param": param,
+            "date": date_str,
+            "hour": hrs,
+            "returned_time": returned_time,
             "data": dict_data
         })
     except Exception as e:
@@ -292,8 +305,15 @@ def get_alert_stat_6hrs(request):
         final_df = final_df.sort_values(by=['NAME_1', 'NAME_2', 'Level'])
         # json = final_df.to_json(orient='records')
         dict_data = final_df.to_dict(orient='records')
+        
+        # Get current time for returned_time
+        returned_time = datetime.utcnow().isoformat()
+
         return Response({
             "status": "success",
+            "date": date_str,
+            "hour": hrs,
+            "returned_time": returned_time,
             "data": json
         })
     except Exception as e:
@@ -360,8 +380,15 @@ def get_risk_stat_12hrs(request):
         final_df = final_df.sort_values(by=['NAME_1', 'NAME_2', 'Level'])
         # json = final_df.to_json(orient='records')
         dict_data = final_df.to_dict(orient='records')
+        
+        # Get current time for returned_time
+        returned_time = datetime.utcnow().isoformat()
+        
         return Response({
                 "status": "success",
+                "date": date_str,
+                "hour": hrs,
+                "returned_time": returned_time,
                 "data": dict_data
             })
     except Exception as e:
@@ -431,8 +458,15 @@ def get_risk_stat_24hrs(request):
         final_df = final_df.sort_values(by=['NAME_1', 'NAME_2', 'Level'])
         # json = final_df.to_json(orient='records')
         dict_data = final_df.to_dict(orient='records')
+        
+        # Get current time for returned_time
+        returned_time = datetime.utcnow().isoformat()
+
         return Response({
                 "status": "success",
+                "date": date_str,
+                "hour": hrs,
+                "returned_time": returned_time,
                 "data": dict_data
             })
     except Exception as e:
@@ -476,7 +510,7 @@ def get_risk_map(request):
     The dataframe is modified to replace 'Invalid' values with NaN and drop rows where all risk categories are NaN.
     The result is converted to GeoJSON format and returned.
 
-    :valid parms = ['FFR12', 'FFR24']
+    :valid params = ['FFR12', 'FFR24']
     :param request: HTTP request
     :return: Response containing merged dataframe in JSON format
     :rtype: Response
@@ -519,6 +553,7 @@ def get_risk_map(request):
 
         return Response({
             "status": "success",
+            'param': param,
             "date": date_str,
             "hour": hr,
             "returned_time": returned_time,
