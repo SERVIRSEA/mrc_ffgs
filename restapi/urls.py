@@ -8,4 +8,5 @@ urlpatterns = [
     path('v1/seaffgs/get-risk-12hrs/', api.get_risk_stat_12hrs),
     path('v1/seaffgs/get-risk-24hrs/', api.get_risk_stat_24hrs),
     path('v1/dashboard/get-drought-stats/', api.get_drought_stats),
+    path('v1/seaffgs/get-risk-map/', api.get_risk_map)
 ]

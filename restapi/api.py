@@ -3,12 +3,14 @@ import json
 import pandas as pd
 import numpy as np
 import geopandas as gpd
+import dask_geopandas as dgpd
+import orjson
 from rest_framework.decorators import api_view, authentication_classes, permission_classes
 from rest_framework.response import Response
 from main.authentication import APIKeyAuthentication
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.exceptions import ParseError
-
+from shapely.geometry import mapping
 from django.conf import settings
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
@@ -82,6 +84,7 @@ seaffgs = settings.SEAFFGS_DATA_PATH
 mekongxray = settings.MEKONGXRAY_PATH
 events_country = settings.EVENTS_COUNTRYWISE_PATH
 storms = settings.STORMS_DATA_PATH
+basin_attr = settings.BASIN_ATTR_PATH
 
 def get_seaffgs_data_path(date_string):
     base_path = seaffgs
@@ -124,13 +127,14 @@ def get_date_list(request):
     - JSON: List of dates in JSON format.
     """
     try:
-        data = datelist  # Assuming datelist is defined somewhere in your code
+        data = datelist
         df = pd.read_csv(data, header=None, encoding='utf-8-sig')
-        json_data = df.to_json(orient='values')
-        # json_data = df.to_dict(orient='records')
+        # Sort the DataFrame by the date column in descending order
+        df = df.sort_values(by=0, ascending=False)
+        json = df.to_json(orient='values')
         return Response({
             "status": "success",
-            "data": json_data
+            "data": json
         })
     except Exception as e:
         return Response({
@@ -171,47 +175,65 @@ def get_seaffgs_value(request):
         filtered_df = df[selected_columns] 
         renamed_cols = filtered_df.rename(columns=rename_mapping)
         selected_col = renamed_cols[["BASIN", param]]
-        json_data = selected_col.to_json(orient='records')
-        # json_data = selected_col.to_dict(orient='records')
+        # json_data = selected_col.to_json(orient='records')
+        dict_data = selected_col.to_dict(orient='records')
         return Response({
             "status": "success",
-            "data": json_data
+            "data": dict_data
         })
     except Exception as e:
         return Response({
             "status": "error",
             "message": str(e)
         }, status=500)
-
-# # Function to assign alert
-# def assign_alert(row):
-#     if (60 < row['FFG06'] <= 100) or (0.01 < row['FFFT06'] < 10):
-#         return 'Low'
-#     elif (30 < row['FFG06'] <= 60) or (10 < row['FFFT06'] < 40):
-#         return 'Moderate'
-#     elif (0.01 < row['FFG06'] <= 15) or (40 < row['FFFT06'] < 100):
-#         return 'High'
-#     else:
-#         return np.nan
     
 
-    # Function to assign alert
 def assign_alert(row):
+    # Check for invalid values
+    if row['FFG06'] < 0:
+        return np.nan
 
-    if ((row['FFG06'] > 30 and row['FFG06'] <= 60 )) or (0.01 < row['FFFT06'] < 10):
-        return 'Low'
-    elif ((row['FFG06'] > 15 and row['FFG06'] <= 30 )) or (10 < row['FFFT06'] < 40):
-        return 'Moderate'
-    elif ((row['FFG06'] <= 15 )) or (40 < row['FFFT06'] < 100):
+    # High alert
+    if 0 < row['FFG06'] <= 15:
         return 'High'
+    # Moderate alert
+    elif 15 < row['FFG06'] <= 30:
+        return 'Moderate'
+    # Low alert
+    elif 30 < row['FFG06'] <= 60:
+        return 'Low'
+    # Anything else
     else:
         return np.nan
-    
 
 int_columns = ['ID_2', 'M1', 'M2', 'M3', 'F1', 'F2', 'F3', 'Hospital']
 float_columns = ['RTP1', 'RTP2', 'RTP3', 'RTP4', 'GDP', 'crop_sqm']
 float_round_0_cols = ['GDP', 'crop_sqm']
 float_round_2_cols = ['RTP1', 'RTP2', 'RTP3', 'RTP4']
+
+def assign_alert_1hrs(row):
+    if row['FFG01'] < 0:
+        return np.nan
+    elif 0 < row['FFG01'] <= 10:
+        return 'High'
+    elif row['FFG01'] <= 25:
+        return 'Moderate'
+    elif row['FFG01'] <= 40:
+        return 'Low'
+    else:
+        return np.nan
+
+def assign_alert_3hrs(row):
+    if row['FFG03'] < 0:
+        return np.nan
+    elif 0 < row['FFG03'] <= 10:
+        return 'High'
+    elif row['FFG03'] <= 25:
+        return 'Moderate'
+    elif row['FFG03'] <= 40:
+        return 'Low'
+    else:
+        return np.nan
 
 @swagger_auto_schema(
     method='get',
@@ -241,52 +263,38 @@ def get_alert_stat_6hrs(request):
     :rtype: Response
     """
     try:
-        static_data_path = mekongxray
+        static_data_path = basin_attr
         date_str = request.GET.get("date")
         formatted_date = date_str.replace("-", "")
         hrs = request.GET.get("hrs")
         get_data_path = get_seaffgs_data_path(date_str)
         seaffgs_data_path = f'{get_data_path}/{formatted_date}{hrs}.csv.gz'
         df1 = pd.read_csv(static_data_path)
-        df1[int_columns] = df1[int_columns].astype(int)
-        df1[float_columns] = df1[float_columns].astype(float)
-        df1[float_round_0_cols] = df1[float_round_0_cols].round(0)
-        df1[float_round_2_cols] = df1[float_round_2_cols].round(2)
-        df1.rename(columns={'value': 'BASIN'}, inplace=True)
+        df1.rename(columns={'bid': 'BASIN', 'iso': 'ISO', 'province': 'NAME_1', 'district': 'NAME_2'}, inplace=True)
         df2 = pd.read_csv(seaffgs_data_path)
         filtered_df2 = df2[selected_columns] 
         renamed_cols2 = filtered_df2.rename(columns=rename_mapping)
         s_df2 = renamed_cols2[["BASIN", "FFG06", "FFFT06"]]
         join_df = df1.merge(s_df2, on='BASIN', how='inner')
-        scols_ffg = join_df[['ID_2', 'ISO', 'NAME_1', 'NAME_2', 'M1', 'M2', 'M3', 'F1', 'F2', 'F3', 'RTP1', 'RTP2', 'RTP3', 'RTP4', 'Hospital', 'GDP', 'crop_sqm', 'FFG06']]
+        scols_ffg = join_df[['ISO', 'NAME_1', 'NAME_2', 'FFG06']]
         scols_ffft = join_df[['NAME_2', 'FFFT06']]
         grouped_max_FFG = scols_ffg.groupby(['NAME_2']).agg({
-            'ID_2': 'first',
             'ISO': 'first',
             'NAME_1': 'first',
-            'M1': 'sum',
-            'M2': 'sum',
-            'M3': 'sum',
-            'F1': 'sum',
-            'F2': 'sum',
-            'F3': 'sum',
-            'RTP1': 'sum',
-            'RTP2': 'sum',
-            'RTP3': 'sum',
-            'RTP4': 'sum',
-            'Hospital': 'sum',
-            'GDP': 'sum',
-            'crop_sqm': 'sum',
             'FFG06': 'min',
         }).reset_index()
         grouped_max_FFFT = scols_ffft.groupby(['NAME_2']).agg({'FFFT06': 'max'})
         join_max = grouped_max_FFG.merge(grouped_max_FFFT, on="NAME_2")
         join_max['Alert_6Hrs'] = join_max.apply(lambda row: assign_alert(row), axis=1)
         final_df = join_max.dropna(subset=['Alert_6Hrs'], how='all')
-        json_data = final_df.to_json(orient='records')
+        final_df = final_df.rename(columns={'Alert_6Hrs': 'Level'})
+        # Sort by 'NAME_1' and then 'NAME_2'
+        final_df = final_df.sort_values(by=['NAME_1', 'NAME_2', 'Level'])
+        # json = final_df.to_json(orient='records')
+        dict_data = final_df.to_dict(orient='records')
         return Response({
             "status": "success",
-            "data": json_data
+            "data": json
         })
     except Exception as e:
         return Response({
@@ -322,52 +330,39 @@ def get_risk_stat_12hrs(request):
         :rtype: Response
     """
     try:
-        static_data_path = mekongxray
+        static_data_path = basin_attr
         date_str = request.GET.get("date")
         formatted_date = date_str.replace("-", "")
         hrs = request.GET.get("hrs")
         get_data_path = get_seaffgs_data_path(date_str)
         seaffgs_data_path = f'{get_data_path}/{formatted_date}{hrs}.csv.gz'
         df1 = pd.read_csv(static_data_path)
-        df1[int_columns] = df1[int_columns].astype(int)
-        df1[float_columns] = df1[float_columns].astype(float)
-        df1[float_round_0_cols] = df1[float_round_0_cols].round(0)
-        df1[float_round_2_cols] = df1[float_round_2_cols].round(2)
-        df1.rename(columns={'value': 'BASIN'}, inplace=True)
+        df1.rename(columns={'bid': 'BASIN', 'iso': 'ISO', 'province': 'NAME_1', 'district': 'NAME_2'}, inplace=True)
         df2 = pd.read_csv(seaffgs_data_path)
         filtered_df2 = df2[selected_columns] 
         renamed_cols2 = filtered_df2.rename(columns=rename_mapping)
         s_df2 = renamed_cols2[["BASIN", "FFR12"]]
         join_df = df1.merge(s_df2, on='BASIN', how='inner')
-        scols = join_df[['ISO', 'ID_2', 'NAME_1', 'NAME_2', 'M1', 'M2', 'M3', 'F1', 'F2', 'F3', 'RTP1', 'RTP2', 'RTP3', 'RTP4', 'Hospital', 'GDP', 'crop_sqm', 'FFR12']]
+        scols = join_df[['ISO', 'NAME_1', 'NAME_2', 'FFR12']]
         grouped_max = scols.groupby(['NAME_2']).agg({
-            'ID_2': 'first',
             'ISO': 'first',
             'NAME_1': 'first',
-            'M1': 'sum',
-            'M2': 'sum',
-            'M3': 'sum',
-            'F1': 'sum',
-            'F2': 'sum',
-            'F3': 'sum',
-            'RTP1': 'sum',
-            'RTP2': 'sum',
-            'RTP3': 'sum',
-            'RTP4': 'sum',
-            'Hospital': 'sum',
-            'GDP': 'sum',
-            'crop_sqm': 'sum',
-            'FFR12': 'min',
+            'FFR12': 'max',
         }).reset_index()
-        bins = [-np.inf, 0.01, 0.2, 0.4, 1, np.inf]
-        labels = ['Invalid', 'High', 'Moderate', 'Low', 'Invalid']
+        
+        bins = [-np.inf, 0.01, 0.35, 0.75, 1, np.inf]
+        labels = ['Invalid', 'Low', 'Moderate', 'High', 'Invalid']
         grouped_max['Risk_12Hrs'] = pd.cut(grouped_max["FFR12"], bins=bins, labels=labels, right=True, ordered=False)
         grouped_max = grouped_max.replace('Invalid', np.nan)
         final_df = grouped_max.dropna(subset=['Risk_12Hrs'], how='all')
-        json_data = final_df.to_json(orient='records')
+        final_df = final_df.rename(columns={'Risk_12Hrs': 'Level'})
+        # Sort by 'NAME_1' and then 'NAME_2'
+        final_df = final_df.sort_values(by=['NAME_1', 'NAME_2', 'Level'])
+        # json = final_df.to_json(orient='records')
+        dict_data = final_df.to_dict(orient='records')
         return Response({
                 "status": "success",
-                "data": json_data
+                "data": dict_data
             })
     except Exception as e:
         return Response({
@@ -403,55 +398,153 @@ def get_risk_stat_24hrs(request):
         :rtype: Response
     """
     try:
-        static_data_path = mekongxray
+        static_data_path = basin_attr
         date_str = request.GET.get("date")
         formatted_date = date_str.replace("-", "")
         hrs = request.GET.get("hrs")
         get_data_path = get_seaffgs_data_path(date_str)
         seaffgs_data_path = f'{get_data_path}/{formatted_date}{hrs}.csv.gz'
         df1 = pd.read_csv(static_data_path)
-        df1[int_columns] = df1[int_columns].astype(int)
-        df1[float_columns] = df1[float_columns].astype(float)
-        df1[float_round_0_cols] = df1[float_round_0_cols].round(0)
-        df1[float_round_2_cols] = df1[float_round_2_cols].round(2)
-        df1.rename(columns={'value': 'BASIN'}, inplace=True)
+        df1.rename(columns={'bid': 'BASIN', 'iso': 'ISO', 'province': 'NAME_1', 'district': 'NAME_2'}, inplace=True)
         df2 = pd.read_csv(seaffgs_data_path)
         filtered_df2 = df2[selected_columns] 
         renamed_cols2 = filtered_df2.rename(columns=rename_mapping)
         s_df2 = renamed_cols2[["BASIN", "FFR24"]]
         join_df = df1.merge(s_df2, on='BASIN', how='inner')
-        scols = join_df[['ISO', 'ID_2', 'NAME_1', 'NAME_2', 'M1', 'M2', 'M3', 'F1', 'F2', 'F3', 'RTP1', 'RTP2', 'RTP3', 'RTP4', 'Hospital', 'GDP', 'crop_sqm', 'FFR24']]
+        scols = join_df[['ISO', 'NAME_1', 'NAME_2', 'FFR24']]
         grouped_max = scols.groupby(['NAME_2']).agg({
             'ISO': 'first',
-            'ID_2': 'first',
             'NAME_1': 'first',
-            'M1': 'sum',
-            'M2': 'sum',
-            'M3': 'sum',
-            'F1': 'sum',
-            'F2': 'sum',
-            'F3': 'sum',
-            'RTP1': 'sum',
-            'RTP2': 'sum',
-            'RTP3': 'sum',
-            'RTP4': 'sum',
-            'Hospital': 'sum',
-            'GDP': 'sum',
-            'crop_sqm': 'sum',
-            'FFR24': 'min',
+            'FFR24': 'max',
         }).reset_index()
-        bins = [-np.inf, 0.01, 0.2, 0.4, 1, np.inf]
-        labels = ['Invalid', 'High', 'Moderate', 'Low', 'Invalid']
+        
+        bins = [-np.inf, 0.01, 0.35, 0.75, 1, np.inf]
+        labels = ['Invalid', 'Low', 'Moderate', 'High', 'Invalid']
         grouped_max['Risk_24Hrs'] = pd.cut(grouped_max["FFR24"], bins=bins, labels=labels, right=True, ordered=False)
+        
         grouped_max = grouped_max.replace('Invalid', np.nan)
+        
         final_df = grouped_max.dropna(subset=['Risk_24Hrs'], how='all')
-        json_data = final_df.to_json(orient='records')
+        
+        final_df = final_df.rename(columns={'Risk_24Hrs': 'Level'})
+        # Sort by 'NAME_1' and then 'NAME_2'
+        final_df = final_df.sort_values(by=['NAME_1', 'NAME_2', 'Level'])
+        # json = final_df.to_json(orient='records')
+        dict_data = final_df.to_dict(orient='records')
         return Response({
                 "status": "success",
-                "data": json_data
+                "data": dict_data
             })
     except Exception as e:
         return Response({
             "status": "error",
             "message": str(e)
+        }, status=500)
+
+@swagger_auto_schema(
+    method='get',
+    operation_summary="Get Risk Map Data.",
+    manual_parameters=[
+        openapi.Parameter('param', in_=openapi.IN_QUERY, description='The parameter to be used for risk assessment. Valid values are: FFR12, FFR24.', type=openapi.TYPE_STRING, enum=['FFR12', 'FFR24']),
+        openapi.Parameter('date', in_=openapi.IN_QUERY, description='The date for which the data is requested (format: YYYY-MM-DD).', type=openapi.TYPE_STRING),
+        openapi.Parameter('hr', in_=openapi.IN_QUERY, description='The hour for which the data is requested.', type=openapi.TYPE_STRING),
+    ],
+    responses={
+        200: openapi.Response(description='OK - Successful response with risk map data', schema=openapi.Schema(
+            type=openapi.TYPE_OBJECT,
+            properties={
+                'status': openapi.Schema(type=openapi.TYPE_STRING),
+                'date': openapi.Schema(type=openapi.TYPE_STRING),
+                'hour': openapi.Schema(type=openapi.TYPE_STRING),
+                'returned_time': openapi.Schema(type=openapi.TYPE_STRING),
+                'data': openapi.Schema(type=openapi.TYPE_OBJECT)
+            }
+        )),
+        400: openapi.Response(description='Bad Request - Invalid input or missing parameters'),
+        404: openapi.Response(description='Not Found - Data not found'),
+        500: openapi.Response(description='Internal Server Error - Something went wrong'),
+    }
+)
+@api_view(['GET'])
+@authentication_classes([APIKeyAuthentication])
+# @permission_classes([IsAuthenticated])
+def get_risk_map(request):
+    """
+    Receives an HTTP request, reads basin and parameter data from CSV and parquet files, categorizes the parameter data,
+    merges the two dataframes on the 'BASIN' column, and returns the merged dataframe in JSON format.
+
+    The dataframe is modified to replace 'Invalid' values with NaN and drop rows where all risk categories are NaN.
+    The result is converted to GeoJSON format and returned.
+
+    :valid parms = ['FFR12', 'FFR24']
+    :param request: HTTP request
+    :return: Response containing merged dataframe in JSON format
+    :rtype: Response
+    """
+    try:
+        static_data_path = 'static/data/basins_with_attr.parquet'
+        param = request.GET.get("param")
+        date_str = request.GET.get("date")
+        formatted_date = date_str.replace("-", "")
+        hr = request.GET.get("hr")
+        get_data_path = get_seaffgs_data_path(date_str)
+        seaffgs_data_path = f'{get_data_path}/{formatted_date}{hr}.csv.gz'
+        
+        # Read the static data using Dask GeoPandas
+        df1 = dgpd.read_parquet(static_data_path).compute()
+        df2 = pd.read_csv(seaffgs_data_path)
+        filtered_df2 = df2[selected_columns] 
+        renamed_cols2 = filtered_df2.rename(columns=rename_mapping)
+        
+        if param == "FFG06":
+            s_df2 = renamed_cols2[["BASIN", "FFG06", "FFFT06"]]
+            join_df = df1.merge(s_df2, on='BASIN', how='inner')
+            join_df['level'] = join_df.apply(lambda row: assign_alert(row), axis=1)
+        else:
+            s_df2 = renamed_cols2[["BASIN", param]]
+            join_df = df1.merge(s_df2, on='BASIN', how='inner')
+            bins = [-np.inf, 0.01, 0.35, 0.75, 1, np.inf]
+            labels = ['Invalid', 'Low', 'Moderate', 'High', 'Invalid']
+            join_df['level'] = pd.cut(join_df[param], bins=bins, labels=labels, right=True, ordered=False)
+            join_df = join_df.replace('Invalid', np.nan)
+        
+        final_df = join_df.dropna(subset=['level'], how='all')
+        final_df['level'] = final_df['level'].astype(str)
+        final_df = final_df.rename(columns={param: 'value'})
+        final_df = final_df[['BASIN', 'value', 'province', 'district', 'country', 'level', 'geometry']]
+        geojson = final_df.to_json()
+        
+        # Get current time for returned_time
+        returned_time = datetime.utcnow().isoformat()
+
+        return Response({
+            "status": "success",
+            "date": date_str,
+            "hour": hr,
+            "returned_time": returned_time,
+            "data": orjson.loads(geojson)
+        })
+    
+    except FileNotFoundError as e:
+        return Response({
+            "status": "error",
+            "message": f"File not found: {str(e)}"
+        }, status=404)
+    
+    except pd.errors.EmptyDataError as e:
+        return Response({
+            "status": "error",
+            "message": f"Empty data error: {str(e)}"
+        }, status=400)
+    
+    except pd.errors.ParserError as e:
+        return Response({
+            "status": "error",
+            "message": f"Parsing error: {str(e)}"
+        }, status=400)
+    
+    except Exception as e:
+        return Response({
+            "status": "error",
+            "message": f"An unexpected error occurred: {str(e)}"
         }, status=500)
